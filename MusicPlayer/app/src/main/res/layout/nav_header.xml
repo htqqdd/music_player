@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="168dp">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:src = "@drawable/bg_nav_drawer"
+        android:scaleType="centerCrop"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="尽享音乐之美"
+        android:textSize="12sp"
+        android:id = "@+id/developernfo"
+        android:textColor="#FFF"
+        android:paddingLeft="16dp"
+        android:paddingBottom="16dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/developernfo"
+        android:text="音乐播放器"
+        android:textSize="16sp"
+        android:textColor="#FFF"
+        android:paddingLeft="16dp"/>
+
+</RelativeLayout>

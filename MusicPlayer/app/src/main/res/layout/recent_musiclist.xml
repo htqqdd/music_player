@@ -1,0 +1,65 @@
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="104dp"
+    android:layout_height="142dp"
+    app:cardCornerRadius="4dp"
+    android:layout_marginLeft="4dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:layout_marginRight="4dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/Recent_list_cover"
+            android:layout_width="match_parent"
+            android:layout_height="102dp"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/Recent_list_album"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/Recent_list_cover"
+            android:maxLines="1"
+            android:text="专辑名"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginBottom="2dp"
+            android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/Recent_list_singer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/Recent_list_album"
+            android:maxLines="1"
+            android:text="歌手名"
+            android:textSize="12sp"
+            android:layout_marginTop="0dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="30dp"
+            android:ellipsize="end"/>
+
+        <ImageView
+            android:id="@+id/Recent_list_button"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_centerVertical="true"
+            android:padding="5dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignTop="@id/Recent_list_album"
+            android:scaleType="centerCrop"
+            android:src="@drawable/about_grey"
+            android:background="?android:attr/selectableItemBackgroundBorderless"/>
+    </RelativeLayout>
+
+</android.support.v7.widget.CardView>

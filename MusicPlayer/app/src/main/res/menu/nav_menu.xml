@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="视图">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/suggestion_view"
+                    android:icon="@drawable/ic_library_music_black_24dp"
+                    android:title="建议曲目" />
+                <item
+                    android:id="@+id/music_list_view"
+                    android:icon="@drawable/ic_queue_music_black_24dp"
+                    android:title="本地列表" />
+                <item
+                    android:id="@+id/download_view"
+                    android:icon="@drawable/ic_cloud_black_24dp"
+                    android:title="全网资源" />
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="其他">
+        <menu>
+            <item
+                android:id="@+id/nav_settings"
+                android:icon="@drawable/ic_settings_black_24dp"
+                android:title="程序设置" />
+
+            <item
+                android:id="@+id/nav_about"
+                android:icon="@drawable/ic_perm_device_information_black_24dp"
+                android:title="关于程序" />
+
+        </menu>
+    </item>
+
+
+</menu>

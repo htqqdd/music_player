@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/setAsNext"
+        android:title="下一首播放"/>
+    <item
+        android:id="@+id/delete"
+        android:title="从设备删除"/>
+
+    <item
+        android:id="@+id/setAsRingtone"
+        android:title="设为铃声"/>
+    <item
+        android:id="@+id/musicInfo"
+        android:title="音乐详情"/>
+</menu>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:colorpicker="http://schemas.android.com/tools">
+    <PreferenceCategory
+        android:key="routine"
+        android:persistent="true"
+        android:title="常规">
+        <ListPreference
+            android:key="start_page"
+            android:summary="应用打开的第一界面"
+            android:title="起始页"
+            android:entries="@array/start_page_entries"
+            android:entryValues="@array/start_page_entries_value"
+            android:dialogTitle="起始页"
+            android:defaultValue="@string/start_page_entries_default" />
+        <ListPreference
+            android:key="suggestion"
+            android:summary="猜你喜欢和近期活动显示的歌曲"
+            android:title="建议歌曲"
+            android:entries="@array/suggestion_entries"
+            android:entryValues="@array/suggestion_entries_value"
+            android:dialogTitle="建议歌曲数目"
+            android:defaultValue="@string/suggestion_entries_default" />
+        <ListPreference
+            android:key="filtration"
+            android:summary="不显示时间过短的音乐"
+            android:title="音乐筛除"
+            android:entries="@array/music_filtration_entries"
+            android:entryValues="@array/music_filtration_entries_value"
+            android:dialogTitle="音乐筛除"
+            android:defaultValue="@string/music_filtration_entries_default" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="theme"
+        android:persistent="true"
+        android:title="主题">
+        <ListPreference
+            android:key="primary_color"
+            android:summary="主题的主色调，默认为绿色"
+            android:title="主题色"
+            android:entries="@array/color_entries"
+            android:entryValues="@array/color_entries_value"
+            android:dialogTitle="主题色"
+            android:defaultValue="@string/color_entries_primary_default"/>
+        <ListPreference
+            android:key="accent_color"
+            android:summary="主题的强调色，默认为粉红色"
+            android:title="强调色"
+            android:entries="@array/color_entries"
+            android:entryValues="@array/color_entries_value"
+            android:dialogTitle="强调色"
+            android:defaultValue="@string/color_entries_accent_default"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="sound"
+        android:persistent="true"
+        android:title="声音">
+        <SwitchPreference
+            android:key="lost_focus"
+            android:summaryOn="有通知、导航等时降低音乐的音量"
+            android:summaryOff="有通知、导航等时不降低音乐的音量"
+            android:title="短暂丢失音频焦点时降低音量"/>
+        <SwitchPreference
+            android:key="headset_unplug"
+            android:summaryOn="检测到耳机拔出时，暂停音乐的播放"
+            android:summaryOff="检测到耳机拔出时，音乐继续播放"
+            android:title="拔出耳机时暂停播放"/>
+    </PreferenceCategory>
+
+
+</PreferenceScreen>
