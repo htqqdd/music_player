@@ -40,12 +40,12 @@ public class AboutActivity extends MaterialAboutActivity {
                 .icon(R.mipmap.ic_launcher)
                 .build());
 
-        appCardBuilder.addItem(ConvenienceBuilder.createVersionActionItem(c, getResources().getDrawable(R.drawable.ic_info), "Version", false));
+        appCardBuilder.addItem(ConvenienceBuilder.createVersionActionItem(c, getResources().getDrawable(R.drawable.ic_info), "版本", false));
 
         appCardBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text("更新历史")
                 .icon(getResources().getDrawable(R.drawable.ic_changelog))
-                .setOnClickAction(ConvenienceBuilder.createWebViewDialogOnClickAction(c, "更新历史", "https://github.com/htqqdd/lixiangsoft/tree/master", true, false))
+                .setOnClickAction(ConvenienceBuilder.createWebViewDialogOnClickAction(c, "更新历史", "https://github.com/htqqdd/music_player/releases", true, false))
                 .build());
 
         appCardBuilder.addItem(new MaterialAboutActionItem.Builder()
@@ -92,14 +92,19 @@ public class AboutActivity extends MaterialAboutActivity {
 
         authorCardBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text("李翔")
-                .subText("China")
+                .subText("JiangSu Province China")
                 .icon(getResources().getDrawable(R.drawable.ic_person))
                 .build());
 
         authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,getResources().getDrawable(R.drawable.ic_web),
                 "访问网站",
                 true,
-                Uri.parse("https://github.com/htqqdd/lixiangsoft/tree/master")));
+                Uri.parse("https://github.com/htqqdd/music_player/releases")));
+
+        authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,getResources().getDrawable(R.drawable.ic_github),
+                "开源地址",
+                true,
+                Uri.parse("https://github.com/htqqdd/music_player")));
 
         authorCardBuilder.addItem(ConvenienceBuilder.createEmailItem(c,getResources().getDrawable(R.drawable.ic_mail),
                 "发送邮件",
