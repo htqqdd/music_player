@@ -15,6 +15,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -23,6 +24,8 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.annotation.ColorInt;
+import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -35,6 +38,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
@@ -53,13 +57,18 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+
+import com.afollestad.aesthetic.Aesthetic;
+import com.afollestad.aesthetic.AestheticActivity;
+import com.afollestad.aesthetic.BottomNavBgMode;
+import com.afollestad.aesthetic.BottomNavIconTextMode;
+import com.afollestad.aesthetic.NavigationViewMode;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.gyf.barlibrary.BarHide;
 import com.gyf.barlibrary.ImmersionBar;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-import org.polaric.colorful.CActivity;
-import org.polaric.colorful.Colorful;
 import org.w3c.dom.Text;
 
 import java.util.Calendar;
@@ -85,7 +94,7 @@ import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.DRAGGIN
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDED;
 
 @RuntimePermissions
-public class MainActivity extends CActivity {
+public class MainActivity extends AestheticActivity {
     private static SeekBar seekBar;;
     private ViewPager viewPager;
     private MsgReceiver msgReceiver;
@@ -107,6 +116,19 @@ public class MainActivity extends CActivity {
         Log.e("OnCreate执行", "OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (Aesthetic.isFirstTime()) {
+            Aesthetic.get()
+                    .colorPrimaryRes(R.color.md_teal_500)
+                    .colorAccentRes(R.color.md_pink_500)
+                    .colorStatusBarAuto()
+                    .apply();
+        }
+
+        //沉浸状态栏
+        View immersionView = findViewById(R.id.immersion_view);
+        ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).init();
+
 
         //初始化全局变量
         seekBar = (SeekBar) findViewById(R.id.seekBar);
@@ -314,7 +336,7 @@ public class MainActivity extends CActivity {
                         if (bundle.getBoolean("isFirst",true)){
                             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                             builder.setTitle("兼容性提醒");
-                            builder.setMessage("使用内置均衡器前，请确保未使用其他音效软件，否则可能因兼容性问题导致内置音效无效，所做更改也不会保存。\n\n若您仍想使用内置均衡器，请先禁用手机内其他音效软件。");
+                            builder.setMessage("使用内置均衡器前，请确保未使用其他音效软件，否则可能因兼容性问题导致应用崩溃。\n\n若您仍想使用内置均衡器，请先禁用手机内其他音效软件。");
                             builder.setPositiveButton("我已了解，不再提醒", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
@@ -331,7 +353,8 @@ public class MainActivity extends CActivity {
 
                                 }
                             });
-                            builder.show();}
+                            builder.show();
+                        }
                         else {
                             Intent intent = new Intent(MainActivity.this, EqualizerActivity.class);
                             startActivity(intent);
@@ -343,7 +366,6 @@ public class MainActivity extends CActivity {
             }
         });
 
-        new setColorTask().execute();
 
         if (Data.getState() == playing) {
             ChangeScrollingUpPanel(Data.getPosition());
@@ -399,7 +421,7 @@ public class MainActivity extends CActivity {
                 if (bundle.getBoolean("isFirst",true)){
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("兼容性提醒");
-                builder.setMessage("使用内置均衡器前，请确保未使用其他音效软件，否则可能因兼容性问题导致导致内置音效无效，所做更改也不会保存。\n\n若您仍想使用内置均衡器，请先禁用手机内其他音效软件。");
+                builder.setMessage("使用内置均衡器前，请确保未使用其他音效软件，否则可能因兼容性问题导致导致导致应用崩溃。\n\n若您仍想使用内置均衡器，请先禁用手机内其他音效软件。");
                 builder.setPositiveButton("我已了解，不再提醒", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
@@ -913,59 +935,65 @@ public class MainActivity extends CActivity {
         mTimer.schedule(task,0,1000);
     }
 
-    private class setColorTask extends AsyncTask{
-        @Override
-        protected Object doInBackground(Object[] objects) {
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-            String primary_color = sharedPref.getString("primary_color", "");
-            switch (primary_color) {
-                case "red":
-                    return R.color.md_red_500;
-                case "pink":
-                    return R.color.md_pink_500;
-                case "purple":
-                    return R.color.md_purple_500;
-                case "deep_purple":
-                    return R.color.md_deep_purple_500;
-                case "indigo":
-                    return R.color.md_indigo_500;
-                case "blue":
-                    return R.color.md_blue_500;
-                case "light_blue":
-                    return R.color.md_light_blue_500;
-                case "cyan":
-                    return R.color.md_cyan_500;
-                case "teal":
-                    return R.color.md_teal_500;
-                case "green":
-                    return R.color.md_green_500;
-                case "light_green":
-                    return R.color.md_light_green_500;
-                case "lime":
-                    return R.color.md_lime_500;
-                case "yellow":
-                    return R.color.md_yellow_500;
-                case "amber":
-                    return R.color.md_amber_500;
-                case "orange":
-                    return R.color.md_orange_500;
-                case "deep_orange":
-                    return R.color.md_deep_orange_500;
-                default:
-            }
-            return R.color.md_teal_500;
-        }
-
-        @Override
-        protected void onPostExecute(Object o) {
-            super.onPostExecute(o);
-            int color = getResources().getColor((int)o);
-            View immersionView = findViewById(R.id.immersion_view);
-            immersionView.setBackgroundColor(color);
-            //沉浸状态栏
-            ImmersionBar.with(MainActivity.this).barAlpha(0.3f).statusBarView(R.id.immersion_view).navigationBarColorInt(color).init();
-            Data.setColorPrimarySetted(getResources().getColor((int) o));
-        }
-    }
+//    private class setColorTask extends AsyncTask{
+//        @Override
+//        protected Object doInBackground(Object[] objects) {
+//            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+//            String primary_color = sharedPref.getString("primary_color", "");
+//            switch (primary_color) {
+//                case "red":
+//                    return R.color.md_red_500;
+//                case "pink":
+//                    return R.color.md_pink_500;
+//                case "purple":
+//                    return R.color.md_purple_500;
+//                case "deep_purple":
+//                    return R.color.md_deep_purple_500;
+//                case "indigo":
+//                    return R.color.md_indigo_500;
+//                case "blue":
+//                    return R.color.md_blue_500;
+//                case "light_blue":
+//                    return R.color.md_light_blue_500;
+//                case "cyan":
+//                    return R.color.md_cyan_500;
+//                case "teal":
+//                    return R.color.md_teal_500;
+//                case "green":
+//                    return R.color.md_green_500;
+//                case "light_green":
+//                    return R.color.md_light_green_500;
+//                case "lime":
+//                    return R.color.md_lime_500;
+//                case "yellow":
+//                    return R.color.md_yellow_500;
+//                case "amber":
+//                    return R.color.md_amber_500;
+//                case "orange":
+//                    return R.color.md_orange_500;
+//                case "deep_orange":
+//                    return R.color.md_deep_orange_500;
+//                default:
+//            }
+//            return R.color.md_teal_500;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Object o) {
+//            super.onPostExecute(o);
+//            int color = getResources().getColor((int) o);
+//
+////            immersionView.setBackgroundColor(shiftColor(color, 0.9f));
+//
+//            Data.setColorPrimarySetted(getResources().getColor((int) o));
+//        }
+//    }
+//    static int shiftColor(@ColorInt int color, @FloatRange(from = 0.0f, to = 2.0f) float by) {
+//        if (by == 1f) return color;
+//        float[] hsv = new float[3];
+//        Color.colorToHSV(color, hsv);
+//        hsv[2] *= by; // value component
+//        return Color.HSVToColor(hsv);
+//    }
 
 }

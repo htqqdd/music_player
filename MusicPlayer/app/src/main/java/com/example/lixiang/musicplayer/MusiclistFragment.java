@@ -28,6 +28,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.aesthetic.Aesthetic;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
 import org.polaric.colorful.Colorful;
@@ -74,8 +75,6 @@ public class MusiclistFragment extends Fragment {
         intentFilter2.addAction("ChangeUI_broadcast");
         getActivity().registerReceiver(uiReceiver, intentFilter2);
 
-        new getColorTask().execute();
-
         View rootView = inflater.inflate(R.layout.fragment_musiclist, container, false);
         fastScrollRecyclerView = (FastScrollRecyclerView) rootView.findViewById(R.id.fastScrollRecyclerView);
 
@@ -85,6 +84,12 @@ public class MusiclistFragment extends Fragment {
 
         return rootView;
 
+    }
+
+    @Override
+    public void onStart() {
+        new getColorTask().execute();
+        super.onStart();
     }
 
     private class UIReceiver extends BroadcastReceiver {
@@ -112,52 +117,24 @@ public class MusiclistFragment extends Fragment {
         @Override
         protected Object doInBackground(Object[] objects) {
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String accent_color = sharedPref.getString("accent_color", "");
-            switch (accent_color) {
-                case "red":
-                    return R.color.md_red_500;
-                case "pink":
-                    return R.color.md_pink_500;
-                case "purple":
-                    return R.color.md_purple_500;
-                case "deep_purple":
-                    return R.color.md_deep_purple_500;
-                case "indigo":
-                    return R.color.md_indigo_500;
-                case "blue":
-                    return R.color.md_blue_500;
-                case "light_blue":
-                    return R.color.md_light_blue_500;
-                case "cyan":
-                    return R.color.md_cyan_500;
-                case "teal":
-                    return R.color.md_teal_500;
-                case "green":
-                    return R.color.md_green_500;
-                case "light_green":
-                    return R.color.md_light_green_500;
-                case "lime":
-                    return R.color.md_lime_500;
-                case "yellow":
-                    return R.color.md_yellow_500;
-                case "amber":
-                    return R.color.md_amber_500;
-                case "orange":
-                    return R.color.md_orange_500;
-                case "deep_orange":
-                    return R.color.md_deep_orange_500;
-                default:
+            int accent_color = sharedPref.getInt("accent_color", 0);
+            if (accent_color != 0){
+                return accent_color;
+            } else {
+                return null;
             }
-            return R.color.md_pink_500;
         }
 
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
-            int color = getResources().getColor((int) o);
-            fastScrollRecyclerView.setThumbColor(color);
-            fastScrollRecyclerView.setPopupBgColor(color);
-            Data.setColorAccentSetted(getResources().getColor((int) o));
+            if (o == null){
+                fastScrollRecyclerView.setThumbColor(getResources().getColor(R.color.colorAccent));
+                fastScrollRecyclerView.setPopupBgColor(getResources().getColor(R.color.colorAccent));
+            }else {
+                fastScrollRecyclerView.setThumbColor((int) o);
+                fastScrollRecyclerView.setPopupBgColor((int) o);
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.example.lixiang.musicplayer;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -55,8 +56,15 @@ public class AboutActivity extends MaterialAboutActivity {
                     @Override
                     public void onClick() {
                         AlertDialog.Builder alert = new AlertDialog.Builder(AboutActivity.this);
-                        alert.setTitle("使用本应用即表示您同意以下条款");
-                        alert.setMessage("本应用纯属娱乐，严禁用于任何商业用途。\n\n应用内歌曲搜索功能来自互联网WebView，应用自身不提供歌曲搜索下载功能。\n\n如在不经意间侵犯了您的利益，请通过下方联系方式通知我，我将于24h内删除该功能。");
+                        alert.setTitle("许可信息");
+                        alert.setMessage("使用本应用即表示您同意以下条款：\n\n本应用纯属娱乐，严禁用于任何商业用途。\n应用内歌曲搜索功能来自互联网WebView，应用自身不提供歌曲搜索下载功能。\n如在不经意间侵犯了您的利益，请通过下方联系方式通知我，我将于24h内删除该功能。");
+                        alert.setPositiveButton("我同意", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        });
+                        alert.show();
                     }
                 })
                 .build());
@@ -79,7 +87,6 @@ public class AboutActivity extends MaterialAboutActivity {
                         phoneInfo += "MANUFACTURE: " + android.os.Build.MANUFACTURER + "\n";
                         intent.putExtra(Intent.EXTRA_TEXT, "设备信息:" + "\n" + phoneInfo + "\n" + "\n" + "反馈信息:" + "\n"); // 正文
                         startActivity(Intent.createChooser(intent, "请选择邮件类应用"));
-                        Toast.makeText(c, "测试", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .build());
@@ -99,7 +106,7 @@ public class AboutActivity extends MaterialAboutActivity {
         authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,getResources().getDrawable(R.drawable.ic_web),
                 "访问网站",
                 true,
-                Uri.parse("https://github.com/htqqdd/music_player/releases")));
+                Uri.parse("https://www.pgyer.com/lx_mp")));
 
         authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,getResources().getDrawable(R.drawable.ic_github),
                 "开源地址",
@@ -111,12 +118,6 @@ public class AboutActivity extends MaterialAboutActivity {
                 true,
                 "htqqdd@gmail.com",
                 "关于音乐播放器"));
-
-//        authorCardBuilder.addItem(ConvenienceBuilder.createPhoneItem(c,getResources().getDrawable(R.drawable.ic_phone),
-//                "联系方式",
-//                true,
-//                "+86 159 9696 3273"));
-
 
 
         return new MaterialAboutList(appCardBuilder.build(), authorCardBuilder.build());

@@ -111,7 +111,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(STREAM_MUSIC);
         audioSessionId = mediaPlayer.getAudioSessionId();
-        initialAudioEffect(audioSessionId);
+//        initialAudioEffect(audioSessionId);
         mediaPlayer.setOnPreparedListener(this);
         mediaPlayer.setOnCompletionListener(this);
         mediaPlayer.setOnErrorListener(this);
@@ -671,10 +671,16 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     }
 
     public void setEqualizer(boolean b) {
+        if (mEqualizer == null){
+            mEqualizer = new Equalizer(0, audioSessionId);
+        }
         mEqualizer.setEnabled(b);
     }
 
     public void setEqualizerBandLevel(Short band, Short level) {
+        if (mEqualizer == null){
+            mEqualizer = new Equalizer(0, audioSessionId);
+        }
         mEqualizer.setBandLevel(band, level);
     }
 
@@ -691,25 +697,45 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     }
 
     public void setBass(boolean b) {
+        if (mBass == null){
+            mBass = new BassBoost(0,audioSessionId);
+        }
+        if (loudnessEnhancer == null){
+            loudnessEnhancer = new LoudnessEnhancer(audioSessionId);
+        }
         mBass.setEnabled(b);
         loudnessEnhancer.setEnabled(b || mVirtualizer.getEnabled());
     }
 
     public void setBassStrength(Short strength) {
+        if (mBass == null){
+            mBass = new BassBoost(0,audioSessionId);
+        }
         mBass.setStrength(strength);
     }
 
     public void setVirtualizer(Boolean b) {
+        if (loudnessEnhancer == null){
+            loudnessEnhancer = new LoudnessEnhancer(audioSessionId);
+        }
+        if (mVirtualizer == null){
+            mVirtualizer = new Virtualizer(0,audioSessionId);
+        }
         mVirtualizer.setEnabled(b);
         loudnessEnhancer.setEnabled(b || mBass.getEnabled());
     }
 
-    public void setVirtualizerStrength(Short s){mVirtualizer.setStrength(s);}
+    public void setVirtualizerStrength(Short s){
+        if (mVirtualizer == null){
+            mVirtualizer = new Virtualizer(0,audioSessionId);
+        }
+        mVirtualizer.setStrength(s);
+    }
 
     private void getPreference(){
         SharedPreferences bundle = this.getSharedPreferences("audioEffect",MODE_PRIVATE);
         //均衡器
-        if (!bundle.getBoolean("Equalizer",false)){
+        if (bundle.getBoolean("Equalizer",false) == false){
             if (mEqualizer !=null){
             mEqualizer.setEnabled(false);
             }
@@ -808,7 +834,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         }
 
         //低音增强
-        if (!bundle.getBoolean("Bass",false)){
+        if (bundle.getBoolean("Bass",false) == false){
             if (mBass !=null){
                 mBass.setEnabled(false);
             }
@@ -821,7 +847,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         }
 
         //虚拟环绕
-        if (!bundle.getBoolean("Virtualizer",false)){
+        if (bundle.getBoolean("Virtualizer",false) == false){
             if (mVirtualizer !=null){
                 mVirtualizer.setEnabled(false);
             }
@@ -834,7 +860,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         }
 
         //超强音量
-        if (!(bundle.getBoolean("Bass",false) || bundle.getBoolean("Virtualizer",false))){
+        if ((bundle.getBoolean("Bass",false) || bundle.getBoolean("Virtualizer",false))  == false){
             if (loudnessEnhancer !=null){
                 loudnessEnhancer.setEnabled(false);
             }

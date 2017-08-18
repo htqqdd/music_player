@@ -62,8 +62,6 @@ public class Data {
     private static List<music_playtimes> Timessublist;
     private static ArrayList<music_playtimes> playtimesArrayList;
     private static SharedPreferences playtimes;
-    public static int colorPrimarySetted;
-    public static int colorAccentSetted = R.color.md_pink_500;
 
 
     public static boolean isHasInitialized() {return hasInitialized;}
@@ -81,8 +79,6 @@ public class Data {
     public static int getRecent_position(){return Recent_position;}
     public static int getFavourite_position(){return  Favourite_position;}
     public static boolean getServiceState() {return serviceStarted;}
-    public static int getColorPrimarySetted() {return colorPrimarySetted;}
-    public static int getColorAccentSetted() {return colorAccentSetted;}
     public static int getId (int position){
         return musicInfoArrayList.get(position).getMusicId();
     }
@@ -100,19 +96,9 @@ public class Data {
     public static String getAlbum (int position) {return  musicInfoArrayList.get(position).getMusicAlbum();}
     public static int getDuration (int position) {return  musicInfoArrayList.get(position).getMusicDuration();}
     public static int getTotalNumber () {return musicInfoArrayList.size();}
-    public static Cursor getCursor (){
-        return cursor;
-    }
     public static List<music_date> getDateSublist() {return  Datesublist;}
     public static List<music_playtimes> getTimessublist() {return  Timessublist;}
-    public static ArrayList<music_playtimes> getTimeslist() {return playtimesArrayList;}
 
-    public static void set_mediaDuration(int media_duration) {
-        Data.mediaDuration = media_duration;
-    }
-    public static void set_mediaCurrentPosition(int media_CurrentPosition) {
-        Data.mediaCurrentPosition = media_CurrentPosition;
-    }
     public static void setPlayMode(int playMode){
         Data.playMode = playMode;
     }
@@ -128,8 +114,6 @@ public class Data {
     public static void setRecent_position(int position){Data.Recent_position = position;}
     public static void setFavourite_position(int position){Data.Favourite_position = position;}
     public static void setServiceStarted(boolean true_or_false){Data.serviceStarted = true_or_false;}
-    public static void setColorPrimarySetted(int color){Data.colorPrimarySetted = color;}
-    public static void setColorAccentSetted(int color){Data.colorAccentSetted = color;}
 
     public static void initialMusicInfo(Service context){
         Log.v("Context123","Context是"+context);
@@ -170,7 +154,7 @@ public class Data {
         initialMusicPlaytimes(context);
         hasInitialized = true;
     }
-    public static void initialMusicInfo(Activity context){
+    public static void initialMusicInfo(Context context){
         musicInfoArrayList = new ArrayList<musicInfo>();
         int filter_duration = 30000;
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
@@ -300,7 +284,7 @@ public class Data {
         if (number > playtimesArrayList.size()){ number = playtimesArrayList.size();}
         Timessublist = playtimesArrayList.subList(0,number);
     }
-    public static void initialMusicPlaytimes(Activity context){
+    public static void initialMusicPlaytimes(Context context){
         int number = 18;
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         String suggestion = sharedPref.getString("suggestion", "");

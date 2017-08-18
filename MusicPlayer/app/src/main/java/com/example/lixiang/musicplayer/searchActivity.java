@@ -9,12 +9,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import org.polaric.colorful.CActivity;
+import com.afollestad.aesthetic.AestheticActivity;
 
-import static com.example.lixiang.musicplayer.R.id.recent;
-import static com.example.lixiang.musicplayer.R.id.settings_toolbar;
 
-public class searchActivity extends CActivity implements SearchView.OnQueryTextListener{
+public class searchActivity extends AestheticActivity implements SearchView.OnQueryTextListener{
     private SearchView searchView;
     private searchAdapter mSearchAdapter;
 

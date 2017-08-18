@@ -5,13 +5,14 @@
     android:layout_height="168dp">
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="match_parent"
         android:src = "@drawable/bg_nav_drawer"
         android:scaleType="centerCrop"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:tag=":aesthetic_ignore"
         android:text="尽享音乐之美"
         android:textSize="12sp"
         android:id = "@+id/developernfo"
@@ -22,6 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/developernfo"
+        android:tag=":aesthetic_ignore"
         android:text="音乐播放器"
         android:textSize="16sp"
         android:textColor="#FFF"

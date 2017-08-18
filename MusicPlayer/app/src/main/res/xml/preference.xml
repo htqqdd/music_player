@@ -35,22 +35,32 @@
         android:key="theme"
         android:persistent="true"
         android:title="主题">
-        <ListPreference
-            android:key="primary_color"
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:defaultValue="@color/colorPrimary"
+            android:key="default_color"
             android:summary="主题的主色调，默认为绿色"
-            android:title="主题色"
-            android:entries="@array/color_entries"
-            android:entryValues="@array/color_entries_value"
-            android:dialogTitle="主题色"
-            android:defaultValue="@string/color_entries_primary_default"/>
-        <ListPreference
+            android:title="主题色"/>
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:defaultValue="@color/colorAccent"
             android:key="accent_color"
             android:summary="主题的强调色，默认为粉红色"
-            android:title="强调色"
-            android:entries="@array/color_entries"
-            android:entryValues="@array/color_entries_value"
-            android:dialogTitle="强调色"
-            android:defaultValue="@string/color_entries_accent_default"/>
+            android:title="强调色"/>
+        <!--<ListPreference-->
+            <!--android:key="primary_color"-->
+            <!--android:summary="主题的主色调，默认为绿色"-->
+            <!--android:title="主题色"-->
+            <!--android:entries="@array/color_entries"-->
+            <!--android:entryValues="@array/color_entries_value"-->
+            <!--android:dialogTitle="主题色"-->
+            <!--android:defaultValue="@string/color_entries_primary_default"/>-->
+        <!--<ListPreference-->
+            <!--android:key="accent_color"-->
+            <!--android:summary="主题的强调色，默认为粉红色"-->
+            <!--android:title="强调色"-->
+            <!--android:entries="@array/color_entries"-->
+            <!--android:entryValues="@array/color_entries_value"-->
+            <!--android:dialogTitle="强调色"-->
+            <!--android:defaultValue="@string/color_entries_accent_default"/>-->
     </PreferenceCategory>
     <PreferenceCategory
         android:key="sound"

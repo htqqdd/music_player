@@ -1,8 +1,12 @@
 package com.example.lixiang.musicplayer;
 
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -10,17 +14,25 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
-import static com.example.lixiang.musicplayer.R.id.fastScrollRecyclerView;
+
+import es.dmoral.toasty.Toasty;
+
+import static android.view.View.GONE;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -35,29 +47,41 @@ public class DownloadFragment extends Fragment {
     private View rootView;
     private WebView webView;
     private SwipeRefreshLayout refresh;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_download, container, false);
-
         refresh = (SwipeRefreshLayout) rootView.findViewById(R.id.refresh);
         webView = (WebView) rootView.findViewById(R.id.webView);
-        //设置 缓存模式
-        webView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
-        // 开启 DOM storage API 功能
-        webView.getSettings().setDomStorageEnabled(true);
         //开启JavaScript
         webView.getSettings().setJavaScriptEnabled(true);
         webView.loadUrl("http://music.2333.me/");
-//        webView.setWebChromeClient(new WebChromeClient(){
-//            @Override
-//            public void onProgressChanged(WebView view, int newProgress) {
-//
-//                super.onProgressChanged(view, newProgress);
-//            }
-//        });
+        webView.setWebChromeClient(new WebChromeClient(){
+            @Override
+            public void onReceivedTitle(WebView view, String title) {
+                if(!TextUtils.isEmpty(title)&&(title.contains("找不到网页") || title.toLowerCase().contains("error"))){
+                    webView.loadUrl("about:blank");
+                    webView.invalidate();
+                    if (!hasNetwork(getActivity())){
+                        Toasty.error(getActivity(),"请检查您的网络连接", Toast.LENGTH_SHORT,true).show();
+                    } else {
+                        Toasty.info(getActivity(),"服务器开小差了，请稍后再试", Toast.LENGTH_SHORT,true).show();
+                    }
+                    Log.v("标题","错误");
+                }
+                super.onReceivedTitle(view, title);
+            }
+
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                if (newProgress >75){
+                    refresh.setRefreshing(false);
+                    webView.setVisibility(View.VISIBLE);
+                }
+                super.onProgressChanged(view, newProgress);
+            }
+        });
 
         webView.setWebViewClient(new WebViewClient(){
             @Override
@@ -84,12 +108,27 @@ public class DownloadFragment extends Fragment {
                 clean(view);
                 super.onPageFinished(view, url);
             }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                webView.loadUrl("about:blank");
+                webView.invalidate();
+                if (!hasNetwork(getActivity())){
+                    Toasty.error(getActivity(),"请检查您的网络连接", Toast.LENGTH_SHORT,true).show();
+                } else {
+                    Toasty.info(getActivity(),"服务器开小差了，请稍后再试", Toast.LENGTH_SHORT,true).show();
+                }
+
+                Log.v("错误","错误");
+                super.onReceivedError(view, request, error);
+            }
         });
 
         refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                webView.reload();
+                webView.setVisibility(GONE);
+                webView.loadUrl("http://music.2333.me/");
             }
         });
 
@@ -102,8 +141,8 @@ public class DownloadFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        if (webView !=null){
-            webView.loadDataWithBaseURL(null,"","text/html","utf-8",null);
+        if (webView != null) {
+            webView.loadDataWithBaseURL(null, "", "text/html", "utf-8", null);
             webView.clearHistory();
             webView.destroy();
             webView = null;
@@ -111,7 +150,7 @@ public class DownloadFragment extends Fragment {
         super.onDestroy();
     }
 
-    private void clean(WebView view){
+    private void clean(WebView view) {
         //网页头部
         view.loadUrl("JavaScript:function setTop(){document.querySelector('body > header').style.display=\"none\";}setTop();");
         //介绍头部
@@ -127,54 +166,37 @@ public class DownloadFragment extends Fragment {
     }
 
 
-    private class getColorTask extends AsyncTask{
+    private class getColorTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String accent_color = sharedPref.getString("accent_color", "");
-            switch (accent_color) {
-                case "red":
-                    return R.color.md_red_500;
-                case "pink":
-                    return R.color.md_pink_500;
-                case "purple":
-                    return R.color.md_purple_500;
-                case "deep_purple":
-                    return R.color.md_deep_purple_500;
-                case "indigo":
-                    return R.color.md_indigo_500;
-                case "blue":
-                    return R.color.md_blue_500;
-                case "light_blue":
-                    return R.color.md_light_blue_500;
-                case "cyan":
-                    return R.color.md_cyan_500;
-                case "teal":
-                    return R.color.md_teal_500;
-                case "green":
-                    return R.color.md_green_500;
-                case "light_green":
-                    return R.color.md_light_green_500;
-                case "lime":
-                    return R.color.md_lime_500;
-                case "yellow":
-                    return R.color.md_yellow_500;
-                case "amber":
-                    return R.color.md_amber_500;
-                case "orange":
-                    return R.color.md_orange_500;
-                case "deep_orange":
-                    return R.color.md_deep_orange_500;
-                default:
+            int accent_color = sharedPref.getInt("accent_color", 0);
+            if (accent_color != 0) {
+                return accent_color;
+            } else {
+                return null;
             }
-            return R.color.md_pink_500;
         }
 
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
-            int color = getResources().getColor((int)o);
-            refresh.setColorSchemeColors(color);
+            if (o !=null){
+            refresh.setColorSchemeColors((int) o);
+            } else {
+                refresh.setColorSchemeColors(getResources().getColor(R.color.colorAccent));
+            }
         }
+    }
+
+    private boolean hasNetwork(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            if (networkInfo != null) {
+                return networkInfo.getState() == NetworkInfo.State.CONNECTED;
+            }
+        }
+        return false;
     }
 }

@@ -65,45 +65,6 @@
     </string-array>
     <string name="suggestion_entries_default">eighteen</string>
 
-    <string-array name="color_entries">
-        <item>红色</item>
-        <item>粉色</item>
-        <item>紫色</item>
-        <item>深紫</item>
-        <item>靛蓝</item>
-        <item>蓝色</item>
-        <item>亮蓝</item>
-        <item>青色</item>
-        <item>鸭绿</item>
-        <item>绿色</item>
-        <item>亮绿</item>
-        <item>酸橙</item>
-        <item>黄色</item>
-        <item>琥珀</item>
-        <item>橙色</item>
-        <item>暗橙</item>
-    </string-array>
-    <string-array name="color_entries_value">
-        <item>red</item>
-        <item>pink</item>
-        <item>purple</item>
-        <item>deep_purple</item>
-        <item>indigo</item>
-        <item>blue</item>
-        <item>light_blue</item>
-        <item>cyan</item>
-        <item>teal</item>
-        <item>green</item>
-        <item>light_green</item>
-        <item>lime</item>
-        <item>yellow</item>
-        <item>amber</item>
-        <item>orange</item>
-        <item>deep_orange</item>
-    </string-array>
-    <string name="color_entries_primary_default">teal</string>
-    <string name="color_entries_accent_default">pink</string>
-
 
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>

@@ -24,6 +24,7 @@
             android:layout_marginRight="50dp"
             android:gravity="bottom"
             android:text = "歌曲名"
+            android:tag=":aesthetic_ignore"
             android:textSize="14sp"
             android:textColor="#000000"
             android:id="@+id/list_song"

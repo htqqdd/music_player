@@ -6,15 +6,15 @@
                 <item
                     android:id="@+id/suggestion_view"
                     android:icon="@drawable/ic_library_music_black_24dp"
-                    android:title="建议曲目" />
+                    android:title="建议曲目"/>
                 <item
                     android:id="@+id/music_list_view"
                     android:icon="@drawable/ic_queue_music_black_24dp"
-                    android:title="本地列表" />
+                    android:title="本地列表"/>
                 <item
                     android:id="@+id/download_view"
                     android:icon="@drawable/ic_cloud_black_24dp"
-                    android:title="全网资源" />
+                    android:title="全网资源"/>
             </group>
         </menu>
     </item>

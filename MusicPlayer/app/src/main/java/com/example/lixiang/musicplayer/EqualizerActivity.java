@@ -31,7 +31,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.polaric.colorful.CActivity;
+import com.afollestad.aesthetic.AestheticActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +39,10 @@ import java.util.List;
 import static android.view.View.GONE;
 import static com.example.lixiang.musicplayer.R.id.equalizer;
 import static com.example.lixiang.musicplayer.R.id.equalizer_spinner;
-import static com.example.lixiang.musicplayer.R.id.seekBar;
 import static com.example.lixiang.musicplayer.R.id.spinner;
 import static com.example.lixiang.musicplayer.R.id.virtualizer_seekbar;
 
-public class EqualizerActivity extends CActivity {
+public class EqualizerActivity extends AestheticActivity {
     private PlayService playService;
     private int audioSessionId = 0;
     private Equalizer mEqualizer;
@@ -55,7 +54,7 @@ public class EqualizerActivity extends CActivity {
     private Spinner spinner;
     private SwitchCompat bassboost;
     private SeekBar bass_seekbar;
-//    private SwitchCompat loudEnhancer;
+    //    private SwitchCompat loudEnhancer;
 //    private SeekBar enhancer_seekbar;
     private SwitchCompat virtualizer;
     private SeekBar virtualizer_seekbar;
@@ -78,30 +77,18 @@ public class EqualizerActivity extends CActivity {
         virtualizer = (SwitchCompat) findViewById(R.id.Virtualizer);
         virtualizer_seekbar = (SeekBar) findViewById(R.id.virtualizer_seekbar);
 
-        TextView title_a = (TextView) findViewById(R.id.equalizer_title_a);
-        TextView title_b = (TextView) findViewById(R.id.equalizer_title_b);
-        TextView title_c = (TextView) findViewById(R.id.equalizer_title_c);
-        title_a.setTextColor(Data.getColorAccentSetted());
-        title_b.setTextColor(Data.getColorAccentSetted());
-        title_c.setTextColor(Data.getColorAccentSetted());
-
-
-
-
-
-
 
         //绑定服务
         Intent bindIntent = new Intent(EqualizerActivity.this, PlayService.class);
         bindService(bindIntent, conn, BIND_AUTO_CREATE);
 
         //新标题栏
-        Toolbar equalizer_toolbar = (Toolbar) findViewById(R.id.equalizer_toolbar);
-        equalizer_toolbar.setTitle("均衡器");
-        equalizer_toolbar.setTitleTextColor(getResources().getColor(R.color.colorCustomAccent));
-        setSupportActionBar(equalizer_toolbar);
-        getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        Toolbar equalizer_toolbar = (Toolbar) findViewById(R.id.equalizer_toolbar);
+//        equalizer_toolbar.setTitle("均衡器");
+//        equalizer_toolbar.setTitleTextColor(getResources().getColor(R.color.colorCustomAccent));
+//        setSupportActionBar(equalizer_toolbar);
+//        getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
         bass_seekbar.setMax(1000);
@@ -111,280 +98,6 @@ public class EqualizerActivity extends CActivity {
 //        new getPreferenceTask().execute();
 
 
-        //音场
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if (seekBars !=null) {
-                    switch (i) {
-                        case 0:
-                            seekBars[0].setProgress(1800);
-                            seekBars[1].setProgress(1500);
-                            seekBars[2].setProgress(1500);
-                            seekBars[3].setProgress(1500);
-                            seekBars[4].setProgress(1800);
-                            return;
-                        case 1:
-                            seekBars[0].setProgress(2000);
-                            seekBars[1].setProgress(1800);
-                            seekBars[2].setProgress(1300);
-                            seekBars[3].setProgress(1900);
-                            seekBars[4].setProgress(1900);
-                            return;
-                        case 2:
-                            seekBars[0].setProgress(2100);
-                            seekBars[1].setProgress(1500);
-                            seekBars[2].setProgress(1700);
-                            seekBars[3].setProgress(1900);
-                            seekBars[4].setProgress(1600);
-                            return;
-                        case 3:
-                            seekBars[0].setProgress(1500);
-                            seekBars[1].setProgress(1500);
-                            seekBars[2].setProgress(1500);
-                            seekBars[3].setProgress(1500);
-                            seekBars[4].setProgress(1500);
-                            return;
-                        case 4:
-                            seekBars[0].setProgress(1800);
-                            seekBars[1].setProgress(1500);
-                            seekBars[2].setProgress(1500);
-                            seekBars[3].setProgress(1700);
-                            seekBars[4].setProgress(1400);
-                            return;
-                        case 5:
-                            seekBars[0].setProgress(1900);
-                            seekBars[1].setProgress(1600);
-                            seekBars[2].setProgress(2600);
-                            seekBars[3].setProgress(1800);
-                            seekBars[4].setProgress(1500);
-                            return;
-                        case 6:
-                            seekBars[0].setProgress(2000);
-                            seekBars[1].setProgress(1800);
-                            seekBars[2].setProgress(1500);
-                            seekBars[3].setProgress(1600);
-                            seekBars[4].setProgress(1800);
-                            return;
-                        case 7:
-                            seekBars[0].setProgress(1900);
-                            seekBars[1].setProgress(1700);
-                            seekBars[2].setProgress(1300);
-                            seekBars[3].setProgress(1700);
-                            seekBars[4].setProgress(2000);
-                            return;
-                        case 8:
-                            seekBars[0].setProgress(1400);
-                            seekBars[1].setProgress(1700);
-                            seekBars[2].setProgress(2000);
-                            seekBars[3].setProgress(1600);
-                            seekBars[4].setProgress(1300);
-                            return;
-                        case 9:
-                            seekBars[0].setProgress(2000);
-                            seekBars[1].setProgress(1800);
-                            seekBars[2].setProgress(1400);
-                            seekBars[3].setProgress(1800);
-                            seekBars[4].setProgress(2000);
-                            return;
-                        case 10:
-                            seekBars[0].setProgress(1500);
-                            seekBars[1].setProgress(2300);
-                            seekBars[2].setProgress(1900);
-                            seekBars[3].setProgress(1600);
-                            seekBars[4].setProgress(2500);
-                            return;
-                        case 11:
-                            seekBars[0].setProgress(1330);
-                            seekBars[1].setProgress(1770);
-                            seekBars[2].setProgress(1550);
-                            seekBars[3].setProgress(1280);
-                            seekBars[4].setProgress(1700);
-                            return;
-                        case 12:
-//                        seekBars[0].setProgress(1500);
-//                        seekBars[1].setProgress(1500);
-//                        seekBars[2].setProgress(1500);
-//                        seekBars[3].setProgress(1500);
-//                        seekBars[4].setProgress(1500);
-                            return;
-                        default:
-                    }
-                }
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
-
-
-        bassboost.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                SeekBar bass_seekbar = (SeekBar) findViewById(R.id.bass_seekbar);
-                if (playService.getEqualizer()!=null){
-                playService.setBass(b);}
-                bass_seekbar.setEnabled(b);
-            }
-        });
-
-
-
-        bass_seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (playService.getEqualizer()!=null){
-                playService.setBassStrength((short) i);}
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-        virtualizer.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (playService.getEqualizer()!=null){
-                playService.setVirtualizer(b);}
-                virtualizer_seekbar.setEnabled(b);
-            }
-        });
-        virtualizer_seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (playService.getEqualizer()!=null){
-                playService.setVirtualizerStrength((short) i);}
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-
-//次要
-
-        echoCanceler.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (AcousticEchoCanceler.isAvailable()) {
-                    playService.setCanceler(b);
-                } else {
-                    Toast.makeText(EqualizerActivity.this, "您的手机不支持回声消除", Toast.LENGTH_SHORT).show();
-                    echoCanceler.setChecked(false);
-                }
-            }
-        });
-
-
-
-        autoGain.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (AutomaticGainControl.isAvailable()) {
-                    playService.setControl(b);
-                } else {
-                    Toast.makeText(EqualizerActivity.this, "您的手机不支持自动增强", Toast.LENGTH_SHORT).show();
-                    autoGain.setChecked(false);
-                }
-            }
-        });
-
-
-        suppressor.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (NoiseSuppressor.isAvailable()) {
-                    playService.setSuppressor(b);
-                } else {
-                    Toast.makeText(EqualizerActivity.this, "您的手机不支持智能降噪", Toast.LENGTH_SHORT).show();
-                    suppressor.setChecked(false);
-                }
-            }
-        });
-
-    }
-
-    private ServiceConnection conn = new ServiceConnection() {
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-
-        }
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            //返回一个MsgService对象
-            playService = ((PlayService.musicBinder) service).getService();
-            audioSessionId = playService.getAudioSessionId();
-        }
-    };
-
-    private void getPreference(){
-        SharedPreferences bundle = EqualizerActivity.this.getSharedPreferences("audioEffect",EqualizerActivity.this.MODE_PRIVATE);
-        //均衡器
-        LinearLayout equalizer_layout = (LinearLayout) findViewById(R.id.equalizer_seekbar);
-        if (bundle.getBoolean("Equalizer",false) == false){
-            equalizer_layout.setVisibility(GONE);
-        } else{
-            initialEqualizerlayout();
-            spinner.setSelection(bundle.getInt("Spinner",0));
-            equalizer_layout.setVisibility(View.VISIBLE);
-        }
-        equalizerSwitch.setChecked(bundle.getBoolean("Equalizer",false));
-        spinner.setEnabled(bundle.getBoolean("Equalizer",false));
-        //低音增强
-        bassboost.setChecked(bundle.getBoolean("Bass",false));
-        bass_seekbar.setProgress(bundle.getInt("Bass_seekBar",0));
-        bass_seekbar.setEnabled(bundle.getBoolean("Bass",false));
-        //虚拟环绕
-        virtualizer.setChecked(bundle.getBoolean("Virtualizer",false));
-        virtualizer_seekbar.setProgress(bundle.getInt("Virtualizer_seekBar",0));
-        virtualizer_seekbar.setEnabled(bundle.getBoolean("Virtualizer",false));
-        //次要
-        echoCanceler.setChecked(bundle.getBoolean("Canceler",false));
-        autoGain.setChecked(bundle.getBoolean("AutoGain",false));
-        suppressor.setChecked(bundle.getBoolean("Suppressor",false));
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (playService.getEqualizer() !=null){
-        SharedPreferences.Editor editor = getSharedPreferences("audioEffect", MODE_PRIVATE).edit();
-        editor.putBoolean("Equalizer",equalizerSwitch.isChecked());
-        editor.putInt("Spinner",spinner.getSelectedItemPosition());
-        editor.putBoolean("Bass",bassboost.isChecked());
-        editor.putInt("Bass_seekBar",bass_seekbar.getProgress());
-        editor.putBoolean("Virtualizer",virtualizer.isChecked());
-        editor.putInt("Virtualizer_seekBar",virtualizer_seekbar.getProgress());
-        Log.v("低音增强","值"+bass_seekbar.getProgress());
-//        editor.putBoolean("Enhancer",loudEnhancer.isChecked());
-//        editor.putInt("Enhancer_seekBar",enhancer_seekbar.getProgress());
-        editor.putBoolean("Canceler",echoCanceler.isChecked());
-        editor.putBoolean("AutoGain",autoGain.isChecked());
-        editor.putBoolean("Suppressor",suppressor.isChecked());
-        editor.apply();
-        }
-        Log.v("储存","储存");
-        unbindService(conn);
-    }
-
-    private void initialEqualizerlayout(){
         //均衡器
         mEqualizer = new Equalizer(0, audioSessionId);
         seekBars = new SeekBar[5];
@@ -399,8 +112,7 @@ public class EqualizerActivity extends CActivity {
                     equalizer_layout.setVisibility(View.VISIBLE);
                 }
                 spinner.setEnabled(b);
-                if (playService.getEqualizer()!=null){
-                    playService.setEqualizer(b);}
+                playService.setEqualizer(b);
             }
         });
 
@@ -462,8 +174,7 @@ public class EqualizerActivity extends CActivity {
                         spinner.setSelection(12);
                     }
                     // 设置该频率的均衡值
-                    if (playService.getEqualizer()!=null){
-                        playService.setEqualizerBandLevel(band,(short) (progress + minEQLevel));}
+                    playService.setEqualizerBandLevel(band,(short) (progress + minEQLevel));
 
                 }
                 @Override
@@ -482,5 +193,346 @@ public class EqualizerActivity extends CActivity {
             // 将水平排列组件的LinearLayout添加到myLayout容器中
             layout.addView(tmpLayout);
         }
+
+        //音场
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                switch (i){
+                    case 0:
+                        seekBars[0].setProgress(1800);
+                        seekBars[1].setProgress(1500);
+                        seekBars[2].setProgress(1500);
+                        seekBars[3].setProgress(1500);
+                        seekBars[4].setProgress(1800);
+                        return;
+                    case 1:
+                        seekBars[0].setProgress(2000);
+                        seekBars[1].setProgress(1800);
+                        seekBars[2].setProgress(1300);
+                        seekBars[3].setProgress(1900);
+                        seekBars[4].setProgress(1900);
+                        return;
+                    case 2:
+                        seekBars[0].setProgress(2100);
+                        seekBars[1].setProgress(1500);
+                        seekBars[2].setProgress(1700);
+                        seekBars[3].setProgress(1900);
+                        seekBars[4].setProgress(1600);
+                        return;
+                    case 3:
+                        seekBars[0].setProgress(1500);
+                        seekBars[1].setProgress(1500);
+                        seekBars[2].setProgress(1500);
+                        seekBars[3].setProgress(1500);
+                        seekBars[4].setProgress(1500);
+                        return;
+                    case 4:
+                        seekBars[0].setProgress(1800);
+                        seekBars[1].setProgress(1500);
+                        seekBars[2].setProgress(1500);
+                        seekBars[3].setProgress(1700);
+                        seekBars[4].setProgress(1400);
+                        return;
+                    case 5:
+                        seekBars[0].setProgress(1900);
+                        seekBars[1].setProgress(1600);
+                        seekBars[2].setProgress(2600);
+                        seekBars[3].setProgress(1800);
+                        seekBars[4].setProgress(1500);
+                        return;
+                    case 6:
+                        seekBars[0].setProgress(2000);
+                        seekBars[1].setProgress(1800);
+                        seekBars[2].setProgress(1500);
+                        seekBars[3].setProgress(1600);
+                        seekBars[4].setProgress(1800);
+                        return;
+                    case 7:
+                        seekBars[0].setProgress(1900);
+                        seekBars[1].setProgress(1700);
+                        seekBars[2].setProgress(1300);
+                        seekBars[3].setProgress(1700);
+                        seekBars[4].setProgress(2000);
+                        return;
+                    case 8:
+                        seekBars[0].setProgress(1400);
+                        seekBars[1].setProgress(1700);
+                        seekBars[2].setProgress(2000);
+                        seekBars[3].setProgress(1600);
+                        seekBars[4].setProgress(1300);
+                        return;
+                    case 9:
+                        seekBars[0].setProgress(2000);
+                        seekBars[1].setProgress(1800);
+                        seekBars[2].setProgress(1400);
+                        seekBars[3].setProgress(1800);
+                        seekBars[4].setProgress(2000);
+                        return;
+                    case 10:
+                        seekBars[0].setProgress(1500);
+                        seekBars[1].setProgress(2300);
+                        seekBars[2].setProgress(1900);
+                        seekBars[3].setProgress(1600);
+                        seekBars[4].setProgress(2500);
+                        return;
+                    case 11:
+                        seekBars[0].setProgress(1330);
+                        seekBars[1].setProgress(1770);
+                        seekBars[2].setProgress(1550);
+                        seekBars[3].setProgress(1280);
+                        seekBars[4].setProgress(1700);
+                        return;
+                    case 12:
+//                        seekBars[0].setProgress(1500);
+//                        seekBars[1].setProgress(1500);
+//                        seekBars[2].setProgress(1500);
+//                        seekBars[3].setProgress(1500);
+//                        seekBars[4].setProgress(1500);
+                        return;
+                    default:
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+
+
+        bassboost.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                SeekBar bass_seekbar = (SeekBar) findViewById(R.id.bass_seekbar);
+                playService.setBass(b);
+                bass_seekbar.setEnabled(b);
+            }
+        });
+
+
+
+        bass_seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                playService.setBassStrength((short) i);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        virtualizer.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                playService.setVirtualizer(b);
+                virtualizer_seekbar.setEnabled(b);
+            }
+        });
+        virtualizer_seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                playService.setVirtualizerStrength((short) i);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+//        loudEnhancer.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+//                playService.setEnhancer(b);
+//                enhancer_seekbar.setEnabled(b);
+//            }
+//        });
+//
+//
+//
+//        enhancer_seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//            @Override
+//            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+//                playService.setEnhancerTargetGain(i);
+//            }
+//
+//            @Override
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//
+//            }
+//
+//            @Override
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//
+//            }
+//        });
+
+
+
+
+
+//次要
+
+        echoCanceler.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (AcousticEchoCanceler.isAvailable()) {
+                    playService.setCanceler(b);
+                } else {
+                    Toast.makeText(EqualizerActivity.this, "您的手机不支持回声消除", Toast.LENGTH_SHORT).show();
+                    echoCanceler.setChecked(false);
+                }
+            }
+        });
+
+
+        autoGain.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (AutomaticGainControl.isAvailable()) {
+                    playService.setControl(b);
+                } else {
+                    Toast.makeText(EqualizerActivity.this, "您的手机不支持自动增强", Toast.LENGTH_SHORT).show();
+                    autoGain.setChecked(false);
+                }
+            }
+        });
+
+
+        suppressor.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (NoiseSuppressor.isAvailable()) {
+                    playService.setSuppressor(b);
+                } else {
+                    Toast.makeText(EqualizerActivity.this, "您的手机不支持智能降噪", Toast.LENGTH_SHORT).show();
+                    suppressor.setChecked(false);
+                }
+            }
+        });
+
+    }
+
+    private ServiceConnection conn = new ServiceConnection() {
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            //返回一个MsgService对象
+            playService = ((PlayService.musicBinder) service).getService();
+            audioSessionId = playService.getAudioSessionId();
+        }
+    };
+
+    private void getPreference(){
+        SharedPreferences bundle = EqualizerActivity.this.getSharedPreferences("audioEffect",EqualizerActivity.this.MODE_PRIVATE);
+        //均衡器
+        LinearLayout equalizer_layout = (LinearLayout) findViewById(R.id.equalizer_seekbar);
+        if (bundle.getBoolean("Equalizer",false) == false){
+            equalizer_layout.setVisibility(GONE);
+        } else{
+            spinner.setSelection(bundle.getInt("Spinner",0));
+            equalizer_layout.setVisibility(View.VISIBLE);
+        }
+        equalizerSwitch.setChecked(bundle.getBoolean("Equalizer",false));
+        spinner.setEnabled(bundle.getBoolean("Equalizer",false));
+        //低音增强
+        bassboost.setChecked(bundle.getBoolean("Bass",false));
+        bass_seekbar.setProgress(bundle.getInt("Bass_seekBar",0));
+        bass_seekbar.setEnabled(bundle.getBoolean("Bass",false));
+        //虚拟环绕
+        virtualizer.setChecked(bundle.getBoolean("Virtualizer",false));
+        virtualizer_seekbar.setProgress(bundle.getInt("Virtualizer_seekBar",0));
+        virtualizer_seekbar.setEnabled(bundle.getBoolean("Virtualizer",false));
+        //超强音量
+//        loudEnhancer.setChecked(bundle.getBoolean("Enhancer",false));
+//        enhancer_seekbar.setProgress(bundle.getInt("Enhancer_seekBar",0));
+//        enhancer_seekbar.setEnabled(bundle.getBoolean("Enhancer",false));
+        //次要
+        echoCanceler.setChecked(bundle.getBoolean("Canceler",false));
+        autoGain.setChecked(bundle.getBoolean("AutoGain",false));
+        suppressor.setChecked(bundle.getBoolean("Suppressor",false));
+    }
+//    private class getPreferenceTask extends AsyncTask{
+//        @Override
+//        protected Object doInBackground(Object[] objects) {
+//            SharedPreferences Pref = EqualizerActivity.this.getSharedPreferences("audioEffect",EqualizerActivity.this.MODE_PRIVATE);
+//            Log.v("均衡器是否开启","是否"+Pref.getBoolean("Equalizer",false));
+//            Log.v("均衡器Seekbar","是否"+Pref.getInt("Spinner",0));
+//            Bundle bundle = new Bundle();
+//            bundle.putBoolean("Equalizer",Pref.getBoolean("Equalizer",false));
+//            bundle.putInt("Spinner",0);
+//            bundle.putBoolean("Bass",Pref.getBoolean("Bass",false));
+//            bundle.putInt("Bass_seekBar",0);
+//            bundle.putBoolean("Enhancer",Pref.getBoolean("Enhancer",false));
+//            bundle.putInt("Enhancer_seekBar",0);
+//            bundle.putBoolean("Canceler",Pref.getBoolean("Canceler",false));
+//            bundle.putBoolean("AutoGain",Pref.getBoolean("AutoGain",false));
+//            bundle.putBoolean("Suppressor",Pref.getBoolean("Suppressor",false));
+//            return bundle;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Object o) {
+//            Bundle bundle = (Bundle)o;
+//            //均衡器
+//            LinearLayout equalizer_layout = (LinearLayout) findViewById(R.id.equalizer_seekbar);
+//            if (bundle.getBoolean("Equalizer",false) == false){
+//                equalizer_layout.setVisibility(GONE);
+//            } else{
+//                spinner.setSelection(bundle.getInt("Spinner",0));
+//                equalizer_layout.setVisibility(View.VISIBLE);
+//            }
+//            equalizerSwitch.setChecked(bundle.getBoolean("Equalizer",false));
+//            spinner.setEnabled(bundle.getBoolean("Equalizer",false));
+//            //低音增强
+//            bass_seekbar.setProgress(bundle.getInt("Bass_seekBar",0));
+//            bass_seekbar.setEnabled(bundle.getBoolean("Bass",false));
+//            //超强音量
+////            enhancer_seekbar.setProgress(bundle.getInt("Enhancer_seekBar",0));
+////            enhancer_seekbar.setEnabled(bundle.getBoolean("Enhancer",false));
+//            //次要
+//            echoCanceler.setChecked(bundle.getBoolean("Canceler",false));
+//            autoGain.setChecked(bundle.getBoolean("AutoGain",false));
+//            suppressor.setChecked(bundle.getBoolean("Suppressor",false));
+//            super.onPostExecute(o);
+//        }
+//    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(conn);
+        SharedPreferences.Editor editor = getSharedPreferences("audioEffect", MODE_PRIVATE).edit();
+        editor.putBoolean("Equalizer",equalizerSwitch.isChecked());
+        editor.putInt("Spinner",spinner.getSelectedItemPosition());
+        editor.putBoolean("Bass",bassboost.isChecked());
+        editor.putInt("Bass_seekBar",bass_seekbar.getProgress());
+        editor.putBoolean("Virtualizer",virtualizer.isChecked());
+        editor.putInt("Virtualizer_seekBar",virtualizer_seekbar.getProgress());
+        Log.v("低音增强","值"+bass_seekbar.getProgress());
+//        editor.putBoolean("Enhancer",loudEnhancer.isChecked());
+//        editor.putInt("Enhancer_seekBar",enhancer_seekbar.getProgress());
+        editor.putBoolean("Canceler",echoCanceler.isChecked());
+        editor.putBoolean("AutoGain",autoGain.isChecked());
+        editor.putBoolean("Suppressor",suppressor.isChecked());
+        editor.apply();
+        Log.v("储存","储存");
     }
 }
