@@ -10,7 +10,6 @@ import com.afollestad.aesthetic.Aesthetic;
 import com.afollestad.aesthetic.AestheticActivity;
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 
-import org.polaric.colorful.Colorful;
 
 public class SettingsActivity extends AestheticActivity {
 

@@ -13,7 +13,6 @@ import android.widget.Toast;
 import com.afollestad.aesthetic.Aesthetic;
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 
-import org.polaric.colorful.ColorPickerPreference;
 
 import es.dmoral.toasty.Toasty;
 
@@ -38,10 +37,10 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         if (key.equals("default_color")) {
-            Aesthetic.get().colorPrimary(sharedPref.getInt("default_color", 0)).colorStatusBarAuto().apply();
+            Aesthetic.get().colorPrimary(sharedPref.getInt("default_color", 0)).colorStatusBarAuto().colorNavigationBarAuto().apply();
         }
         if (key.equals("accent_color")) {
-            Aesthetic.get().colorAccent(sharedPref.getInt("accent_color", 0)).colorStatusBarAuto().apply();
+            Aesthetic.get().colorAccent(sharedPref.getInt("accent_color", 0)).colorStatusBarAuto().colorNavigationBarAuto().apply();
         }
     }
 

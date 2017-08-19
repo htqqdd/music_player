@@ -111,7 +111,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(STREAM_MUSIC);
         audioSessionId = mediaPlayer.getAudioSessionId();
-//        initialAudioEffect(audioSessionId);
+        initialAudioEffect(audioSessionId);
         mediaPlayer.setOnPreparedListener(this);
         mediaPlayer.setOnCompletionListener(this);
         mediaPlayer.setOnErrorListener(this);
@@ -703,6 +703,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         if (loudnessEnhancer == null){
             loudnessEnhancer = new LoudnessEnhancer(audioSessionId);
         }
+        if (mVirtualizer == null){
+            mVirtualizer = new Virtualizer(0,audioSessionId);
+        }
         mBass.setEnabled(b);
         loudnessEnhancer.setEnabled(b || mVirtualizer.getEnabled());
     }
@@ -715,6 +718,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     }
 
     public void setVirtualizer(Boolean b) {
+        if (mBass == null){
+            mBass = new BassBoost(0,audioSessionId);
+        }
         if (loudnessEnhancer == null){
             loudnessEnhancer = new LoudnessEnhancer(audioSessionId);
         }

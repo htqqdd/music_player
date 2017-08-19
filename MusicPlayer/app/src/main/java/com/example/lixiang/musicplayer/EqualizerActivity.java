@@ -38,9 +38,6 @@ import java.util.List;
 
 import static android.view.View.GONE;
 import static com.example.lixiang.musicplayer.R.id.equalizer;
-import static com.example.lixiang.musicplayer.R.id.equalizer_spinner;
-import static com.example.lixiang.musicplayer.R.id.spinner;
-import static com.example.lixiang.musicplayer.R.id.virtualizer_seekbar;
 
 public class EqualizerActivity extends AestheticActivity {
     private PlayService playService;

@@ -67,7 +67,7 @@ public class MusicData {
     private static ArrayList<music_playtimes> playtimesArrayList;
     private static SharedPreferences playtimes;
     public static int colorPrimarySetted;
-    public static int colorAccentSetted = R.color.md_pink_500;
+    public static int colorAccentSetted = R.color.colorAccent;
 
 
     public static int get_mediaDuration(int position) {

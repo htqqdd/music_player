@@ -60,16 +60,11 @@ import android.widget.Toast;
 
 import com.afollestad.aesthetic.Aesthetic;
 import com.afollestad.aesthetic.AestheticActivity;
-import com.afollestad.aesthetic.BottomNavBgMode;
-import com.afollestad.aesthetic.BottomNavIconTextMode;
-import com.afollestad.aesthetic.NavigationViewMode;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.gyf.barlibrary.BarHide;
 import com.gyf.barlibrary.ImmersionBar;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-import org.w3c.dom.Text;
 
 import java.util.Calendar;
 import java.util.Timer;
@@ -81,6 +76,7 @@ import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.OnShowRationale;
 import permissions.dispatcher.PermissionRequest;
 import permissions.dispatcher.RuntimePermissions;
+
 import static android.view.View.GONE;
 import static com.example.lixiang.musicplayer.Data.initialize;
 import static com.example.lixiang.musicplayer.Data.mediaChangeAction;
@@ -88,14 +84,14 @@ import static com.example.lixiang.musicplayer.Data.pauseAction;
 import static com.example.lixiang.musicplayer.Data.pausing;
 import static com.example.lixiang.musicplayer.Data.playAction;
 import static com.example.lixiang.musicplayer.Data.playing;
-import static com.example.lixiang.musicplayer.getCover.getArtwork;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.COLLAPSED;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.DRAGGING;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDED;
 
 @RuntimePermissions
 public class MainActivity extends AestheticActivity {
-    private static SeekBar seekBar;;
+    private static SeekBar seekBar;
+    ;
     private ViewPager viewPager;
     private MsgReceiver msgReceiver;
     private boolean isfromSc = false;
@@ -119,14 +115,14 @@ public class MainActivity extends AestheticActivity {
 
         if (Aesthetic.isFirstTime()) {
             Aesthetic.get()
-                    .colorPrimaryRes(R.color.md_teal_500)
-                    .colorAccentRes(R.color.md_pink_500)
+                    .colorPrimaryRes(R.color.colorPrimary)
+                    .colorAccentRes(R.color.colorAccent)
                     .colorStatusBarAuto()
+                    .colorNavigationBarAuto()
                     .apply();
         }
 
         //沉浸状态栏
-        View immersionView = findViewById(R.id.immersion_view);
         ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).init();
 
 
@@ -148,12 +144,14 @@ public class MainActivity extends AestheticActivity {
             public void onPageSelected(int position) {
 
                 if (position == 0) {
-                    if (mLayout.getPanelHeight() ==0){
-                    random_play.show();}
+                    if (mLayout.getPanelHeight() == 0) {
+                        random_play.show();
+                    }
                     navigationView.setCheckedItem(R.id.suggestion_view);
                 } else if (position == 1) {
-                    if (mLayout.getPanelHeight() == 0){
-                    random_play.show();}
+                    if (mLayout.getPanelHeight() == 0) {
+                        random_play.show();
+                    }
                     navigationView.setCheckedItem(R.id.music_list_view);
                 } else {
                     random_play.hide();
@@ -175,6 +173,18 @@ public class MainActivity extends AestheticActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+        View view1 = getLayoutInflater().inflate(R.layout.custom_tab, null);
+        TextView textView = (TextView) view1.findViewById(R.id.text);
+        textView.setText("建议");
+        tabLayout.getTabAt(0).setCustomView(view1);
+        View view2 = getLayoutInflater().inflate(R.layout.custom_tab, null);
+        TextView textView2 = (TextView) view2.findViewById(R.id.text);
+        textView2.setText("歌曲");
+        tabLayout.getTabAt(1).setCustomView(view2);
+        View view3 = getLayoutInflater().inflate(R.layout.custom_tab, null);
+        TextView textView3 = (TextView) view3.findViewById(R.id.text);
+        textView3.setText("下载");
+        tabLayout.getTabAt(2).setCustomView(view3);
 
 
         //新标题栏
@@ -259,12 +269,10 @@ public class MainActivity extends AestheticActivity {
             @Override
             public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
                 if (previousState == COLLAPSED && newState == DRAGGING) {
-//                    ChangeScrollingUpPanel(Data.getPosition());
                     updateSeekBar();
                 }
                 if (previousState == DRAGGING && newState == EXPANDED) {
                     pannelState = EXPANDED;
-
                     //禁止手势滑动
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                 }
@@ -292,84 +300,43 @@ public class MainActivity extends AestheticActivity {
         about.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (pannelState ==EXPANDED){
-                PopupMenu popupMenu = new PopupMenu(MainActivity.this, view);
-                popupMenu.getMenuInflater().inflate(R.menu.main_menu, popupMenu.getMenu());
-                popupMenu.show();
-                MenuItem search = popupMenu.getMenu().findItem(R.id.search);
-                MenuItem sleeper = popupMenu.getMenu().findItem(R.id.sleeper);
-                MenuItem equalizer = popupMenu.getMenu().findItem(R.id.equalizer);
-                search.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        Intent intent = new Intent(MainActivity.this,searchActivity.class);
-                        startActivity(intent);
-                        return true;
-                    }
-                });
-                sleeper.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        //Timepicker Dialog
-                        final java.util.Calendar c = java.util.Calendar.getInstance();
-                        final int hourNow = c.get(java.util.Calendar.HOUR_OF_DAY);
-                        final int minuteNow = c.get(Calendar.MINUTE);
-                        new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
-                            @Override
-                            public void onTimeSet(TimePicker view, int hourPicked, int minutePicked) {
-                                int duration = (hourPicked - hourNow) * 60 + minutePicked - minuteNow;
-                                if (hourPicked >= hourNow && duration > 0 && duration<360) {
-                                    playService.deleteService(duration);
-                                    Toasty.success(MainActivity.this, "已经定时为" + duration + "分钟后关闭", Toast.LENGTH_SHORT, true).show();
-                                } else {
-                                    Toasty.error(MainActivity.this, "所选时间须为当天，且距当前时间6小时内", Toast.LENGTH_SHORT, true).show();
-                                }
-                            }
-                        }, hourNow, minuteNow, true).show();
-                        return true;
-                    }
-                });
-                equalizer.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        SharedPreferences bundle = MainActivity.this.getSharedPreferences("first_audioEffect",MainActivity.this.MODE_PRIVATE);
-                        if (bundle.getBoolean("isFirst",true)){
-                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                            builder.setTitle("兼容性提醒");
-                            builder.setMessage("使用内置均衡器前，请确保未使用其他音效软件，否则可能因兼容性问题导致应用崩溃。\n\n若您仍想使用内置均衡器，请先禁用手机内其他音效软件。");
-                            builder.setPositiveButton("我已了解，不再提醒", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    Intent intent = new Intent(MainActivity.this, EqualizerActivity.class);
-                                    startActivity(intent);
-                                    SharedPreferences.Editor editor = getSharedPreferences("first_audioEffect", MODE_PRIVATE).edit();
-                                    editor.putBoolean("isFirst",false);
-                                    editor.apply();
-                                }
-                            });
-                            builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-
-                                }
-                            });
-                            builder.show();
-                        }
-                        else {
-                            Intent intent = new Intent(MainActivity.this, EqualizerActivity.class);
+                if (pannelState == EXPANDED) {
+                    PopupMenu popupMenu = new PopupMenu(MainActivity.this, view);
+                    popupMenu.getMenuInflater().inflate(R.menu.main_menu, popupMenu.getMenu());
+                    popupMenu.show();
+                    MenuItem search = popupMenu.getMenu().findItem(R.id.search);
+                    MenuItem sleeper = popupMenu.getMenu().findItem(R.id.sleeper);
+                    MenuItem equalizer = popupMenu.getMenu().findItem(R.id.equalizer);
+                    search.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem menuItem) {
+                            Intent intent = new Intent(MainActivity.this, searchActivity.class);
                             startActivity(intent);
+                            return true;
                         }
-                        return false;
-                    }
-                });
-            }
+                    });
+                    sleeper.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem menuItem) {
+                            //Timepicker Dialog
+                            sleeper();
+                            return true;
+                        }
+                    });
+                    equalizer.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem menuItem) {
+                            equalizer();
+                            return false;
+                        }
+                    });
+                }
             }
         });
 
 
         if (Data.getState() == playing) {
             ChangeScrollingUpPanel(Data.getPosition());
-//            FloatingActionButton random_play = (FloatingActionButton) findViewById(R.id.random_play);
             random_play.hide();
             mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
             mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f));
@@ -386,7 +353,7 @@ public class MainActivity extends AestheticActivity {
         search.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-                Intent intent = new Intent(MainActivity.this,searchActivity.class);
+                Intent intent = new Intent(MainActivity.this, searchActivity.class);
                 startActivity(intent);
                 return true;
             }
@@ -395,54 +362,14 @@ public class MainActivity extends AestheticActivity {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 //Timepicker Dialog
-                final java.util.Calendar c = java.util.Calendar.getInstance();
-                final int hourNow = c.get(java.util.Calendar.HOUR_OF_DAY);
-                final int minuteNow = c.get(Calendar.MINUTE);
-                new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
-                    @Override
-                    public void onTimeSet(TimePicker view, int hourPicked, int minutePicked) {
-                        int duration = (hourPicked - hourNow) * 60 + minutePicked - minuteNow;
-                        if (hourPicked >= hourNow && duration > 0 && duration<360) {
-                            playService.deleteService(duration);
-                            Toasty.success(MainActivity.this, "已经定时为" + duration + "分钟后关闭", Toast.LENGTH_SHORT, true).show();
-                        } else {
-                            Toasty.error(MainActivity.this, "所选时间须为当天，且距当前时间6小时内", Toast.LENGTH_SHORT, true).show();
-                        }
-                    }
-                }, hourNow, minuteNow, true).show();
-
+                sleeper();
                 return true;
             }
         });
         equalizer.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-                SharedPreferences bundle = MainActivity.this.getSharedPreferences("first_audioEffect",MainActivity.this.MODE_PRIVATE);
-                if (bundle.getBoolean("isFirst",true)){
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle("兼容性提醒");
-                builder.setMessage("使用内置均衡器前，请确保未使用其他音效软件，否则可能因兼容性问题导致导致导致应用崩溃。\n\n若您仍想使用内置均衡器，请先禁用手机内其他音效软件。");
-                builder.setPositiveButton("我已了解，不再提醒", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Intent intent = new Intent(MainActivity.this, EqualizerActivity.class);
-                        startActivity(intent);
-                        SharedPreferences.Editor editor = getSharedPreferences("first_audioEffect", MODE_PRIVATE).edit();
-                        editor.putBoolean("isFirst",false);
-                        editor.apply();
-                    }
-                });
-                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                });
-                builder.show();}
-                else {
-                    Intent intent = new Intent(MainActivity.this, EqualizerActivity.class);
-                    startActivity(intent);
-                }
+                equalizer();
                 return false;
             }
         });
@@ -464,7 +391,7 @@ public class MainActivity extends AestheticActivity {
         bindService(bindIntent, conn, BIND_AUTO_CREATE);
 
         //拖动seekbar
-        seekBar.setPadding(0,0,0,0);
+        seekBar.setPadding(0, 0, 0, 0);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -548,12 +475,12 @@ public class MainActivity extends AestheticActivity {
         sendBroadcast(intent);
         Intent intent2 = new Intent("list_permission_granted");
         sendBroadcast(intent2);
-        Log.v("发送初始广播","发送2");
+        Log.v("发送初始广播", "发送2");
     }
 
     //播放，暂停按钮
     public void title_play_or_pause(View view) {
-        if (pannelState == COLLAPSED){
+        if (pannelState == COLLAPSED) {
             if (Data.getState() == playing) {
                 playService.pause();
                 playService.removeAudioFocus();
@@ -632,13 +559,14 @@ public class MainActivity extends AestheticActivity {
 
     public void animation_change_color(int Int) {
         ImageView play_now_back_color = (ImageView) findViewById(R.id.play_now_back_color);
-        if (cx==0){
-        FloatingActionButton play_or_pause = (FloatingActionButton) findViewById(R.id.play_or_pause);
-        RelativeLayout main_control_layout = (RelativeLayout) findViewById(R.id.main_control_layout);
-        RelativeLayout control_layout = (RelativeLayout) findViewById(R.id.control_layout);
-        cx = play_or_pause.getLeft() + main_control_layout.getLeft()+play_or_pause.getWidth()/2;
-        cy = control_layout.getTop()-seekBar.getTop()+play_or_pause.getTop()+play_or_pause.getHeight()/2;
-        finalRadius = Math.max(play_now_back_color.getWidth(), play_now_back_color.getHeight());}
+        if (cx == 0) {
+            FloatingActionButton play_or_pause = (FloatingActionButton) findViewById(R.id.play_or_pause);
+            RelativeLayout main_control_layout = (RelativeLayout) findViewById(R.id.main_control_layout);
+            RelativeLayout control_layout = (RelativeLayout) findViewById(R.id.control_layout);
+            cx = play_or_pause.getLeft() + main_control_layout.getLeft() + play_or_pause.getWidth() / 2;
+            cy = control_layout.getTop() - seekBar.getTop() + play_or_pause.getTop() + play_or_pause.getHeight() / 2;
+            finalRadius = Math.max(play_now_back_color.getWidth(), play_now_back_color.getHeight());
+        }
         final int Int1 = Int;
         final RelativeLayout activity_now_play = (RelativeLayout) findViewById(R.id.activity_now_play);
         if (cx != 0) {
@@ -777,7 +705,7 @@ public class MainActivity extends AestheticActivity {
                 FloatingActionButton random_play = (FloatingActionButton) findViewById(R.id.random_play);
                 random_play.hide();
                 SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-                mLayout.setPanelHeight((int) (60*getResources().getDisplayMetrics().density+0.5f));
+                mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f));
             }
 
             if (intent.getIntExtra("UIChange", 0) == pauseAction) {
@@ -820,79 +748,79 @@ public class MainActivity extends AestheticActivity {
     }
 
 
-    private void setBackColor(){
-            Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-            Uri uri = ContentUris.withAppendedId(sArtworkUri, Data.getAlbumId(Data.getPosition()));
-            Glide.with(MainActivity.this).load(uri).asBitmap().error(R.drawable.default_album).into(new SimpleTarget<Bitmap>() {
-                @Override
-                public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                    super.onLoadFailed(e, errorDrawable);
-                    BitmapDrawable errorBitmapDrawable = (BitmapDrawable) errorDrawable;
-                    Bitmap resource = errorBitmapDrawable.getBitmap();
-                    Palette p = Palette.from(resource).generate();
-                    Palette.Swatch s1 = p.getVibrantSwatch();
-                    Palette.Swatch s2 = p.getDarkVibrantSwatch();
-                    Palette.Swatch s3 = p.getLightVibrantSwatch();
-                    Palette.Swatch s4 = p.getMutedSwatch();
-                    Palette.Swatch s5 = p.getLightVibrantSwatch();
-                    Palette.Swatch s6 = p.getDarkVibrantSwatch();
-                    Palette.Swatch s7 = p.getDominantSwatch();
-                    int color = 0;
-                    if (s1 != null) {
-                        color = s1.getRgb();
-                    } else if (s4 != null) {
-                        color = s4.getRgb();
-                    } else if (s2 != null) {
-                        color = s2.getRgb();
-                    } else if (s3 != null) {
-                        color = s3.getRgb();
-                    } else if (s5 != null) {
-                        color = s5.getRgb();
-                    } else if (s6 != null) {
-                        color = s6.getRgb();
-                    } else if (s7 != null) {
-                        color = s7.getRgb();
-                    } else {
-                        color = getResources().getColor(R.color.colorPrimary);
-                    }
-                    animation_change_color(color);
+    private void setBackColor() {
+        Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
+        Uri uri = ContentUris.withAppendedId(sArtworkUri, Data.getAlbumId(Data.getPosition()));
+        Glide.with(MainActivity.this).load(uri).asBitmap().error(R.drawable.default_album).into(new SimpleTarget<Bitmap>() {
+            @Override
+            public void onLoadFailed(Exception e, Drawable errorDrawable) {
+                super.onLoadFailed(e, errorDrawable);
+                BitmapDrawable errorBitmapDrawable = (BitmapDrawable) errorDrawable;
+                Bitmap resource = errorBitmapDrawable.getBitmap();
+                Palette p = Palette.from(resource).generate();
+                Palette.Swatch s1 = p.getVibrantSwatch();
+                Palette.Swatch s2 = p.getDarkVibrantSwatch();
+                Palette.Swatch s3 = p.getLightVibrantSwatch();
+                Palette.Swatch s4 = p.getMutedSwatch();
+                Palette.Swatch s5 = p.getLightVibrantSwatch();
+                Palette.Swatch s6 = p.getDarkVibrantSwatch();
+                Palette.Swatch s7 = p.getDominantSwatch();
+                int color = 0;
+                if (s1 != null) {
+                    color = s1.getRgb();
+                } else if (s4 != null) {
+                    color = s4.getRgb();
+                } else if (s2 != null) {
+                    color = s2.getRgb();
+                } else if (s3 != null) {
+                    color = s3.getRgb();
+                } else if (s5 != null) {
+                    color = s5.getRgb();
+                } else if (s6 != null) {
+                    color = s6.getRgb();
+                } else if (s7 != null) {
+                    color = s7.getRgb();
+                } else {
+                    color = getResources().getColor(R.color.colorPrimary);
                 }
+                animation_change_color(color);
+            }
 
-                    @Override
-                    public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                        Palette p = Palette.from(resource).generate();
-                        Palette.Swatch s1 = p.getVibrantSwatch();
-                        Palette.Swatch s2 = p.getDarkVibrantSwatch();
-                        Palette.Swatch s3 = p.getLightVibrantSwatch();
-                        Palette.Swatch s4 = p.getMutedSwatch();
-                        Palette.Swatch s5 = p.getLightVibrantSwatch();
-                        Palette.Swatch s6 = p.getDarkVibrantSwatch();
-                        Palette.Swatch s7 = p.getDominantSwatch();
-                        int color = 0;
-                        if (s1 != null) {
-                            color = s1.getRgb();
-                        } else if (s4 != null) {
-                            color = s4.getRgb();
-                        } else if (s2 != null) {
-                            color = s2.getRgb();
-                        } else if (s3 != null) {
-                            color = s3.getRgb();
-                        } else if (s5 != null) {
-                            color = s5.getRgb();
-                        } else if (s6 != null) {
-                            color = s6.getRgb();
-                        } else if (s7 != null) {
-                            color = s7.getRgb();
-                        } else {
-                            color = getResources().getColor(R.color.colorPrimary);
-                        }
-                        animation_change_color(color);
-                    }
-    });
+            @Override
+            public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                Palette p = Palette.from(resource).generate();
+                Palette.Swatch s1 = p.getVibrantSwatch();
+                Palette.Swatch s2 = p.getDarkVibrantSwatch();
+                Palette.Swatch s3 = p.getLightVibrantSwatch();
+                Palette.Swatch s4 = p.getMutedSwatch();
+                Palette.Swatch s5 = p.getLightVibrantSwatch();
+                Palette.Swatch s6 = p.getDarkVibrantSwatch();
+                Palette.Swatch s7 = p.getDominantSwatch();
+                int color = 0;
+                if (s1 != null) {
+                    color = s1.getRgb();
+                } else if (s4 != null) {
+                    color = s4.getRgb();
+                } else if (s2 != null) {
+                    color = s2.getRgb();
+                } else if (s3 != null) {
+                    color = s3.getRgb();
+                } else if (s5 != null) {
+                    color = s5.getRgb();
+                } else if (s6 != null) {
+                    color = s6.getRgb();
+                } else if (s7 != null) {
+                    color = s7.getRgb();
+                } else {
+                    color = getResources().getColor(R.color.colorPrimary);
+                }
+                animation_change_color(color);
+            }
+        });
     }
 
 
-    private class screenAdaptionTask extends AsyncTask{
+    private class screenAdaptionTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
             return (int) (getResources().getDisplayMetrics().heightPixels * 0.6);
@@ -914,6 +842,7 @@ public class MainActivity extends AestheticActivity {
         public void onServiceDisconnected(ComponentName name) {
 
         }
+
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             //返回一个MsgService对象
@@ -921,79 +850,66 @@ public class MainActivity extends AestheticActivity {
         }
     };
 
-    private void updateSeekBar(){
+    private void updateSeekBar() {
         mTimer = new Timer();
-        TimerTask task =new TimerTask() {
+        TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                if (playService != null){
-                if (Data.getState() == playing){
-                    seekBar.setProgress(playService.getCurrentPosition());
-                }}
+                if (playService != null) {
+                    if (Data.getState() == playing) {
+                        seekBar.setProgress(playService.getCurrentPosition());
+                    }
+                }
             }
         };
-        mTimer.schedule(task,0,1000);
+        mTimer.schedule(task, 0, 1000);
     }
 
-//    private class setColorTask extends AsyncTask{
-//        @Override
-//        protected Object doInBackground(Object[] objects) {
-//            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-//            String primary_color = sharedPref.getString("primary_color", "");
-//            switch (primary_color) {
-//                case "red":
-//                    return R.color.md_red_500;
-//                case "pink":
-//                    return R.color.md_pink_500;
-//                case "purple":
-//                    return R.color.md_purple_500;
-//                case "deep_purple":
-//                    return R.color.md_deep_purple_500;
-//                case "indigo":
-//                    return R.color.md_indigo_500;
-//                case "blue":
-//                    return R.color.md_blue_500;
-//                case "light_blue":
-//                    return R.color.md_light_blue_500;
-//                case "cyan":
-//                    return R.color.md_cyan_500;
-//                case "teal":
-//                    return R.color.md_teal_500;
-//                case "green":
-//                    return R.color.md_green_500;
-//                case "light_green":
-//                    return R.color.md_light_green_500;
-//                case "lime":
-//                    return R.color.md_lime_500;
-//                case "yellow":
-//                    return R.color.md_yellow_500;
-//                case "amber":
-//                    return R.color.md_amber_500;
-//                case "orange":
-//                    return R.color.md_orange_500;
-//                case "deep_orange":
-//                    return R.color.md_deep_orange_500;
-//                default:
-//            }
-//            return R.color.md_teal_500;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Object o) {
-//            super.onPostExecute(o);
-//            int color = getResources().getColor((int) o);
-//
-////            immersionView.setBackgroundColor(shiftColor(color, 0.9f));
-//
-//            Data.setColorPrimarySetted(getResources().getColor((int) o));
-//        }
-//    }
-//    static int shiftColor(@ColorInt int color, @FloatRange(from = 0.0f, to = 2.0f) float by) {
-//        if (by == 1f) return color;
-//        float[] hsv = new float[3];
-//        Color.colorToHSV(color, hsv);
-//        hsv[2] *= by; // value component
-//        return Color.HSVToColor(hsv);
-//    }
+    private void sleeper(){
+        final java.util.Calendar c = java.util.Calendar.getInstance();
+        final int hourNow = c.get(java.util.Calendar.HOUR_OF_DAY);
+        final int minuteNow = c.get(Calendar.MINUTE);
+        new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker view, int hourPicked, int minutePicked) {
+                int duration = (hourPicked - hourNow) * 60 + minutePicked - minuteNow;
+                if (hourPicked >= hourNow && duration > 0 && duration < 360) {
+                    playService.deleteService(duration);
+                    Toasty.success(MainActivity.this, "已经定时为" + duration + "分钟后关闭", Toast.LENGTH_SHORT, true).show();
+                } else {
+                    Toasty.error(MainActivity.this, "所选时间须为当天，且距当前时间6小时内", Toast.LENGTH_SHORT, true).show();
+                }
+            }
+        }, hourNow, minuteNow, true).show();
+    }
+
+    private void equalizer(){
+        SharedPreferences bundle = MainActivity.this.getSharedPreferences("first_audioEffect", MainActivity.this.MODE_PRIVATE);
+        if (bundle.getBoolean("isFirst", true)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle("兼容性提醒");
+            builder.setMessage("使用内置均衡器前，请确保未使用其他音效软件，否则可能因兼容性问题导致导致导致应用崩溃。\n\n若您仍想使用内置均衡器，请先禁用手机内其他音效软件。");
+            builder.setPositiveButton("我已了解，不再提醒", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Intent intent = new Intent(MainActivity.this, EqualizerActivity.class);
+                    startActivity(intent);
+                    SharedPreferences.Editor editor = getSharedPreferences("first_audioEffect", MODE_PRIVATE).edit();
+                    editor.putBoolean("isFirst", false);
+                    editor.apply();
+                }
+            });
+            builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+                }
+            });
+            builder.show();
+        } else {
+            Intent intent = new Intent(MainActivity.this, EqualizerActivity.class);
+            startActivity(intent);
+        }
+    }
 
 }

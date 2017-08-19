@@ -19,8 +19,6 @@ import com.danielstone.materialaboutlibrary.items.MaterialAboutTitleItem;
 import com.danielstone.materialaboutlibrary.model.MaterialAboutCard;
 import com.danielstone.materialaboutlibrary.model.MaterialAboutList;
 
-import org.polaric.colorful.CActivity;
-import org.polaric.colorful.Colorful;
 
 
 public class AboutActivity extends MaterialAboutActivity {
