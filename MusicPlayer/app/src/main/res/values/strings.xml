@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MusicPlayer</string>
+    <string name="app_name">MPlayer</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -16,6 +16,12 @@
         <item>建议曲目</item>
         <item>歌曲列表</item>
         <item>全网资源</item>
+    </string-array>
+
+    <string-array name="choose">
+        <item>歌曲名称</item>
+        <item>歌曲编号</item>
+        <item>网页链接</item>
     </string-array>
     <string-array name="start_page_entries_value">
         <item>suggestion</item>

@@ -5,32 +5,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.lixiang.music_player.searchActivity">
-    <android.support.design.widget.AppBarLayout
-        android:id ="@+id/searchBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/search_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fitsSystemWindows="true"
-            app:popupTheme="@style/Theme.AppCompat.Light"
-            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
-    </android.support.design.widget.AppBarLayout>
+    tools:context="com.example.lixiang.music_player.netMusicActivity">
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text ="搜索结果"
         android:textColor="?colorAccent"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginBottom="4dp"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp"
+        android:id="@+id/net_title"/>
     <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id = "@+id/search_RecyclerView">
+        android:id ="@+id/netRecyclerView">
+
     </android.support.v7.widget.RecyclerView>
 
 </LinearLayout>

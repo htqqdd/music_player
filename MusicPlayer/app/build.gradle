@@ -4,11 +4,11 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.1"
     defaultConfig {
-        applicationId "com.example.lixiang.musicplayer"
+        applicationId "com.example.lixiang.music_player"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 18
-        versionName "0.1.8"
+        versionCode 25
+        versionName "0.2.5"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -37,11 +37,12 @@ dependencies {
     compile 'com.sothree.slidinguppanel:library:3.3.1'
     compile 'com.jaredrummler:colorpicker:1.0.0'
     compile 'com.github.daniel-stoneuk:material-about-library:2.2.1'
-    compile 'com.github.GrenderG:Toasty:1.2.5'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha7'
     compile 'com.gyf.barlibrary:barlibrary:2.2.6'
     compile 'com.simplecityapps:recyclerview-fastscroll:1.0.16'
     compile 'com.afollestad:aesthetic:0.4.6'
+    compile 'com.squareup.okhttp3:okhttp:3.8.1'
+    compile 'com.google.code.gson:gson:2.2.4'
     testCompile 'junit:junit:4.12'
     annotationProcessor 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
 }

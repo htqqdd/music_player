@@ -23,7 +23,8 @@
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="16dp"
                 android:src="@drawable/ic_up"
-                android:tint="#000000"/>
+                android:tint="#000000"
+                android:background="?android:attr/selectableItemBackgroundBorderless"/>
 
             <TextView
                 android:id="@+id/main_song_title"

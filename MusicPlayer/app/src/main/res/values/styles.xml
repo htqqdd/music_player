@@ -8,6 +8,7 @@
         <item name="android:textColorSecondary">@color/text_color_secondary</item>
     </style>
 
+
     <style name="ActivityTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="android:textColorSecondary">@color/text_color_secondary</item>
@@ -40,7 +41,6 @@
 
     <!--设置背景图Theme-->
     <style name="Theme.launcher" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowBackground">@xml/launcher</item>
     </style>
 
 </resources>

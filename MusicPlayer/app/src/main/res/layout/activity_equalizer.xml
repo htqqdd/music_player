@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.lixiang.musicplayer.EqualizerActivity">
+    tools:context="com.example.lixiang.music_player.EqualizerActivity">
 
     <ScrollView
         android:layout_width="match_parent"

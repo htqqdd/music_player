@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.lixiang.musicplayer">
+    package="com.example.lixiang.music_player">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- 使用音场效果必要的权限 -->
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/new_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="com.example.lixiang.music_player.MainActivity"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,40 +31,46 @@
         </activity>
 
         <service
-            android:name=".PlayService"
+            android:name="com.example.lixiang.music_player.PlayService"
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".RecommendActivity" />
-        <activity android:name=".MusiclistActivity" />
-        <activity android:name=".DownloadActivity" />
+        <activity android:name="com.example.lixiang.music_player.RecommendActivity" />
+        <activity android:name="com.example.lixiang.music_player.MusiclistActivity" />
+        <activity android:name="com.example.lixiang.music_player.DownloadActivity" />
         <activity
-            android:name=".SettingsActivity"
-            android:theme="@style/ActivityTheme"
+            android:name="com.example.lixiang.music_player.SettingsActivity"
             android:label="程序设置"
-            android:parentActivityName=".RecommendActivity" />
+            android:parentActivityName="com.example.lixiang.music_player.RecommendActivity"
+            android:theme="@style/ActivityTheme" />
         <activity
-            android:name=".AboutActivity"
-            android:parentActivityName=".RecommendActivity"
+            android:name="com.example.lixiang.music_player.AboutActivity"
+            android:parentActivityName="com.example.lixiang.music_player.RecommendActivity"
             android:theme="@style/AppTheme.MaterialAboutActivity" />
         <activity
-            android:name=".sc_randomPlay"
+            android:name="com.example.lixiang.music_player.sc_randomPlay"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
-            android:name=".sc_list"
+            android:name="com.example.lixiang.music_player.sc_list"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
-            android:name=".sc_cloud"
+            android:name="com.example.lixiang.music_player.sc_cloud"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
-            android:name=".sc_library"
+            android:name="com.example.lixiang.music_player.sc_library"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <activity android:name=".searchActivity"
-            android:parentActivityName=".MainActivity"/>
-        <activity android:name=".EqualizerActivity"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/Theme.AppCompat.Light"
-            android:label="均衡器"></activity>
+        <activity
+            android:name="com.example.lixiang.music_player.searchActivity"
+            android:parentActivityName="com.example.lixiang.music_player.MainActivity" />
+        <activity
+            android:name="com.example.lixiang.music_player.EqualizerActivity"
+            android:label="均衡器"
+            android:parentActivityName="com.example.lixiang.music_player.MainActivity"
+            android:theme="@style/Theme.AppCompat.Light" />
+        <activity android:name="com.example.lixiang.music_player.netMusicActivity"
+            android:theme="@style/ActivityTheme"
+            android:parentActivityName="com.example.lixiang.music_player.MainActivity"
+            android:label="搜索结果"></activity>
     </application>
 
 </manifest>
