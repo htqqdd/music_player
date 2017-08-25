@@ -1,6 +1,5 @@
 # music_player
 My first android application
-Version 23
 项目的建立离不开以下开源项目的支持：
 音乐搜索器
 https://github.com/maicong/music
