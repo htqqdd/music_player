@@ -190,7 +190,9 @@ public class DownloadFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             refresh.setRefreshing(false);
-            type = previousType;
+            if (filter.equals("url")){
+                type = previousType;
+            }
             switch (s){
                 case "200":
                     Intent intent = new Intent(getActivity(),netMusicActivity.class);

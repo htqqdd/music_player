@@ -93,7 +93,9 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
         }
     }
     public void dismissDialog(){
-        dialog.dismiss();
+        if (dialog !=null) {
+            dialog.dismiss();
+        }
     }
 
 }

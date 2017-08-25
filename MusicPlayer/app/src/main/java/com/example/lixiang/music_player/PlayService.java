@@ -740,13 +740,41 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
     private void initialAudioEffect(int audioSessionId) {
         try{
-            canceler = AcousticEchoCanceler.create(audioSessionId);
-            control = AutomaticGainControl.create(audioSessionId);
-            suppressor = NoiseSuppressor.create(audioSessionId);
-            mEqualizer = new Equalizer(0, audioSessionId);
-            mBass = new BassBoost(0, audioSessionId);
             loudnessEnhancer = new LoudnessEnhancer(audioSessionId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try{
+            mBass = new BassBoost(0, audioSessionId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try{
             mVirtualizer = new Virtualizer(0, audioSessionId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try{
+            mEqualizer = new Equalizer(0, audioSessionId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try{
+            canceler = AcousticEchoCanceler.create(audioSessionId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try{
+            control = AutomaticGainControl.create(audioSessionId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try{
+            suppressor = NoiseSuppressor.create(audioSessionId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try{
             getPreference();
         }catch (Exception e){
             e.printStackTrace();
@@ -802,6 +830,7 @@ try {
     public void setBass(boolean b) {
         try {
             mBass.setEnabled(b);
+            Log.v("开启","bass");
             loudnessEnhancer.setEnabled(b || mVirtualizer.getEnabled());
         }catch (Exception e){
             e.printStackTrace();
@@ -819,6 +848,7 @@ try {
     public void setVirtualizer(Boolean b) {
         try {
             mVirtualizer.setEnabled(b);
+            Log.v("开启","virtualizer");
             loudnessEnhancer.setEnabled(b || mBass.getEnabled());
         }catch (Exception e){
             e.printStackTrace();
@@ -835,10 +865,49 @@ try {
 
     private void getPreference() {
         SharedPreferences bundle = this.getSharedPreferences("audioEffect", MODE_PRIVATE);
+        Log.v("开启","getPreference");
+        //超强音量
+        try {
+            if ((bundle.getBoolean("Bass", false) && bundle.getBoolean("Virtualizer", false)) == false){
+                loudnessEnhancer.setEnabled(false);
+            }else {
+                loudnessEnhancer.setEnabled(true);
+                Log.v("开启","loudness");
+                loudnessEnhancer.setTargetGain(500);
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        //虚拟环绕
+        try{
+            if (bundle.getBoolean("Virtualizer", false) == false) {
+                setVirtualizer(false);
+            }else {
+                setVirtualizer(true);
+                setVirtualizerStrength((short) bundle.getInt("Virtualizer_seekBar", 0));
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        //低音增强
+        try{
+            Log.v("开启",String.valueOf(bundle.getBoolean("Bass", false)));
+            if (bundle.getBoolean("Bass", false) == false) {
+                setBass(false);
+            }else {
+                setBass(true);
+                Log.v("开启","Bass"+bundle.getBoolean("Bass", false));
+                setBassStrength((short) bundle.getInt("Bass_seekBar", 0));
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         //均衡器
         try {
             if (bundle.getBoolean("Equalizer", false) == true) {
                 mEqualizer.setEnabled(true);
+                Log.v("开启","Equalzier");
                 switch (bundle.getInt("Spinner", 0)) {
                     case 0:
                         mEqualizer.setBandLevel((short) 0, (short) 300);
@@ -932,43 +1001,6 @@ try {
         }catch (Exception e){
             e.printStackTrace();
         }
-
-        //低音增强
-        try{
-            if (bundle.getBoolean("Bass", false) == false) {
-                mBass.setEnabled(false);
-            }else {
-                mBass.setEnabled(true);
-                mBass.setStrength((short) bundle.getInt("Bass_seekBar", 0));
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-        //虚拟环绕
-        try{
-            if (bundle.getBoolean("Virtualizer", false) == false) {
-                mVirtualizer.setEnabled(false);
-            }else {
-                mVirtualizer.setEnabled(bundle.getBoolean("Virtualizer", false));
-                mVirtualizer.setStrength((short) bundle.getInt("Virtualizer_seekBar", 0));
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-        //超强音量
-        try {
-            if ((bundle.getBoolean("Bass", false) || bundle.getBoolean("Virtualizer", false)) == false){
-                loudnessEnhancer.setEnabled(false);
-            }else {
-                loudnessEnhancer.setEnabled(true);
-                loudnessEnhancer.setTargetGain(500);
-            }
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-
 
         //次要
         try {

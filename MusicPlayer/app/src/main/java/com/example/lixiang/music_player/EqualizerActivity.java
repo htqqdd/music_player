@@ -412,15 +412,27 @@ public class EqualizerActivity extends AestheticActivity {
             }
             equalizerSwitch.setChecked(bundle.getBoolean("Equalizer", false));
             spinner.setEnabled(bundle.getBoolean("Equalizer", false));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
             //低音增强
+        try {
             bassboost.setChecked(bundle.getBoolean("Bass", false));
             bass_seekbar.setProgress(bundle.getInt("Bass_seekBar", 0));
             bass_seekbar.setEnabled(bundle.getBoolean("Bass", false));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
             //虚拟环绕
+        try{
             virtualizer.setChecked(bundle.getBoolean("Virtualizer", false));
             virtualizer_seekbar.setProgress(bundle.getInt("Virtualizer_seekBar", 0));
             virtualizer_seekbar.setEnabled(bundle.getBoolean("Virtualizer", false));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
             //次要
+        try{
             echoCanceler.setChecked(bundle.getBoolean("Canceler", false));
             autoGain.setChecked(bundle.getBoolean("AutoGain", false));
             suppressor.setChecked(bundle.getBoolean("Suppressor", false));
