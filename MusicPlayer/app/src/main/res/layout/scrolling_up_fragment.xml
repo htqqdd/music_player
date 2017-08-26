@@ -101,26 +101,57 @@
         android:layout_height="match_parent"
         android:layout_below="@id/play_now_cover" />
 
-
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id ="@+id/seekbar_layout"
+    android:layout_below="@id/play_now_cover"
+    android:background="#40000000">
     <SeekBar
+        android:layout_marginLeft="48dp"
+        android:layout_marginRight="48dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/play_now_cover"
         android:tag=":aesthetic_ignore"
         android:id="@+id/seekBar"
-        android:paddingLeft="0px"
-        android:paddingRight="0px"
         android:maxHeight="20dp"
         android:minHeight="20dp"
         android:progressDrawable="@drawable/seekbar_back"
         android:thumb="@drawable/seekbar_thumb"/>
+    <TextView
+        android:id = "@+id/current_position"
+        android:tag=":aesthetic_ignore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:text="00:00"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:paddingLeft="8dp"
+        android:layout_centerVertical="true"
+        android:textColor="@color/colorCustomAccent" />
+
+    <TextView
+        android:id ="@+id/duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:paddingRight="8dp"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:text="00:00"
+        android:textColor="@color/colorCustomAccent"
+        android:tag=":aesthetic_ignore"/>
+
+</RelativeLayout>
 
 
     <RelativeLayout
         android:id="@+id/control_layout"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:layout_below="@id/seekBar"
+        android:layout_below="@id/seekbar_layout"
         android:layout_marginTop="16dp">
 
         <ImageView
@@ -139,30 +170,11 @@
             android:scaleType="centerCrop"
             android:src="@drawable/repeat_grey" />
 
-        <RelativeLayout
-            android:id="@+id/main_control_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_centerInParent="true"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/left"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_centerVertical="true"
-                android:onClick="previous"
-                android:padding="16dp"
-                android:foreground="?android:attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/previous" />
-
-
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/play_or_pause"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:layout_toRightOf="@id/left"
                 android:onClick="main_play_or_pause"
                 android:scaleType="centerInside"
                 android:src="@drawable/play_black"
@@ -179,8 +191,16 @@
                 android:padding="16dp"
                 android:src="@drawable/next"
                 android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
-
-        </RelativeLayout>
+        <ImageView
+            android:id="@+id/left"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@id/play_or_pause"
+            android:onClick="previous"
+            android:padding="16dp"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/previous" />
 
         <ImageView
             android:id="@+id/shuffle_button"

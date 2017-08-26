@@ -227,9 +227,6 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         //关闭加载框
         Intent dismiss_intent = new Intent("dismiss_dialog");
         sendBroadcast(dismiss_intent);
-
-        mediaPlayer.start();
-        Data.setState(playing);
         if (onetime) {
             Intent intent = new Intent("play_broadcast");
             intent.putExtra("UIChange", initialize);
@@ -239,6 +236,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         intent.putExtra("UIChange", mediaChangeAction);
         sendBroadcast(intent);
         updateMetaData();
+        mediaPlayer.start();
+        Data.setMediaDuration(mediaPlayer.getDuration());
+        Data.setState(playing);
 //        new buildNotificationTask().execute(playing);
 //        buildNotification(playing);
         //储存播放次数
@@ -271,6 +271,8 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         }
         return 0;
     }
+
+
 
     public int getAudioSessionId() {
         return audioSessionId;
@@ -885,6 +887,7 @@ try {
             }else {
                 setVirtualizer(true);
                 setVirtualizerStrength((short) bundle.getInt("Virtualizer_seekBar", 0));
+                Log.v("强度","Virtualizer"+bundle.getInt("Virtualizer_seekBar", 0));
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -899,6 +902,7 @@ try {
                 setBass(true);
                 Log.v("开启","Bass"+bundle.getBoolean("Bass", false));
                 setBassStrength((short) bundle.getInt("Bass_seekBar", 0));
+                Log.v("强度","Bass"+bundle.getInt("Bass_seekBar", 0));
             }
         }catch (Exception e){
             e.printStackTrace();

@@ -265,7 +265,7 @@ public class MainActivity extends AestheticActivity {
             public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
                 if (previousState == COLLAPSED && newState == DRAGGING) {
                     if (playService != null) {
-                        seekBar.setMax(playService.getDuration());
+                        seekBar.setMax(Data.getMediaDuration());
                     }
                     updateSeekBar();
                 }
@@ -402,13 +402,15 @@ public class MainActivity extends AestheticActivity {
         bindService(bindIntent, conn, BIND_AUTO_CREATE);
 
         //拖动seekbar
-        seekBar.setPadding(0, 0, 0, 0);
+        seekBar.setPadding(5,0,5,0);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
                     playService.seekto(progress);
                 }
+                TextView currentPosition = (TextView) findViewById(R.id.current_position);
+                currentPosition.setText(toTime(progress));
             }
 
             @Override
@@ -572,10 +574,10 @@ public class MainActivity extends AestheticActivity {
         ImageView play_now_back_color = (ImageView) findViewById(R.id.play_now_back_color);
         if (cx == 0) {
             FloatingActionButton play_or_pause = (FloatingActionButton) findViewById(R.id.play_or_pause);
-            RelativeLayout main_control_layout = (RelativeLayout) findViewById(R.id.main_control_layout);
+            RelativeLayout seekbar_layout = (RelativeLayout) findViewById(R.id.seekbar_layout);
             RelativeLayout control_layout = (RelativeLayout) findViewById(R.id.control_layout);
-            cx = play_or_pause.getLeft() + main_control_layout.getLeft() + play_or_pause.getWidth() / 2;
-            cy = control_layout.getTop() - seekBar.getTop() + play_or_pause.getTop() + play_or_pause.getHeight() / 2;
+            cx = play_or_pause.getLeft() + control_layout.getLeft() + play_or_pause.getWidth() / 2;
+            cy = control_layout.getTop() - seekbar_layout.getTop() + play_or_pause.getTop() + play_or_pause.getHeight() / 2;
             finalRadius = Math.max(play_now_back_color.getWidth(), play_now_back_color.getHeight());
         }
         final int Int1 = Int;
@@ -606,9 +608,12 @@ public class MainActivity extends AestheticActivity {
         String artist = Data.getArtist(position);
         int id = Data.getId(position);
         seekBar.setProgress(0);
-        seekBar.setMax(Data.getDuration(position));
+        TextView currentPosition = (TextView) findViewById(R.id.current_position);
+        final TextView duration = (TextView) findViewById(R.id.duration);
+        duration.setText(toTime(Data.getMediaDuration()));
+        seekBar.setMax(Data.getMediaDuration());
         TextView main_song_title = (TextView) findViewById(R.id.main_song_title);
-        ImageView repeat_button = (ImageView) findViewById(R.id.repeat_button);
+        final ImageView repeat_button = (ImageView) findViewById(R.id.repeat_button);
         ImageView shuffle_button = (ImageView) findViewById(R.id.shuffle_button);
         FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
         main_song_title.setText(Data.getTitle(position));
@@ -633,7 +638,7 @@ public class MainActivity extends AestheticActivity {
 
         //设置封面,自动封面获取颜色
         if (Data.is_net){
-            ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
+            final ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
             Glide.with(this).load(Data.getNetMusicList().get(position).getRealPic()).placeholder(R.drawable.default_album).into(play_now_cover);
             Glide.with(this).load(Data.getNetMusicList().get(position).getRealPic()).asBitmap().error(R.drawable.default_album).into(new SimpleTarget<Bitmap>() {
                 @Override
@@ -908,12 +913,17 @@ public class MainActivity extends AestheticActivity {
 
     private void updateSeekBar() {
         mTimer = new Timer();
+        TextView currentPosition = (TextView) findViewById(R.id.current_position);
+        final TextView duration = (TextView) findViewById(R.id.duration);
+        if (playService != null) {
+            duration.setText(toTime(playService.getDuration()));
+        }
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
                 if (playService != null) {
                     if (Data.getDuration(Data.getPosition()) == 0){
-                        seekBar.setMax(playService.getDuration());
+                        seekBar.setMax(Data.getMediaDuration());
                     }
                     if (Data.getState() == playing) {
                         seekBar.setProgress(playService.getCurrentPosition());
@@ -969,6 +979,13 @@ public class MainActivity extends AestheticActivity {
             Intent intent = new Intent(MainActivity.this, EqualizerActivity.class);
             startActivity(intent);
         }
+    }
+    private String toTime(int i){
+        int primary_second = i/1000;
+        int minute = primary_second/60;
+        int second = primary_second - minute*60;
+//        String str = String.format("%5d", num).replace(" ", "0");
+        return String.format("%2d",minute).replace(" ", "0")+":"+String.format("%2d",second).replace(" ", "0");
     }
 
 }

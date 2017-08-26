@@ -66,6 +66,15 @@ public class Data {
     private static boolean isFromSc = false;
     private static boolean hasInitialized = false;
     private static ArrayList<musicInfo> musicInfoArrayList;
+
+    public static int getMediaDuration() {
+        return mediaDuration;
+    }
+
+    public static void setMediaDuration(int mediaDuration) {
+        Data.mediaDuration = mediaDuration;
+    }
+
     private static int mediaDuration = 0;
     private static int mediaCurrentPosition = 0;
     //playMode 0:列表重复 1:随机 2:单曲重复 3:顺序
