@@ -29,11 +29,11 @@ public class SimpleFragmentPagerAdapter extends FragmentPagerAdapter {
     @Override
     public CharSequence getPageTitle(int position) {
 //        if (position == 0) {
-//            return "";
+//            return "建议";
 //        } else if (position == 1) {
-//            return "";
+//            return "歌曲";
 //        } else{
-//            return "";
+//            return "下载";
 //        }
         return "";
     }

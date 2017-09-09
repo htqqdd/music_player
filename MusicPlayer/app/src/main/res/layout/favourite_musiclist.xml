@@ -28,7 +28,7 @@
             android:layout_below="@id/Favourite_list_cover"
             android:maxLines="1"
             android:text="专辑名"
-            android:textColor="#000000"
+            android:textColor="?android:textColorPrimary"
             android:textSize="14sp"
             android:layout_marginLeft="8dp"
             android:layout_marginTop="2dp"
@@ -59,6 +59,7 @@
             android:layout_alignTop="@id/Favourite_list_album"
             android:scaleType="centerCrop"
             android:src="@drawable/about_grey"
+            android:tint="?android:textColorSecondary"
             android:background="?android:attr/selectableItemBackgroundBorderless"/>
     </RelativeLayout>
 

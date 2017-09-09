@@ -13,16 +13,19 @@ import android.provider.Settings;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 
 
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 import static com.example.lixiang.music_player.R.id.delete;
 
 /**
@@ -40,13 +43,21 @@ public class menu_util {
                 switch (item.getItemId()) {
                     case R.id.openLink:
                         Uri web_uri = Uri.parse(Data.getNetMusicList().get(position).getLink());
-                        Intent intent = new Intent(Intent.ACTION_VIEW,web_uri);
-                        context.startActivity(intent);
+                        if (web_uri !=null) {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, web_uri);
+                            context.startActivity(intent);
+                        }else {
+                            Toast.makeText(context, "未获取到链接，请尝试更换提供方", Toast.LENGTH_SHORT).show();
+                        }
                         return true;
                     case R.id.getLink:
                         Uri download_uri = Uri.parse(Data.getNetMusicList().get(position).getMusic());
-                        Intent web_intent = new Intent(Intent.ACTION_VIEW,download_uri);
-                        context.startActivity(web_intent);
+                        if (download_uri !=null) {
+                            Intent web_intent = new Intent(Intent.ACTION_VIEW, download_uri);
+                            context.startActivity(web_intent);
+                        }else {
+                            Toast.makeText(context, "未获取到链接，请尝试更换提供方", Toast.LENGTH_SHORT).show();
+                        }
                         return true;
                 }
                 return true;

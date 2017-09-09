@@ -35,10 +35,12 @@ import android.support.v7.graphics.Palette;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewAnimationUtils;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
@@ -54,6 +56,9 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.gyf.barlibrary.ImmersionBar;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+import com.tencent.bugly.beta.Beta;
+import com.tencent.bugly.crashreport.CrashReport;
+
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -63,6 +68,7 @@ import permissions.dispatcher.OnShowRationale;
 import permissions.dispatcher.PermissionRequest;
 import permissions.dispatcher.RuntimePermissions;
 
+import static android.R.style.Theme;
 import static com.example.lixiang.music_player.Data.initialize;
 import static com.example.lixiang.music_player.Data.mediaChangeAction;
 import static com.example.lixiang.music_player.Data.pauseAction;
@@ -71,6 +77,8 @@ import static com.example.lixiang.music_player.Data.playAction;
 import static com.example.lixiang.music_player.Data.playing;
 import static com.example.lixiang.music_player.R.id.about;
 import static com.example.lixiang.music_player.R.id.back;
+import static com.example.lixiang.music_player.R.id.toolbar;
+import static com.example.lixiang.music_player.R.id.transition_current_scene;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.COLLAPSED;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.DRAGGING;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDED;
@@ -102,19 +110,20 @@ public class MainActivity extends AestheticActivity {
         Log.e("OnCreate执行", "OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        CrashReport.testJavaCrash();
+
+        //沉浸状态栏
+        ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).init();
 
         if (Aesthetic.isFirstTime()) {
             Aesthetic.get()
                     .colorPrimaryRes(R.color.colorPrimary)
                     .colorAccentRes(R.color.colorAccent)
+                    .colorCardViewBackgroundRes(R.color.cardview_light_background)
                     .colorStatusBarAuto()
                     .colorNavigationBarAuto()
                     .apply();
         }
-
-        //沉浸状态栏
-        ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).init();
-
 
         //初始化全局变量
         seekBar = (SeekBar) findViewById(R.id.seekBar);
@@ -184,10 +193,8 @@ public class MainActivity extends AestheticActivity {
 
         //新标题栏
         Toolbar main_toolbar = (Toolbar) findViewById(R.id.main_toolbar);
-        main_toolbar.setTitleTextColor(getResources().getColor(R.color.colorCustomAccent));
+        main_toolbar.inflateMenu(R.menu.main_menu);
         setSupportActionBar(main_toolbar);
-        getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //侧滑栏动画
         final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -195,6 +202,25 @@ public class MainActivity extends AestheticActivity {
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
+            }
+
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                Log.v("加载","加载"+ slideOffset);
+                if (Data.firstOpen) {
+                    SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                    LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+                    View navHeader = inflater.inflate(R.layout.nav_header, (ViewGroup) MainActivity.this.findViewById(R.id.nav_header));
+                    ImageView imageView = (ImageView) navHeader.findViewById(R.id.header);
+                    if (sharedPref.getString("main_theme", "day").equals("day")) {
+                        Glide.with(MainActivity.this).load(R.drawable.nav).into(imageView);
+                    } else {
+                        Glide.with(MainActivity.this).load(R.drawable.nav_black).into(imageView);
+                    }
+                    Data.firstOpen = false;
+
+                }
+                super.onDrawerSlide(drawerView, slideOffset);
             }
 
             @Override

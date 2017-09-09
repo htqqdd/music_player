@@ -88,6 +88,7 @@ public class Data {
     private static List<music_playtimes> Timessublist;
     private static ArrayList<music_playtimes> playtimesArrayList;
     private static SharedPreferences playtimes;
+    public static boolean firstOpen = true;
 
     public static List<DownloadFragment.Music> getNetMusicList() {
         return netMusicList;

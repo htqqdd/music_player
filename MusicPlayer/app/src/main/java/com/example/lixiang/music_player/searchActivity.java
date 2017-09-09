@@ -33,7 +33,7 @@ public class searchActivity extends AestheticActivity implements SearchView.OnQu
         registerReceiver(dismissReceiver, intentFilter);
 
         Toolbar search_toolbar = (Toolbar) findViewById(R.id.search_toolbar);
-        search_toolbar.setTitleTextColor(getResources().getColor(R.color.colorCustomAccent));
+        search_toolbar.inflateMenu(R.menu.search_menu);
         search_toolbar.setTitle("搜索");
         setSupportActionBar(search_toolbar);//设置返回键可用
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
 
@@ -22,6 +23,12 @@ public class netMusicActivity extends AestheticActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_net_music);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.net_toolbar);
+        toolbar.setTitle("搜索结果");
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //动态注册广播
         dismissReceiver = new DismissReceiver();

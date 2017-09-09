@@ -2,31 +2,32 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="168dp">
+    android:layout_height="168dp"
+    android:id = "@+id/nav_header">
     <ImageView
+        android:id = "@+id/header"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src = "@drawable/nav"
-        android:scaleType="fitXY"/>
+        android:scaleType="centerCrop"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:tag=":aesthetic_ignore"
         android:text="尽享音乐之美"
         android:textSize="12sp"
-        android:id = "@+id/developernfo"
         android:textColor="#FFF"
+        android:tag=":aesthetic_ignore"
+        android:id = "@+id/developernfo"
         android:paddingLeft="16dp"
         android:paddingBottom="16dp"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/developernfo"
-        android:tag=":aesthetic_ignore"
         android:text="音乐播放器"
-        android:textSize="16sp"
         android:textColor="#FFF"
+        android:tag=":aesthetic_ignore"
+        android:textSize="16sp"
         android:paddingLeft="16dp"/>
 
 </RelativeLayout>

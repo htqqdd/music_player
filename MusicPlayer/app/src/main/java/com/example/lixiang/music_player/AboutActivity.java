@@ -15,7 +15,7 @@ import com.danielstone.materialaboutlibrary.items.MaterialAboutItemOnClickAction
 import com.danielstone.materialaboutlibrary.items.MaterialAboutTitleItem;
 import com.danielstone.materialaboutlibrary.model.MaterialAboutCard;
 import com.danielstone.materialaboutlibrary.model.MaterialAboutList;
-
+import com.tencent.bugly.beta.Beta;
 
 
 public class AboutActivity extends MaterialAboutActivity {
@@ -36,7 +36,13 @@ public class AboutActivity extends MaterialAboutActivity {
                 .icon(R.mipmap.new_launcher)
                 .build());
 
-        appCardBuilder.addItem(ConvenienceBuilder.createVersionActionItem(c, getResources().getDrawable(R.drawable.ic_info), "版本", false));
+        appCardBuilder.addItem(ConvenienceBuilder.createVersionActionItem(c, getResources().getDrawable(R.drawable.ic_info), "版本", false)
+                .setOnClickAction(new MaterialAboutItemOnClickAction() {
+                    @Override
+                    public void onClick() {
+                        Beta.checkUpgrade();
+                    }
+                }));
 
         appCardBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text("更新历史")

@@ -70,6 +70,18 @@
         <item>eighteen</item>
     </string-array>
     <string name="suggestion_entries_default">eighteen</string>
+<!--全局主题-->
+    <string-array name="global_theme_entries">
+        <item>白天模式</item>
+        <item>夜间模式</item>
+        <item>纯黑模式</item>
+    </string-array>
+    <string-array name="global_theme_entries_value">
+        <item>day</item>
+        <item>night</item>
+        <item>amoled</item>
+    </string-array>
+    <string name="global_theme_entries_default">day</string>
 
 
     <!-- Example General settings -->

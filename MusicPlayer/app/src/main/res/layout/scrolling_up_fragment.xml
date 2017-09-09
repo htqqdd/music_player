@@ -23,7 +23,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="16dp"
                 android:src="@drawable/ic_up"
-                android:tint="#000000"
+                android:tint="?android:textColorSecondary"
                 android:background="?android:attr/selectableItemBackgroundBorderless"/>
 
             <TextView
@@ -47,6 +47,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="16dp"
+                android:tint="?android:textColorSecondary"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:baselineAlignBottom="true"
                 android:onClick="title_play_or_pause"
@@ -255,6 +256,7 @@
                     android:layout_centerVertical="true"
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="16dp"
+                    android:tint="?android:textColorSecondary"
                     android:src="@drawable/volume" />
 
                 <LinearLayout
@@ -292,6 +294,7 @@
                 </LinearLayout>
 
                 <ImageView
+                    android:id = "@+id/scrolling_up_about"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:layout_alignParentRight="true"
@@ -300,6 +303,7 @@
                     android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:onClick="play_now_menu_button"
                     android:padding="4dp"
+                    android:tint="?android:textColorSecondary"
                     android:src="@drawable/about_grey" />
             </RelativeLayout>
         </LinearLayout>

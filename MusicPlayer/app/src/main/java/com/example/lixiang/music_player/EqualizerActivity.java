@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 import android.os.Bundle;
 import android.support.v7.widget.SwitchCompat;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -28,6 +29,7 @@ import com.afollestad.aesthetic.AestheticActivity;
 
 import static android.view.View.GONE;
 import static com.example.lixiang.music_player.R.id.equalizer;
+import static com.example.lixiang.music_player.R.id.main_toolbar;
 import static com.example.lixiang.music_player.R.id.transition_current_scene;
 
 public class EqualizerActivity extends AestheticActivity {
@@ -49,6 +51,12 @@ public class EqualizerActivity extends AestheticActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_equalizer);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.equalizer_toolbar);
+        toolbar.setTitle("均衡器");
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //初始化变量
         equalizerSwitch = (SwitchCompat) findViewById(equalizer);

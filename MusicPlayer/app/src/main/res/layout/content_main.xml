@@ -21,7 +21,6 @@
             android:layout_height="0dp"
             android:background="?colorPrimaryDark" />
 
-
         <android.support.design.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -46,18 +45,17 @@
                         android:layout_width="match_parent"
                         android:layout_height="?attr/actionBarSize"
                         android:layout_alignParentTop="true"
-                        android:background="#00000000"
-                        android:tag=":aesthetic_ignore"
-                        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                        app:layout_scrollFlags="scroll|enterAlways"
-                        app:popupTheme="@style/Theme.AppCompat.Light.DarkActionBar"></android.support.v7.widget.Toolbar>
+                        android:background="?colorPrimary"
+                        app:layout_scrollFlags="scroll|enterAlways">
+                    </android.support.v7.widget.Toolbar>
 
                     <android.support.design.widget.TabLayout
                         android:id="@+id/tabs"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
-                        android:background="#00000000" />
+                        android:background="?colorPrimary"
+                        app:tabTextColor="#00000000"/>
                 </RelativeLayout>
 
             </android.support.design.widget.AppBarLayout>
