@@ -16,6 +16,8 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.IBinder;
@@ -48,37 +50,45 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
-
 import com.afollestad.aesthetic.Aesthetic;
 import com.afollestad.aesthetic.AestheticActivity;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.gyf.barlibrary.ImmersionBar;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-import com.tencent.bugly.beta.Beta;
-import com.tencent.bugly.crashreport.CrashReport;
-
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import me.wcy.lrcview.LrcView;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.OnShowRationale;
 import permissions.dispatcher.PermissionRequest;
 import permissions.dispatcher.RuntimePermissions;
 
-import static android.R.style.Theme;
+import static android.R.attr.handle;
+import static android.view.View.GONE;
 import static com.example.lixiang.music_player.Data.initialize;
 import static com.example.lixiang.music_player.Data.mediaChangeAction;
 import static com.example.lixiang.music_player.Data.pauseAction;
 import static com.example.lixiang.music_player.Data.pausing;
 import static com.example.lixiang.music_player.Data.playAction;
 import static com.example.lixiang.music_player.Data.playing;
-import static com.example.lixiang.music_player.R.id.about;
-import static com.example.lixiang.music_player.R.id.back;
-import static com.example.lixiang.music_player.R.id.toolbar;
-import static com.example.lixiang.music_player.R.id.transition_current_scene;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.COLLAPSED;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.DRAGGING;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDED;
@@ -103,6 +113,9 @@ public class MainActivity extends AestheticActivity {
     private ImageView play_pause_button;
     private ImageView back;
     private ImageView about;
+    private List<Music> lyricList;
+    private ArrayList<lyricObject> lyricObjectArrayList;
+    private TextView lyricView;
 
 
     @Override
@@ -110,7 +123,6 @@ public class MainActivity extends AestheticActivity {
         Log.e("OnCreate执行", "OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        CrashReport.testJavaCrash();
 
         //沉浸状态栏
         ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).init();
@@ -134,6 +146,7 @@ public class MainActivity extends AestheticActivity {
         play_pause_button = (ImageView) findViewById(R.id.play_pause_button);
         back = (ImageView) findViewById(R.id.back);
         about = (ImageView) findViewById(R.id.about);
+        lyricView = (TextView) findViewById(R.id.lyric_view);
 
 
         //多屏幕尺寸适应
@@ -201,25 +214,20 @@ public class MainActivity extends AestheticActivity {
         ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, main_toolbar, R.string.app_name, R.string.app_name) {
             @Override
             public void onDrawerOpened(View drawerView) {
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+                View navHeader = inflater.inflate(R.layout.nav_header, (ViewGroup) MainActivity.this.findViewById(R.id.nav_header));
+                ImageView imageView = (ImageView) navHeader.findViewById(R.id.header);
+                if (sharedPref.getString("main_theme", "day").equals("day")) {
+                    Glide.with(MainActivity.this).load(R.drawable.nav).into(imageView);
+                } else {
+                    Glide.with(MainActivity.this).load(R.drawable.nav_black).into(imageView);
+                }
                 super.onDrawerOpened(drawerView);
             }
 
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
-                Log.v("加载","加载"+ slideOffset);
-                if (Data.firstOpen) {
-                    SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                    LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-                    View navHeader = inflater.inflate(R.layout.nav_header, (ViewGroup) MainActivity.this.findViewById(R.id.nav_header));
-                    ImageView imageView = (ImageView) navHeader.findViewById(R.id.header);
-                    if (sharedPref.getString("main_theme", "day").equals("day")) {
-                        Glide.with(MainActivity.this).load(R.drawable.nav).into(imageView);
-                    } else {
-                        Glide.with(MainActivity.this).load(R.drawable.nav_black).into(imageView);
-                    }
-                    Data.firstOpen = false;
-
-                }
                 super.onDrawerSlide(drawerView, slideOffset);
             }
 
@@ -302,6 +310,30 @@ public class MainActivity extends AestheticActivity {
                     lunch_play_now_button.setClickable(false);
                     about.setClickable(true);
                     back.setClickable(true);
+                    ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
+                    play_now_cover.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            RelativeLayout lyriclayout = (RelativeLayout) findViewById(R.id.lyric_layout);
+                            RelativeLayout musicInfolayout = (RelativeLayout) findViewById(R.id.music_info_layout);
+                            TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
+                            if (lyricObjectArrayList ==null) {
+                                now_on_play_text.setText(Data.getTitle(Data.getPosition()));
+                                lyriclayout.setVisibility(View.VISIBLE);
+                                musicInfolayout.setVisibility(GONE);
+                                lyricView.setText("正在搜索歌词");
+                                new getLyricTask().execute(Data.getTitle(Data.getPosition()), Data.getArtist(Data.getPosition()));
+                            }else if(lyriclayout.getVisibility() == View.GONE) {
+                                now_on_play_text.setText(Data.getTitle(Data.getPosition()));
+                                lyriclayout.setVisibility(View.VISIBLE);
+                                musicInfolayout.setVisibility(GONE);
+                            }else {
+                                    lyriclayout.setVisibility(View.GONE);
+                                    now_on_play_text.setText("正在播放");
+                                    musicInfolayout.setVisibility(View.VISIBLE);
+                                }
+                        }
+                    });
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                 }
                 if (previousState == DRAGGING && newState == COLLAPSED) {
@@ -310,7 +342,6 @@ public class MainActivity extends AestheticActivity {
                     lunch_play_now_button.setClickable(true);
                     about.setClickable(false);
                     back.setClickable(false);
-//                    pannelState = COLLAPSED;
                     //恢复手势滑动
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
                 }
@@ -435,6 +466,26 @@ public class MainActivity extends AestheticActivity {
                 if (fromUser) {
                     playService.seekto(progress);
                 }
+
+                if (playService != null) {
+                    if (Data.getState() == playing) {
+                        //更新歌词
+                        LrcView otherLyricView  = (LrcView) findViewById(R.id.other_lrc_view);
+                        otherLyricView.updateTime(playService.getCurrentPosition());
+                        if (lyricObjectArrayList != null){
+                            int size = lyricObjectArrayList.size();
+                            int currentPosition = playService.getCurrentPosition();
+                        for (int i = 0; i <size;i++){
+                            if (i == size - 1){
+                                lyricView.setText(lyricObjectArrayList.get(i).getText());
+                            }else if (lyricObjectArrayList.get(i).getTime() <currentPosition && lyricObjectArrayList.get(i+1).getTime() > currentPosition){
+                                lyricView.setText(lyricObjectArrayList.get(i).getText());
+                                break;
+                            }
+                        }
+                        }
+                    }
+                }
                 TextView currentPosition = (TextView) findViewById(R.id.current_position);
                 currentPosition.setText(toTime(progress));
             }
@@ -483,7 +534,9 @@ public class MainActivity extends AestheticActivity {
                 sendBroadcast(intent);
             }
         });
-
+        if (Data.getState() == playing) {
+            ChangeScrollingUpPanel(Data.getPosition());
+        }
     }
 
     @Override
@@ -625,6 +678,7 @@ public class MainActivity extends AestheticActivity {
         }
         TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
         now_on_play_text.setTextColor(Int);
+//        lyricView.setTextColor(Int1);
     }
 
     public void ChangeScrollingUpPanel(int position) {
@@ -844,6 +898,14 @@ public class MainActivity extends AestheticActivity {
             }
             if (intent.getIntExtra("UIChange", 0) == mediaChangeAction) {
                 ChangeScrollingUpPanel(Data.getPosition());
+                RelativeLayout lyriclayout = (RelativeLayout) findViewById(R.id.lyric_layout);
+                RelativeLayout musicInfolayout = (RelativeLayout) findViewById(R.id.music_info_layout);
+                lyricView.setText("正在搜索歌词");
+                lyriclayout.setVisibility(GONE);
+                TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
+                now_on_play_text.setText("正在播放");
+                musicInfolayout.setVisibility(View.VISIBLE);
+                lyricObjectArrayList = null;
             }
             if (intent.getIntExtra("onDestroy", 0) == 1) {
                 finish();
@@ -953,6 +1015,7 @@ public class MainActivity extends AestheticActivity {
                     }
                     if (Data.getState() == playing) {
                         seekBar.setProgress(playService.getCurrentPosition());
+                        //更新歌词
                     }
                 }
             }
@@ -1010,8 +1073,178 @@ public class MainActivity extends AestheticActivity {
         int primary_second = i/1000;
         int minute = primary_second/60;
         int second = primary_second - minute*60;
-//        String str = String.format("%5d", num).replace(" ", "0");
         return String.format("%2d",minute).replace(" ", "0")+":"+String.format("%2d",second).replace(" ", "0");
     }
 
+    private class GetLyricbyIdTask extends AsyncTask<String,Integer,String>{
+        @Override
+        protected String doInBackground(String... strings) {
+            try {
+                OkHttpClient client = new OkHttpClient();
+                Request request = new Request.Builder().url("http://music.163.com/api/song/lyric?os=pc&id="+strings[0]+"&lv=-1&kv=0&tv=0").build();
+                Response response = client.newCall(request).execute();
+                if (response.isSuccessful()) {
+                    String res = response.body().string();
+                    JSONObject jsonObject = new JSONObject(res);
+                    if (jsonObject.getInt("code") == 200) {
+                        JSONObject lrcJson = jsonObject.getJSONObject("lrc");
+                        String lyric = lrcJson.getString("lyric");
+                        adjust(lyric);
+                        Log.v("歌词","歌词"+lyric);
+                        String[] split = lyric.split("\n");
+                        lyricObjectArrayList = new ArrayList<lyricObject>();
+                        for (int i = 0; i < split.length/3; i++) {
+                            int lastIndex =split[i].lastIndexOf("]");
+                            if (lastIndex != 9 && split[i].substring(1,2).equals("0")){
+                                String content = split[i].substring(lastIndex+1);
+                                String times = split[i].substring(0,lastIndex+1).replace("[","-").replace("]","-");
+                                String timesList[] = times.split("-");
+                                for (int j = 0 ; j <timesList.length; j++){
+                                    lyricObjectArrayList.add(new lyricObject(timesList[j],content));
+                                }
+                            }else {
+                                lyricObjectArrayList.add(new lyricObject(split[i]));
+                            }
+                        }
+                        Comparator<lyricObject> lyricObjectComparator = new Comparator<lyricObject>() {
+                            @Override
+                            public int compare(lyricObject t1, lyricObject t2) {
+                                if (t1.getTime() < t2.getTime()){
+                                    return -1;
+                                }else if(t1.getTime() > t2.getTime()){
+                                    return 1;
+                                }else {
+                                    return 0;
+                                }
+                            }
+                        };
+                        Collections.sort(lyricObjectArrayList,lyricObjectComparator);
+                        return lyric;
+                    }
+                    return "unKnown";
+                } else {
+                    return "unKnown";
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "unKnown";
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            if (s.equals("unKnown")){
+                lyricView.setText("未搜索到匹配歌词");
+//                Snackbar.make(mLayout,"获取歌词失败",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+            }else {
+                LrcView otherLyricView  = (LrcView) findViewById(R.id.other_lrc_view);
+                otherLyricView.loadLrc(s);
+                //加载歌词
+//                lrcView.updateTime(50000);
+            }
+        }
+    }
+
+    private class getLyricTask extends AsyncTask<String,Integer,String> {
+        @Override
+        protected String doInBackground(String... strings) {
+            try {
+                OkHttpClient client = new OkHttpClient();
+                RequestBody requestBody;
+                if (strings[1].equals("<unknown>")){
+                    requestBody = new FormBody.Builder().add("music_input", strings[0]).add("music_filter", "name").add("music_type", "163").build();
+                }else{
+                    requestBody = new FormBody.Builder().add("music_input", strings[0]+strings[1]).add("music_filter", "name").add("music_type", "163").build();
+                }
+                Request request = new Request.Builder().url("http://www.yove.net/yinyue/").addHeader("Origin", "http://www.yove.net").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Accept", "application/json, text/javascript, */*; q=0.01").post(requestBody).build();
+                Response response = client.newCall(request).execute();
+                String res = response.body().string();
+                JSONObject jsonObject = new JSONObject(res);
+                if (jsonObject.getInt("code") == 200) {
+                    JSONArray jsonArray = jsonObject.getJSONArray("data");
+                    String data = jsonArray.toString();
+                    Gson gson = new Gson();
+                    lyricList = gson.fromJson(data, new TypeToken<List<Music>>() {
+                    }.getType());
+                    return "200";
+                }
+            } catch (Exception e) {
+                if (e instanceof java.net.UnknownHostException){
+                    return "404";
+                }
+                e.printStackTrace();
+                return "unKnown";
+            }
+            return "unKnown";
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            switch (s){
+                case "200":
+                    for (int j=0;j<lyricList.size();j++) {
+                        if (Data.getTitle(Data.getPosition()).contains(lyricList.get(j).getName())) {
+                            new GetLyricbyIdTask().execute(lyricList.get(0).getSongid());
+                            break;
+                        } else {
+                            lyricView.setText("未搜索到匹配歌词");
+                        }
+                    }
+                    break;
+                case "404":
+                    if (!hasNetwork(MainActivity.this)){
+                        Snackbar.make(mLayout,"请检查您的网络",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                    }else {
+                        Snackbar.make(mLayout,"服务器开小差了，请稍后再试",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                    }
+                    break;
+                case "unKnown":
+                    Snackbar.make(mLayout,"未知错误",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                    break;
+                default:
+            }
+            super.onPostExecute(s);
+        }
+
+    }
+    private boolean hasNetwork(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            if (networkInfo != null) {
+                return networkInfo.getState() == NetworkInfo.State.CONNECTED;
+            }
+        }
+        return false;
+    }
+
+    private String adjust(String lyric){
+        Log.v("歌词","歌词"+lyric);
+        String[] split = lyric.split("\n");
+        lyricObjectArrayList = new ArrayList<lyricObject>();
+        for (int i = 0; i < split.length/3; i++) {
+            if (!split[i].substring(1,2).equals("0")){
+a                //有作者标号
+            }else if (split[i].substring(10,11).equals("]")){
+                //歌曲时间格式不标准[04:28.660]
+
+            }else {
+                //格式标准且无作者标号
+            }
+
+
+            int lastIndex =split[i].lastIndexOf("]");
+            if (lastIndex != 9 && split[i].substring(1,2).equals("0")){
+                String content = split[i].substring(lastIndex+1);
+                String times = split[i].substring(0,lastIndex+1).replace("[","-").replace("]","-");
+                String timesList[] = times.split("-");
+                for (int j = 0 ; j <timesList.length; j++){
+                    lyricObjectArrayList.add(new lyricObject(timesList[j],content));
+                }
+            }else {
+                lyricObjectArrayList.add(new lyricObject(split[i]));
+            }
+        }
+        return lyric;
+    }
 }

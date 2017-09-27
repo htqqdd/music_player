@@ -15,6 +15,8 @@ import android.view.MenuItem;
 
 import com.afollestad.aesthetic.AestheticActivity;
 
+import static com.example.lixiang.music_player.Data.resetAction;
+
 
 public class searchActivity extends AestheticActivity implements SearchView.OnQueryTextListener{
     private SearchView searchView;
@@ -52,6 +54,7 @@ public class searchActivity extends AestheticActivity implements SearchView.OnQu
         unregisterReceiver(dismissReceiver);
         super.onDestroy();
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

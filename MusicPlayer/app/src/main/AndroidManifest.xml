@@ -92,7 +92,6 @@
             android:label="均衡器"
             android:parentActivityName="com.example.lixiang.music_player.MainActivity" />
         <activity android:name="com.example.lixiang.music_player.netMusicActivity"
-            android:theme="@style/ActivityTheme"
             android:parentActivityName="com.example.lixiang.music_player.MainActivity"
             android:label="搜索结果"></activity>
         <activity

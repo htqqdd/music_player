@@ -17,6 +17,16 @@ import java.io.IOException;
  */
 
 public class MyApplication extends Application {
+    private boolean isNet = false;
+    public boolean getIsNet() {
+        return isNet;
+    }
+
+    public void setIsNet(boolean b) {
+        isNet = b;
+    }
+
+
     @Override
     public void onCreate() {
         Context context = getApplicationContext();

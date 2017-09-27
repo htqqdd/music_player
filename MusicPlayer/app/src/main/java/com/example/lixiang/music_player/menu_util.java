@@ -42,8 +42,8 @@ public class menu_util {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.openLink:
+                        if (Data.getNetMusicList().get(position).getLink() !=null){
                         Uri web_uri = Uri.parse(Data.getNetMusicList().get(position).getLink());
-                        if (web_uri !=null) {
                             Intent intent = new Intent(Intent.ACTION_VIEW, web_uri);
                             context.startActivity(intent);
                         }else {
@@ -51,8 +51,8 @@ public class menu_util {
                         }
                         return true;
                     case R.id.getLink:
+                        if (Data.getNetMusicList().get(position).getMusic() != null){
                         Uri download_uri = Uri.parse(Data.getNetMusicList().get(position).getMusic());
-                        if (download_uri !=null) {
                             Intent web_intent = new Intent(Intent.ACTION_VIEW, download_uri);
                             context.startActivity(web_intent);
                         }else {

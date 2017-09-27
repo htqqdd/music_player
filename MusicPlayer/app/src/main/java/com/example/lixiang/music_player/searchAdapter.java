@@ -1,14 +1,17 @@
 package com.example.lixiang.music_player;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +27,7 @@ import java.util.ArrayList;
 
 import static android.media.CamcorderProfile.get;
 import static com.example.lixiang.music_player.Data.playAction;
+import static com.example.lixiang.music_player.Data.resetAction;
 
 /**
  * Created by lixiang on 2017/8/15.
@@ -82,6 +86,21 @@ public searchAdapter(){
             public void onClick(View view) {
                 if (Data.is_net){
                     dialog = ProgressDialog.show(mContext,"请稍后","正在玩命加载中");
+                    dialog.setOnKeyListener(new Dialog.OnKeyListener() {
+
+                        @Override
+                        public boolean onKey(DialogInterface arg0, int keyCode,
+                                             KeyEvent event) {
+                            // TODO Auto-generated method stub
+                            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                Intent intent = new Intent("service_broadcast");
+                                intent.putExtra("ACTION", resetAction);
+                                mContext.sendBroadcast(intent);
+                                dialog.dismiss();
+                            }
+                            return true;
+                        }
+                    });
                     Data.setPlayMode(3);
                     Data.setFavourite(false);
                     Data.setRecent(false);
@@ -108,7 +127,11 @@ public searchAdapter(){
             @Override
             public void onClick(View view) {
                 //弹出菜单
-                menu_util.popupMenu((Activity) mContext, view, Position);
+                if(Data.is_net){
+                    menu_util.popupNetMenu((Activity) mContext,view,Position);
+                }else {
+                    menu_util.popupMenu((Activity) mContext, view, Position);
+                }
             }
         });
     }

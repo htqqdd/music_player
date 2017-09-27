@@ -9,10 +9,13 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import com.afollestad.aesthetic.AestheticActivity;
+
+import static com.example.lixiang.music_player.Data.resetAction;
 
 public class netMusicActivity extends AestheticActivity {
     private DismissReceiver dismissReceiver;
@@ -53,6 +56,7 @@ public class netMusicActivity extends AestheticActivity {
         unregisterReceiver(dismissReceiver);
         super.onDestroy();
     }
+
 
     private class DismissReceiver extends BroadcastReceiver{
         @Override

@@ -52,6 +52,7 @@ import static com.example.lixiang.music_player.Data.pausing;
 import static com.example.lixiang.music_player.Data.playAction;
 import static com.example.lixiang.music_player.Data.playing;
 import static com.example.lixiang.music_player.Data.previousAction;
+import static com.example.lixiang.music_player.Data.resetAction;
 import static com.example.lixiang.music_player.Data.sc_playAction;
 import static com.example.lixiang.music_player.getCover.getArtwork;
 
@@ -133,24 +134,24 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Data.setServiceStarted(true);
-        Log.v("服务是否开启", "startCommand" + Data.getServiceState());
 //        requestAudioFocus();
-        if (intent.getIntExtra("ACTION", -2) == initialize) {
-            Data.setPosition(0);
-        }
-        if (intent.getIntExtra("ACTION", -2) == sc_playAction) {
-            if (isHasInitialized() == false) {
-                Data.initialMusicInfo(this);
+if (intent !=null){
+            if (intent.getIntExtra("ACTION", -2) == initialize) {
+                Data.setPosition(0);
             }
-            if (Data.getPlayMode() != 1) {
-                play(Data.getPosition());
-            } else {
-                positionNow = randomPosition();
-                play(positionNow);
+            if (intent.getIntExtra("ACTION", -2) == sc_playAction) {
+                if (isHasInitialized() == false) {
+                    Data.initialMusicInfo(this);
+                }
+                if (Data.getPlayMode() != 1) {
+                    play(Data.getPosition());
+                } else {
+                    positionNow = randomPosition();
+                    play(positionNow);
+                }
             }
-        }
-
+            Data.setServiceStarted(true);
+        }else {Data.setServiceStarted(false);}
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -185,17 +186,22 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 mediaPlayer.setVolume(1.0f, 1.0f);
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
-                audioManager.abandonAudioFocus(this);
+                removeAudioFocus();
+//                audioManager.abandonAudioFocus(this);
                 //The service lost audio focus, the user probably moved to playing media on another app, so release the media player.
                 Log.v("AUDIOFOCUS_LOSS", "焦点丢失");
-                if (mediaPlayer.isPlaying()) pause();
-                releaseMedia();
+                if (mediaPlayer !=null) {
+                    if (mediaPlayer.isPlaying()) pause();
+                }
+//                releaseMedia();
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 Log.v("FOCUS_LOSS_TRANSIENT", "焦点暂时丢失");
                 //Focus lost for a short time, pause the MediaPlayer.
-                if (mediaPlayer.isPlaying()) {
-                    pause();
+                if (mediaPlayer !=null) {
+                    if (mediaPlayer.isPlaying()) {
+                        pause();
+                    }
                 }
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
@@ -204,7 +210,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
                 Boolean lost_focus = sharedPref.getBoolean("lost_focus", false);
                 if (lost_focus) {
-                    if (mediaPlayer.isPlaying()) mediaPlayer.setVolume(0.1f, 0.1f);
+                    if (mediaPlayer !=null) {
+                        if (mediaPlayer.isPlaying()) mediaPlayer.setVolume(0.1f, 0.1f);
+                    }
                 }
                 break;
         }
@@ -215,7 +223,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         if (Data.is_net) {
             Toast.makeText(this, "没有下一曲了", Toast.LENGTH_SHORT).show();
         } else {
-            audioManager.abandonAudioFocus(this);
+//            audioManager.abandonAudioFocus(this);
             Intent intent = new Intent("service_broadcast");
             intent.putExtra("Control", nextAction);
             sendBroadcast(intent);
@@ -354,6 +362,11 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             if (intent.getIntExtra("Control", 0) == deleteAction) {
                 deleteService(intent.getIntExtra("DelayControl", 0));
             }
+            if (intent.getIntExtra("Control", 0) == resetAction){
+                if (mediaPlayer !=null) {
+                    mediaPlayer.reset();
+                }
+            }
         }
     }
 
@@ -380,14 +393,16 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     }
 
     public void pause() {
-        mediaPlayer.pause();
-        Intent intent = new Intent("play_broadcast");
-        intent.putExtra("UIChange", pauseAction);
-        sendBroadcast(intent);
-        if (Data.getState() == playing) {
-            new buildNotificationTask().execute(pausing);
+        if (mediaPlayer !=null) {
+            mediaPlayer.pause();
+            Intent intent = new Intent("play_broadcast");
+            intent.putExtra("UIChange", pauseAction);
+            sendBroadcast(intent);
+            if (Data.getState() == playing) {
+                new buildNotificationTask().execute(pausing);
+            }
+            Data.setState(pausing);
         }
-        Data.setState(pausing);
     }
 
     public void resume() {
@@ -443,19 +458,27 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     }
 
     private boolean requestAudioFocus() {
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int result = audioManager.requestAudioFocus(this, STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            Log.v("焦点获得", "获得2");
-            return true;
+        try {
+            audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            int result = audioManager.requestAudioFocus(this, STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                Log.v("焦点获得", "获得2");
+                return true;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
         //Could not gain focus
         return false;
     }
 
     public boolean removeAudioFocus() {
-        if (audioManager != null) {
-            return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocus(this);
+        try {
+            if (audioManager != null) {
+                return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocus(this);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
         }
         return true;
     }

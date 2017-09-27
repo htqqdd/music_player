@@ -1,20 +1,25 @@
 package com.example.lixiang.music_player;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
 import static com.example.lixiang.music_player.Data.playAction;
+import static com.example.lixiang.music_player.Data.resetAction;
 
 /**
  * Created by lixiang on 2017/8/21.
@@ -50,6 +55,21 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
             public void onClick(View view) {
                 //播放
                 dialog = ProgressDialog.show(mContext,"请稍后","正在玩命加载中");
+                dialog.setOnKeyListener(new Dialog.OnKeyListener() {
+
+                    @Override
+                    public boolean onKey(DialogInterface arg0, int keyCode,
+                                         KeyEvent event) {
+                        // TODO Auto-generated method stub
+                        if (keyCode == KeyEvent.KEYCODE_BACK) {
+                            Intent intent = new Intent("service_broadcast");
+                            intent.putExtra("ACTION", resetAction);
+                            mContext.sendBroadcast(intent);
+                            dialog.dismiss();
+                        }
+                        return true;
+                    }
+                });
                 Data.setPlayMode(3);
                 Data.setFavourite(false);
                 Data.setRecent(false);
@@ -66,6 +86,8 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
             @Override
             public void onClick(View view) {
                 //弹出菜单
+                String a = Data.getNetMusicList().get(position).getSongid().toString();
+                Toast.makeText(mContext, "歌曲Id"+a, Toast.LENGTH_SHORT).show();
                 menu_util.popupNetMenu(mContext,view,position);
             }
         });
