@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -26,6 +27,7 @@ import android.media.audiofx.Virtualizer;
 import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
@@ -36,8 +38,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
 
 import java.util.Random;
 
@@ -54,7 +59,7 @@ import static com.example.lixiang.music_player.Data.playing;
 import static com.example.lixiang.music_player.Data.previousAction;
 import static com.example.lixiang.music_player.Data.resetAction;
 import static com.example.lixiang.music_player.Data.sc_playAction;
-import static com.example.lixiang.music_player.getCover.getArtwork;
+import static com.tencent.bugly.crashreport.crash.c.m;
 
 public class PlayService extends Service implements AudioManager.OnAudioFocusChangeListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
     private String path;
@@ -243,12 +248,10 @@ if (intent !=null){
         Intent intent = new Intent("play_broadcast");
         intent.putExtra("UIChange", mediaChangeAction);
         sendBroadcast(intent);
-        updateMetaData();
+        updateMetaDataAndBuildNotification();
         mediaPlayer.start();
         Data.setMediaDuration(mediaPlayer.getDuration());
         Data.setState(playing);
-//        new buildNotificationTask().execute(playing);
-//        buildNotification(playing);
         //储存播放次数
         new savePlayTimesTask().execute();
     }
@@ -399,7 +402,7 @@ if (intent !=null){
             intent.putExtra("UIChange", pauseAction);
             sendBroadcast(intent);
             if (Data.getState() == playing) {
-                new buildNotificationTask().execute(pausing);
+                buildNotification(pausing);
             }
             Data.setState(pausing);
         }
@@ -416,7 +419,7 @@ if (intent !=null){
         intent.putExtra("UIChange", playAction);
         Data.setState(playing);
         sendBroadcast(intent);
-        new buildNotificationTask().execute(playing);
+        buildNotification(playing);
     }
 
     @Override
@@ -712,55 +715,84 @@ if (intent !=null){
         }
     }
 
-    private void updateMetaData() {
+    private void updateMetaDataAndBuildNotification() {
         singerNow = Data.getArtist(Data.getPosition());
         titleNow = Data.getTitle(Data.getPosition());
         if (Data.is_net) {
-            Glide.with(this).load(Data.getNetMusicList().get(Data.getPosition()).getRealPic()).asBitmap().error(R.drawable.default_album).into(new SimpleTarget<Bitmap>() {
+            Glide.with(this).load(Data.getNetMusicList().get(Data.getPosition()).getMediumPic()).asBitmap().listener(new RequestListener<String, Bitmap>() {
                 @Override
-                public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                    albumNow = resource;
-                    mediaSession.setMetadata(new MediaMetadata.Builder()
-                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumNow)
-                            .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
-                            .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
-                            .build());
-                    PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
-                    stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
-                    mediaSession.setPlaybackState(stateBuilder.build());
-                    new buildNotificationTask().execute(playing);
-                }
-
-                @Override
-                public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                    BitmapDrawable resourceDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.default_album);
+                public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
+                    BitmapDrawable resourceDrawable = (BitmapDrawable) getDrawable(R.drawable.default_album);
                     Bitmap resource = resourceDrawable.getBitmap();
                     albumNow = resource;
                     mediaSession.setMetadata(new MediaMetadata.Builder()
-                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumNow)
+                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, resource)
                             .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
                             .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
                             .build());
                     PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
                     stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
                     mediaSession.setPlaybackState(stateBuilder.build());
-                    new buildNotificationTask().execute(playing);
-                    super.onLoadFailed(e, errorDrawable);
+                    buildNotification(playing);
+                    return false;
                 }
-            });
+
+                @Override
+                public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                    albumNow = resource;
+                    mediaSession.setMetadata(new MediaMetadata.Builder()
+                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, resource)
+                            .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
+                            .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
+                            .build());
+                    PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
+                    stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
+                    mediaSession.setPlaybackState(stateBuilder.build());
+                    buildNotification(playing);
+                    return false;
+                }
+            }).into(300,300);
 
         } else {
-            albumNow = getArtwork(PlayService.this, Data.getId(Data.getPosition()), Data.getAlbumId(Data.getPosition()), true);
-            mediaSession.setMetadata(new MediaMetadata.Builder()
-                    .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumNow)
-                    .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
-                    .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
-                    .build());
-            new buildNotificationTask().execute(playing);
+            Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
+            Uri uri = ContentUris.withAppendedId(sArtworkUri, Data.getAlbumId(Data.getPosition()));
+            Glide.with(this).load(uri).asBitmap().listener(new RequestListener<Uri, Bitmap>() {
+                @Override
+                public boolean onException(Exception e, Uri model, Target<Bitmap> target, boolean isFirstResource) {
+                    Log.v("成功获取封面","失败");
+                    BitmapDrawable resourceDrawable = (BitmapDrawable) getDrawable(R.drawable.default_album);
+                    Bitmap resource = resourceDrawable.getBitmap();
+                    albumNow = resource;
+                    mediaSession.setMetadata(new MediaMetadata.Builder()
+                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, resource)
+                            .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
+                            .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
+                            .build());
+                    PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
+                    stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
+                    mediaSession.setPlaybackState(stateBuilder.build());
+                    buildNotification(playing);
+                    return false;
+                }
+
+                @Override
+                public boolean onResourceReady(Bitmap resource, Uri model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                    Log.v("成功获取封面","成功");
+                    albumNow = resource;
+                    mediaSession.setMetadata(new MediaMetadata.Builder()
+                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, resource)
+                            .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
+                            .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
+                            .build());
+                    PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
+                    stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
+                    mediaSession.setPlaybackState(stateBuilder.build());
+                    buildNotification(playing);
+                    return false;
+                }
+            }).into(300,300);
+
         }
-        PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
-        stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
-        mediaSession.setPlaybackState(stateBuilder.build());
     }
 
     private void initialAudioEffect(int audioSessionId) {
@@ -854,9 +886,10 @@ try {
 
     public void setBass(boolean b) {
         try {
-            mBass.setEnabled(b);
-            Log.v("开启","bass");
-            loudnessEnhancer.setEnabled(b || mVirtualizer.getEnabled());
+           mBass.setEnabled(b);
+            Log.v("开启","bass"+mBass.getEnabled());
+            Log.v("开启","增强"+loudnessEnhancer.getEnabled());
+            loudnessEnhancer.setEnabled(mBass.getEnabled() || mVirtualizer.getEnabled());
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -873,8 +906,9 @@ try {
     public void setVirtualizer(Boolean b) {
         try {
             mVirtualizer.setEnabled(b);
-            Log.v("开启","virtualizer");
-            loudnessEnhancer.setEnabled(b || mBass.getEnabled());
+            Log.v("开启","virtualizer"+mVirtualizer.getEnabled());
+            loudnessEnhancer.setEnabled(mVirtualizer.getEnabled() || mBass.getEnabled());
+            Log.v("开启","增强"+loudnessEnhancer.getEnabled());
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -893,12 +927,13 @@ try {
         Log.v("开启","getPreference");
         //超强音量
         try {
-            if ((bundle.getBoolean("Bass", false) && bundle.getBoolean("Virtualizer", false)) == false){
-                loudnessEnhancer.setEnabled(false);
-            }else {
+            if ((bundle.getBoolean("Bass", false) || bundle.getBoolean("Virtualizer", false)) == true){
                 loudnessEnhancer.setEnabled(true);
                 Log.v("开启","loudness");
                 loudnessEnhancer.setTargetGain(500);
+
+            }else {
+                loudnessEnhancer.setEnabled(false);
             }
         }catch (Exception e) {
             e.printStackTrace();
@@ -1045,93 +1080,49 @@ try {
         }
     }
 
-    private class buildNotificationTask extends AsyncTask<String, Integer, state_color> {
-        @Override
-        protected state_color doInBackground(String... strings) {
-            String state = strings[0];
-            Palette p = Palette.from(albumNow).generate();
-            Palette.Swatch s1 = p.getVibrantSwatch();
-            Palette.Swatch s4 = p.getMutedSwatch();
-            int color = 0;
-            if (s1 != null) {
-                color = s1.getRgb();
-            } else if (s4 != null) {
-                color = s4.getRgb();
-            } else {
-                color = getResources().getColor(R.color.colorPrimary);
-            }
-            return new state_color(state, color);
+    private void buildNotification (String playState){
+        Palette p = Palette.from(albumNow).generate();
+        int notificationAction = R.drawable.ic_pause_black_24dp;//needs to be initialized
+        PendingIntent play_pauseIntent = null;
+        //Build a new notification according to the current state of the MediaPlayer
+        if (playState == playing) {
+            notificationAction = R.drawable.ic_pause_black_24dp;
+            //create the pause action
+            play_pauseIntent = pendingIntent(pauseAction);
+        } else if (playState == pausing) {
+            notificationAction = R.drawable.ic_play_arrow_black_24dp;
+            //create the play action
+            play_pauseIntent = pendingIntent(playAction);
         }
+        Intent startMain = new Intent(PlayService.this, MainActivity.class);
+        PendingIntent startMainActivity = PendingIntent.getActivity(PlayService.this, 0, startMain, PendingIntent.FLAG_UPDATE_CURRENT);
+        notification = new Notification.Builder(PlayService.this)
+                // Show controls on lock screen even when user hides sensitive content.
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setLargeIcon(albumNow)
+                .setSmallIcon(R.drawable.ic_album_black_24dp)
+                .setDeleteIntent(pendingIntent(deleteAction))
+                .setColor(ColorUtil.getColor(p))
+                .setContentIntent(startMainActivity)
+                .setOngoing(Data.getState() == playing)//该选项会导致手表通知不显示
+                // Add media control buttons that invoke intents in your media service
+                .addAction(R.drawable.ic_fast_rewind_black_24dp, "SkiptoPrevious", pendingIntent(previousAction)) // #0
+                .addAction(notificationAction, "Play or Pause", play_pauseIntent)  // #1
+                .addAction(R.drawable.ic_fast_forward_black_24dp, "SkiptoNext", pendingIntent(nextAction))     // #2
+                // Apply the media style template
+                .setStyle(new Notification.MediaStyle()
+                        .setShowActionsInCompactView(0, 1, 2)
+                        .setMediaSession(mediaSession.getSessionToken())
+                )
+                .setContentTitle(Data.getTitle(Data.getPosition()))
+                .setContentText(Data.getArtist(Data.getPosition()))
+                .build();
 
-        @Override
-        protected void onPostExecute(state_color state_image_color) {
-            super.onPostExecute(state_image_color);
-            String playState = state_color.getState();
-            int color = state_color.getColor();
-            int notificationAction = R.drawable.ic_pause_black_24dp;//needs to be initialized
-            PendingIntent play_pauseIntent = null;
-            //Build a new notification according to the current state of the MediaPlayer
-            if (playState == playing) {
-                notificationAction = R.drawable.ic_pause_black_24dp;
-                //create the pause action
-                play_pauseIntent = pendingIntent(pauseAction);
-            } else if (playState == pausing) {
-                notificationAction = R.drawable.ic_play_arrow_black_24dp;
-                //create the play action
-                play_pauseIntent = pendingIntent(playAction);
-            }
-            Intent startMain = new Intent(PlayService.this, MainActivity.class);
-            PendingIntent startMainActivity = PendingIntent.getActivity(PlayService.this, 0, startMain, PendingIntent.FLAG_UPDATE_CURRENT);
-            notification = new Notification.Builder(PlayService.this)
-                    // Show controls on lock screen even when user hides sensitive content.
-                    .setVisibility(Notification.VISIBILITY_PUBLIC)
-                    .setLargeIcon(albumNow)
-                    .setSmallIcon(R.drawable.ic_album_black_24dp)
-                    .setDeleteIntent(pendingIntent(deleteAction))
-                    .setColor(color)
-                    .setContentIntent(startMainActivity)
-                    .setOngoing(Data.getState() == playing)//该选项会导致手表通知不显示
-                    // Add media control buttons that invoke intents in your media service
-                    .addAction(R.drawable.ic_fast_rewind_black_24dp, "SkiptoPrevious", pendingIntent(previousAction)) // #0
-                    .addAction(notificationAction, "Play or Pause", play_pauseIntent)  // #1
-                    .addAction(R.drawable.ic_fast_forward_black_24dp, "SkiptoNext", pendingIntent(nextAction))     // #2
-                    // Apply the media style template
-                    .setStyle(new Notification.MediaStyle()
-                            .setShowActionsInCompactView(0, 1, 2)
-                            .setMediaSession(mediaSession.getSessionToken())
-                    )
-                    .setContentTitle(Data.getTitle(Data.getPosition()))
-                    .setContentText(Data.getArtist(Data.getPosition()))
-                    .build();
-
-            NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            mNotificationManager.notify(NOTIFICATION_ID, notification);
-
-        }
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(NOTIFICATION_ID, notification);
 
     }
 
-    public Bitmap getAlbumNow() {
-        return albumNow;
-    }
-
-    public static class state_color {
-        public static int mColor;
-        public static String mState;
-
-        public state_color(String state, int color) {
-            mColor = color;
-            mState = state;
-        }
-
-        public static int getColor() {
-            return mColor;
-        }
-
-        public static String getState() {
-            return mState;
-        }
-    }
 
     //Becoming noisy
     private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {

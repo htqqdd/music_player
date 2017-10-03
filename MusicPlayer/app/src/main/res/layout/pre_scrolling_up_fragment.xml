@@ -98,7 +98,6 @@
         </RelativeLayout>
     </android.support.v7.widget.Toolbar>
 
-
     <ImageView
         android:id="@+id/play_now_back_color"
         android:layout_width="match_parent"
@@ -151,6 +150,30 @@
             android:textStyle="bold" />
 
     </RelativeLayout>
+
+    <me.wcy.lrcview.LrcView
+        android:layout_alignParentBottom="true"
+        android:id="@+id/other_lrc_view"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        app:lrcLabel="正在搜索歌词"
+        app:lrcTextSize="16sp"
+        app:lrcNormalTextColor="#FFFFFF"
+        app:lrcCurrentTextColor="@color/colorAccent"/>
+
+    <ImageView
+        android:id = "@+id/gradient_bottom"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="150dp" />
+    <ImageView
+        android:id = "@+id/gradient_top"
+        android:layout_alignTop="@id/seekbar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginTop="20dp"/>
+
 
     <RelativeLayout
         android:id="@+id/control_layout"
@@ -315,37 +338,6 @@
         </LinearLayout>
 
     </android.support.v7.widget.CardView>
-    <me.wcy.lrcview.LrcView
-        android:visibility="gone"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp"
-        android:layout_alignParentBottom="true"
-        android:id="@+id/other_lrc_view"
-        android:layout_width="match_parent"
-        android:layout_height="380dp"
-        app:lrcLabel="正在搜索歌词"
-        app:lrcTextSize="16sp"
-        app:lrcNormalTextColor="#40000000"
-        app:lrcCurrentTextColor="#FFFFFF"/>
-
-    <ImageView
-        android:visibility="gone"
-        android:id = "@+id/gradient_bottom"
-        android:layout_alignParentBottom="true"
-        android:layout_width="match_parent"
-        android:layout_height="200dp" />
-    <ImageView
-        android:visibility="gone"
-        android:id = "@+id/gradient_top"
-        android:layout_below="@id/play_now_cover"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"/>
-    <ImageView
-        android:visibility="gone"
-        android:id = "@+id/gradient"
-        android:layout_above="@id/play_now_back_color"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"/>
 
 
 </RelativeLayout>

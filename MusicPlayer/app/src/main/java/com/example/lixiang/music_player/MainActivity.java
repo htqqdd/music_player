@@ -14,12 +14,14 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -29,6 +31,8 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.animation.FastOutLinearInInterpolator;
+import android.support.v4.view.animation.LinearOutSlowInInterpolator;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.os.Bundle;
@@ -37,6 +41,7 @@ import android.support.v7.graphics.Palette;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -50,15 +55,25 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
+
 import com.afollestad.aesthetic.Aesthetic;
 import com.afollestad.aesthetic.AestheticActivity;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.gyf.barlibrary.ImmersionBar;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+import com.transitionseverywhere.Fade;
+import com.transitionseverywhere.TransitionManager;
+import com.transitionseverywhere.TransitionSet;
+import com.transitionseverywhere.extra.Scale;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -69,6 +84,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.wcy.lrcview.LrcView;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -81,17 +97,28 @@ import permissions.dispatcher.OnShowRationale;
 import permissions.dispatcher.PermissionRequest;
 import permissions.dispatcher.RuntimePermissions;
 
+import static android.R.attr.breadCrumbShortTitle;
+import static android.R.attr.button;
 import static android.R.attr.handle;
+import static android.R.attr.resource;
 import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 import static com.example.lixiang.music_player.Data.initialize;
 import static com.example.lixiang.music_player.Data.mediaChangeAction;
 import static com.example.lixiang.music_player.Data.pauseAction;
 import static com.example.lixiang.music_player.Data.pausing;
 import static com.example.lixiang.music_player.Data.playAction;
 import static com.example.lixiang.music_player.Data.playing;
+import static com.example.lixiang.music_player.R.id.music_info_cardView;
+import static com.example.lixiang.music_player.R.id.now_on_play_text;
+import static com.example.lixiang.music_player.R.id.other_lrc_view;
+import static com.example.lixiang.music_player.R.id.play_now_cover;
+import static com.example.lixiang.music_player.R.id.seekBar;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.COLLAPSED;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.DRAGGING;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDED;
+import static com.tencent.bugly.crashreport.crash.c.e;
+import static com.tencent.bugly.crashreport.crash.c.l;
 
 @RuntimePermissions
 public class MainActivity extends AestheticActivity {
@@ -114,8 +141,14 @@ public class MainActivity extends AestheticActivity {
     private ImageView back;
     private ImageView about;
     private List<Music> lyricList;
-    private ArrayList<lyricObject> lyricObjectArrayList;
-    private TextView lyricView;
+    private LrcView otherLyricView;
+    boolean visible;
+    private TransitionSet set = new TransitionSet()
+//                                .addTransition(new Scale(0.7f))
+            .addTransition(new Fade())
+            .setInterpolator(visible ? new LinearOutSlowInInterpolator() :
+                    new FastOutLinearInInterpolator());
+    private ViewGroup transitionsContainer;
 
 
     @Override
@@ -146,7 +179,9 @@ public class MainActivity extends AestheticActivity {
         play_pause_button = (ImageView) findViewById(R.id.play_pause_button);
         back = (ImageView) findViewById(R.id.back);
         about = (ImageView) findViewById(R.id.about);
-        lyricView = (TextView) findViewById(R.id.lyric_view);
+        otherLyricView  = (LrcView) findViewById(R.id.other_lrc_view);
+        transitionsContainer = (ViewGroup) findViewById(R.id.activity_now_play);
+
 
 
         //多屏幕尺寸适应
@@ -284,7 +319,6 @@ public class MainActivity extends AestheticActivity {
         registerReceiver(msgReceiver, intentFilter);
 
         //上滑面板
-//        SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
@@ -310,28 +344,15 @@ public class MainActivity extends AestheticActivity {
                     lunch_play_now_button.setClickable(false);
                     about.setClickable(true);
                     back.setClickable(true);
-                    ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
+                    final ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
+
                     play_now_cover.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            RelativeLayout lyriclayout = (RelativeLayout) findViewById(R.id.lyric_layout);
-                            RelativeLayout musicInfolayout = (RelativeLayout) findViewById(R.id.music_info_layout);
-                            TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
-                            if (lyricObjectArrayList ==null) {
-                                now_on_play_text.setText(Data.getTitle(Data.getPosition()));
-                                lyriclayout.setVisibility(View.VISIBLE);
-                                musicInfolayout.setVisibility(GONE);
-                                lyricView.setText("正在搜索歌词");
+                            if (!otherLyricView.hasLrc()) {
                                 new getLyricTask().execute(Data.getTitle(Data.getPosition()), Data.getArtist(Data.getPosition()));
-                            }else if(lyriclayout.getVisibility() == View.GONE) {
-                                now_on_play_text.setText(Data.getTitle(Data.getPosition()));
-                                lyriclayout.setVisibility(View.VISIBLE);
-                                musicInfolayout.setVisibility(GONE);
-                            }else {
-                                    lyriclayout.setVisibility(View.GONE);
-                                    now_on_play_text.setText("正在播放");
-                                    musicInfolayout.setVisibility(View.VISIBLE);
-                                }
+                            }
+                            changeVisibility();
                         }
                     });
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -470,20 +491,7 @@ public class MainActivity extends AestheticActivity {
                 if (playService != null) {
                     if (Data.getState() == playing) {
                         //更新歌词
-                        LrcView otherLyricView  = (LrcView) findViewById(R.id.other_lrc_view);
                         otherLyricView.updateTime(playService.getCurrentPosition());
-                        if (lyricObjectArrayList != null){
-                            int size = lyricObjectArrayList.size();
-                            int currentPosition = playService.getCurrentPosition();
-                        for (int i = 0; i <size;i++){
-                            if (i == size - 1){
-                                lyricView.setText(lyricObjectArrayList.get(i).getText());
-                            }else if (lyricObjectArrayList.get(i).getTime() <currentPosition && lyricObjectArrayList.get(i+1).getTime() > currentPosition){
-                                lyricView.setText(lyricObjectArrayList.get(i).getText());
-                                break;
-                            }
-                        }
-                        }
                     }
                 }
                 TextView currentPosition = (TextView) findViewById(R.id.current_position);
@@ -534,9 +542,6 @@ public class MainActivity extends AestheticActivity {
                 sendBroadcast(intent);
             }
         });
-        if (Data.getState() == playing) {
-            ChangeScrollingUpPanel(Data.getPosition());
-        }
     }
 
     @Override
@@ -678,7 +683,25 @@ public class MainActivity extends AestheticActivity {
         }
         TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
         now_on_play_text.setTextColor(Int);
-//        lyricView.setTextColor(Int1);
+//        otherLyricView.color
+        //歌词背景颜色
+        if(Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            View bottom = findViewById(R.id.gradient_bottom);
+            View top = findViewById(R.id.gradient_top);
+            View gradient = findViewById(R.id.gradient);
+            top.setBackground(
+                    ScrimUtil.makeCubicGradientScrimDrawable(Int1, //颜色
+                            3, //渐变层数
+                            Gravity.TOP)); //起始方向
+            bottom.setBackground(
+                    ScrimUtil.makeCubicGradientScrimDrawable(Int1, //颜色
+                            8, //渐变层数
+                            Gravity.BOTTOM)); //起始方向
+            gradient.setBackground(
+                    ScrimUtil.makeCubicGradientScrimDrawable(Int1, //颜色
+                            8, //渐变层数
+                            Gravity.BOTTOM)); //起始方向
+        }
     }
 
     public void ChangeScrollingUpPanel(int position) {
@@ -719,86 +742,43 @@ public class MainActivity extends AestheticActivity {
         //设置封面,自动封面获取颜色
         if (Data.is_net){
             final ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
-            Glide.with(this).load(Data.getNetMusicList().get(position).getRealPic()).placeholder(R.drawable.default_album).into(play_now_cover);
-            Glide.with(this).load(Data.getNetMusicList().get(position).getRealPic()).asBitmap().error(R.drawable.default_album).into(new SimpleTarget<Bitmap>() {
+            Glide.with(this).load(Data.getNetMusicList().get(position).getRealPic()).listener(new RequestListener<String, GlideDrawable>() {
                 @Override
-                public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
+                    Bitmap resource = ((BitmapDrawable) getDrawable(R.drawable.default_album)).getBitmap();
                     Palette p = Palette.from(resource).generate();
-                    Palette.Swatch s1 = p.getVibrantSwatch();
-                    Palette.Swatch s4 = p.getMutedSwatch();
-                    int color = 0;
-                    if (s1 != null) {
-                        color = s1.getRgb();
-                    } else if (s4 != null) {
-                        color = s4.getRgb();
-                    }
-                    else {
-                        color = getResources().getColor(R.color.colorPrimary);
-                    }
-                    animation_change_color(color);
+                    animation_change_color(ColorUtil.getColor(p));
+                    return false;
                 }
 
                 @Override
-                public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                    BitmapDrawable resourceDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.default_album);
-                    Bitmap resource = resourceDrawable.getBitmap();
-                    Palette p = Palette.from(resource).generate();
-                    Palette.Swatch s1 = p.getVibrantSwatch();
-                    Palette.Swatch s4 = p.getMutedSwatch();
-                    int color = 0;
-                    if (s1 != null) {
-                        color = s1.getRgb();
-                    } else if (s4 != null) {
-                        color = s4.getRgb();
-                    }
-                    else {
-                        color = getResources().getColor(R.color.colorPrimary);
-                    }
-                    animation_change_color(color);
-                    super.onLoadFailed(e, errorDrawable);
+                public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                    Palette p = Palette.from(ColorUtil.drawableToBitmap(resource)).generate();
+                    animation_change_color(ColorUtil.getColor(p));
+                    return false;
                 }
-            });
+
+            }).thumbnail(0.1f).placeholder(R.drawable.default_album).into(play_now_cover);
         } else {
             Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
             Uri uri = ContentUris.withAppendedId(sArtworkUri, Data.getAlbumId(Data.getPosition()));
             ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
-            Glide.with(this).load(uri).placeholder(R.drawable.default_album).into(play_now_cover);
-            Glide.with(this).load(uri).asBitmap().error(R.drawable.default_album).into(new SimpleTarget<Bitmap>() {
+            Glide.with(this).load(uri).listener(new RequestListener<Uri, GlideDrawable>() {
                 @Override
-                public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                public boolean onException(Exception e, Uri model, Target<GlideDrawable> target, boolean isFirstResource) {
+                    Bitmap resource = ((BitmapDrawable) getDrawable(R.drawable.default_album)).getBitmap();
                     Palette p = Palette.from(resource).generate();
-                    Palette.Swatch s1 = p.getVibrantSwatch();
-                    Palette.Swatch s4 = p.getMutedSwatch();
-                    int color = 0;
-                    if (s1 != null) {
-                        color = s1.getRgb();
-                    } else if (s4 != null) {
-                        color = s4.getRgb();
-                    } else {
-                        color = getResources().getColor(R.color.colorPrimary);
-                    }
-                    animation_change_color(color);
+                    animation_change_color(ColorUtil.getColor(p));
+                    return false;
                 }
 
                 @Override
-                public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                    BitmapDrawable resourceDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.default_album);
-                    Bitmap resource = resourceDrawable.getBitmap();
-                    Palette p = Palette.from(resource).generate();
-                    Palette.Swatch s1 = p.getVibrantSwatch();
-                    Palette.Swatch s4 = p.getMutedSwatch();
-                    int color = 0;
-                    if (s1 != null) {
-                        color = s1.getRgb();
-                    } else if (s4 != null) {
-                        color = s4.getRgb();
-                    } else {
-                        color = getResources().getColor(R.color.colorPrimary);
-                    }
-                    animation_change_color(color);
-                    super.onLoadFailed(e, errorDrawable);
+                public boolean onResourceReady(GlideDrawable resource, Uri model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                    Palette p = Palette.from(ColorUtil.drawableToBitmap(resource)).generate();
+                    animation_change_color(ColorUtil.getColor(p));
+                    return false;
                 }
-            });
+            }).placeholder(R.drawable.default_album).into(play_now_cover);
         }
 
 
@@ -898,14 +878,13 @@ public class MainActivity extends AestheticActivity {
             }
             if (intent.getIntExtra("UIChange", 0) == mediaChangeAction) {
                 ChangeScrollingUpPanel(Data.getPosition());
-                RelativeLayout lyriclayout = (RelativeLayout) findViewById(R.id.lyric_layout);
-                RelativeLayout musicInfolayout = (RelativeLayout) findViewById(R.id.music_info_layout);
-                lyricView.setText("正在搜索歌词");
-                lyriclayout.setVisibility(GONE);
+                Log.v("歌曲更换","接收到");
+                if (otherLyricView.getVisibility() == VISIBLE){
+                    changeVisibility();
+                }
                 TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
                 now_on_play_text.setText("正在播放");
-                musicInfolayout.setVisibility(View.VISIBLE);
-                lyricObjectArrayList = null;
+                otherLyricView.loadLrc("");
             }
             if (intent.getIntExtra("onDestroy", 0) == 1) {
                 finish();
@@ -932,43 +911,6 @@ public class MainActivity extends AestheticActivity {
         }
     }
 
-
-    private void setBackColor() {
-        BitmapDrawable resourceDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.default_album);
-        Bitmap resource = resourceDrawable.getBitmap();
-        if (playService != null) {
-            resource = playService.getAlbumNow();
-        }
-        Palette p = Palette.from(resource).generate();
-        Palette.Swatch s1 = p.getVibrantSwatch();
-        Palette.Swatch s2 = p.getDarkVibrantSwatch();
-        Palette.Swatch s3 = p.getLightVibrantSwatch();
-        Palette.Swatch s4 = p.getMutedSwatch();
-        Palette.Swatch s5 = p.getLightVibrantSwatch();
-        Palette.Swatch s6 = p.getDarkVibrantSwatch();
-        Palette.Swatch s7 = p.getDominantSwatch();
-        int color = 0;
-        if (s1 != null) {
-            color = s1.getRgb();
-        } else if (s4 != null) {
-            color = s4.getRgb();
-        } else if (s2 != null) {
-            color = s2.getRgb();
-        } else if (s3 != null) {
-            color = s3.getRgb();
-        } else if (s5 != null) {
-            color = s5.getRgb();
-        } else if (s6 != null) {
-            color = s6.getRgb();
-        } else if (s7 != null) {
-            color = s7.getRgb();
-        } else {
-            color = getResources().getColor(R.color.colorPrimary);
-        }
-        animation_change_color(color);
-    }
-
-
     private class screenAdaptionTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
@@ -979,9 +921,14 @@ public class MainActivity extends AestheticActivity {
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
             ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
+            View lrcView = findViewById(R.id.other_lrc_view);
             RelativeLayout.LayoutParams lp_play_now_cover = (RelativeLayout.LayoutParams) play_now_cover.getLayoutParams();
+            RelativeLayout.LayoutParams lp_lrcView = (RelativeLayout.LayoutParams) lrcView.getLayoutParams();
             lp_play_now_cover.height = (int) o;
+            lp_lrcView.height = ((int)o/3*2);
             play_now_cover.setLayoutParams(lp_play_now_cover);
+            lrcView.setLayoutParams(lp_lrcView);
+
         }
     }
 
@@ -1015,7 +962,6 @@ public class MainActivity extends AestheticActivity {
                     }
                     if (Data.getState() == playing) {
                         seekBar.setProgress(playService.getCurrentPosition());
-                        //更新歌词
                     }
                 }
             }
@@ -1089,36 +1035,7 @@ public class MainActivity extends AestheticActivity {
                     if (jsonObject.getInt("code") == 200) {
                         JSONObject lrcJson = jsonObject.getJSONObject("lrc");
                         String lyric = lrcJson.getString("lyric");
-                        adjust(lyric);
-                        Log.v("歌词","歌词"+lyric);
-                        String[] split = lyric.split("\n");
-                        lyricObjectArrayList = new ArrayList<lyricObject>();
-                        for (int i = 0; i < split.length/3; i++) {
-                            int lastIndex =split[i].lastIndexOf("]");
-                            if (lastIndex != 9 && split[i].substring(1,2).equals("0")){
-                                String content = split[i].substring(lastIndex+1);
-                                String times = split[i].substring(0,lastIndex+1).replace("[","-").replace("]","-");
-                                String timesList[] = times.split("-");
-                                for (int j = 0 ; j <timesList.length; j++){
-                                    lyricObjectArrayList.add(new lyricObject(timesList[j],content));
-                                }
-                            }else {
-                                lyricObjectArrayList.add(new lyricObject(split[i]));
-                            }
-                        }
-                        Comparator<lyricObject> lyricObjectComparator = new Comparator<lyricObject>() {
-                            @Override
-                            public int compare(lyricObject t1, lyricObject t2) {
-                                if (t1.getTime() < t2.getTime()){
-                                    return -1;
-                                }else if(t1.getTime() > t2.getTime()){
-                                    return 1;
-                                }else {
-                                    return 0;
-                                }
-                            }
-                        };
-                        Collections.sort(lyricObjectArrayList,lyricObjectComparator);
+                        lyric = praseLyric(lyric);
                         return lyric;
                     }
                     return "unKnown";
@@ -1134,18 +1051,22 @@ public class MainActivity extends AestheticActivity {
         @Override
         protected void onPostExecute(String s) {
             if (s.equals("unKnown")){
-                lyricView.setText("未搜索到匹配歌词");
-//                Snackbar.make(mLayout,"获取歌词失败",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                otherLyricView.loadLrc("");
+                otherLyricView.setLabel("未搜索到匹配歌词");
             }else {
-                LrcView otherLyricView  = (LrcView) findViewById(R.id.other_lrc_view);
-                otherLyricView.loadLrc(s);
                 //加载歌词
-//                lrcView.updateTime(50000);
+                otherLyricView.loadLrc(s);
             }
         }
     }
 
     private class getLyricTask extends AsyncTask<String,Integer,String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            otherLyricView.setLabel("正在搜索歌词");
+        }
+
         @Override
         protected String doInBackground(String... strings) {
             try {
@@ -1169,11 +1090,10 @@ public class MainActivity extends AestheticActivity {
                     return "200";
                 }
             } catch (Exception e) {
-                if (e instanceof java.net.UnknownHostException){
+                if (e instanceof java.net.UnknownHostException) {
+                    e.printStackTrace();
                     return "404";
                 }
-                e.printStackTrace();
-                return "unKnown";
             }
             return "unKnown";
         }
@@ -1182,15 +1102,13 @@ public class MainActivity extends AestheticActivity {
         protected void onPostExecute(String s) {
             switch (s){
                 case "200":
-                    for (int j=0;j<lyricList.size();j++) {
-                        if (Data.getTitle(Data.getPosition()).contains(lyricList.get(j).getName())) {
+                        if (Data.getTitle(Data.getPosition()).contains(lyricList.get(0).getName())) {
                             new GetLyricbyIdTask().execute(lyricList.get(0).getSongid());
-                            break;
                         } else {
-                            lyricView.setText("未搜索到匹配歌词");
+                            otherLyricView.loadLrc("");
+                            otherLyricView.setLabel("未搜索到匹配歌词");
                         }
-                    }
-                    break;
+                        break;
                 case "404":
                     if (!hasNetwork(MainActivity.this)){
                         Snackbar.make(mLayout,"请检查您的网络",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
@@ -1218,33 +1136,68 @@ public class MainActivity extends AestheticActivity {
         return false;
     }
 
-    private String adjust(String lyric){
-        Log.v("歌词","歌词"+lyric);
-        String[] split = lyric.split("\n");
-        lyricObjectArrayList = new ArrayList<lyricObject>();
-        for (int i = 0; i < split.length/3; i++) {
-            if (!split[i].substring(1,2).equals("0")){
-a                //有作者标号
-            }else if (split[i].substring(10,11).equals("]")){
-                //歌曲时间格式不标准[04:28.660]
-
-            }else {
-                //格式标准且无作者标号
-            }
-
-
-            int lastIndex =split[i].lastIndexOf("]");
-            if (lastIndex != 9 && split[i].substring(1,2).equals("0")){
-                String content = split[i].substring(lastIndex+1);
-                String times = split[i].substring(0,lastIndex+1).replace("[","-").replace("]","-");
-                String timesList[] = times.split("-");
-                for (int j = 0 ; j <timesList.length; j++){
-                    lyricObjectArrayList.add(new lyricObject(timesList[j],content));
+    private String praseLyric(String lyric) {
+        Log.v("歌词", "歌词" + lyric);
+        try {
+            String[] split = lyric.split("\n");
+//            lyricObjectArrayList = new ArrayList<lyricObject>();
+            if (split[split.length - 2].substring(9, 10).equals("]")) {
+                //歌曲时间格式标准[04:28.46]
+                return lyric;
+            } else if (split[split.length - 1].substring(10, 11).equals("]")) {
+                //歌曲时间格式不标准[04:28.660][04:28.660]
+                lyric = "";
+                for (int i = 0; i < split.length; i++) {
+                    if (!split[i].substring(1, 2).equals("0")) {
+                        //有作者标签
+                    } else {
+                        //无作者标签
+                        if(split[i].lastIndexOf("]")!=9) {
+                            int allIndex = split[i].indexOf("]");
+                            while (allIndex != -1) {
+                                split[i] = split[i].substring(0, allIndex - 3) + String.valueOf(Integer.valueOf(split[i].substring(allIndex - 3, allIndex)) / 50 * 3) + split[i].substring(allIndex);
+                                Log.v("歌词解析", "歌词" + split[i]);
+                                allIndex = split[i].indexOf("]", allIndex + 1);
+                            }
+                        }
+                        lyric = lyric + split[i] + "\n";
+                    }
                 }
-            }else {
-                lyricObjectArrayList.add(new lyricObject(split[i]));
+                Log.v("歌词解析", "歌词结果" + lyric);
+                return lyric;
             }
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        return lyric;
+            return lyric;
+        }
+
+    private void changeVisibility(){
+        View music_info_cardView = findViewById(R.id.music_info_cardView);
+        View control_layout =  findViewById(R.id.control_layout);
+        View seekbar_layout =  findViewById(R.id.seekbar_layout);
+        View lrcView = findViewById(R.id.other_lrc_view);
+        View gradient = findViewById(R.id.gradient);
+        View gradient_bottom = findViewById(R.id.gradient_bottom);
+        View gradient_top = findViewById(R.id.gradient_top);
+        TransitionManager.beginDelayedTransition(transitionsContainer,set);
+        if (music_info_cardView.getVisibility() == VISIBLE) {
+            music_info_cardView.setVisibility(GONE);
+            control_layout.setVisibility(GONE);
+            seekbar_layout.setVisibility(GONE);
+            lrcView.setVisibility(VISIBLE);
+            gradient.setVisibility(VISIBLE);
+            gradient_bottom.setVisibility(VISIBLE);
+            gradient_top.setVisibility(VISIBLE);
+        }else {
+            music_info_cardView.setVisibility(VISIBLE);
+            control_layout.setVisibility(VISIBLE);
+            seekbar_layout.setVisibility(VISIBLE);
+            lrcView.setVisibility(GONE);
+            gradient.setVisibility(GONE);
+            gradient_bottom.setVisibility(GONE);
+            gradient_top.setVisibility(GONE);
+        }
+        visible = !visible;
     }
 }

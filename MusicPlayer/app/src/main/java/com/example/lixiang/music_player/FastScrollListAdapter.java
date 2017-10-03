@@ -6,24 +6,35 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import static com.example.lixiang.music_player.Data.playAction;
+import static com.example.lixiang.music_player.R.drawable.nav;
 
 /**
  * Created by lixiang on 2017/8/3.
@@ -53,7 +64,7 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         final int Position = position;
         holder.song.setText(musicInfoArrayList.get(position).getMusicTitle());
         holder.singer.setText(musicInfoArrayList.get(position).getMusicArtist());
@@ -64,7 +75,37 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                 .with(mContext)
                 .load(uri)
                 .placeholder(R.drawable.default_album)
-                .into(holder.cover);
+                .into(new SimpleTarget<GlideDrawable>() {
+                    @Override
+                    public void onLoadStarted(Drawable placeholder) {
+                        holder.cover.setImageDrawable(placeholder);
+                        super.onLoadStarted(placeholder);
+                    }
+
+                    @Override
+                    public void onLoadCleared(Drawable placeholder) {
+                        super.onLoadCleared(placeholder);
+                    }
+
+                    @Override
+                    public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
+                        holder.cover.setImageDrawable(resource);
+                    }
+
+                    @Override
+                    public void onLoadFailed(Exception e, Drawable errorDrawable) {
+//                        String uri = HttpUtil.getPic(musicInfoArrayList.get(position).getMusicTitle(),musicInfoArrayList.get(position).getMusicArtist());
+//                        if (uri !=null) {
+//                            Log.v("音乐图片地址","地址"+uri);
+//                            Glide
+//                                    .with(mContext)
+//                                    .load(uri)
+//                                    .placeholder(R.drawable.default_album)
+//                                    .into(holder.cover);
+//                        }
+                        super.onLoadFailed(e, errorDrawable);
+                    }
+                });
         //处理整个点击事件
         holder.relativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override

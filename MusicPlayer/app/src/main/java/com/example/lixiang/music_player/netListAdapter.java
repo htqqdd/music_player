@@ -46,7 +46,7 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
         //设置歌曲封面
         Glide
                 .with(mContext)
-                .load(Data.getNetMusicList().get(position).getRealPic())
+                .load(Data.getNetMusicList().get(position).getMediumPic())
                 .placeholder(R.drawable.default_album)
                 .into(holder.cover);
         //处理整个点击事件
@@ -86,8 +86,8 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
             @Override
             public void onClick(View view) {
                 //弹出菜单
-                String a = Data.getNetMusicList().get(position).getSongid().toString();
-                Toast.makeText(mContext, "歌曲Id"+a, Toast.LENGTH_SHORT).show();
+                String a = Data.getNetMusicList().get(position).getPic().toString();
+                Toast.makeText(mContext, "歌曲Id"+a.substring(0,a.length()-14), Toast.LENGTH_SHORT).show();
                 menu_util.popupNetMenu(mContext,view,position);
             }
         });
