@@ -24,6 +24,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -84,6 +85,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.objectbox.Box;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.wcy.lrcview.LrcView;
 import okhttp3.FormBody;
@@ -156,6 +158,7 @@ public class MainActivity extends AestheticActivity {
         Log.e("OnCreate执行", "OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        DataUtil.loadDataBase(this);
 
         //沉浸状态栏
         ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).init();

@@ -12,6 +12,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+import io.objectbox.BoxStore;
+
 /**
  * Created by lixiang on 2017/9/9.
  */
@@ -21,14 +23,15 @@ public class MyApplication extends Application {
     public boolean getIsNet() {
         return isNet;
     }
-
     public void setIsNet(boolean b) {
         isNet = b;
     }
+    public BoxStore boxStore;
 
 
     @Override
     public void onCreate() {
+        boxStore = MyObjectBox.builder().androidContext(this).build();
         Context context = getApplicationContext();
 // 获取当前包名
         String packageName = context.getPackageName();
@@ -42,6 +45,9 @@ public class MyApplication extends Application {
         Beta.initDelay = 1 * 1000;
 //        Beta.upgradeDialogLayoutId = R.layout.upgrade_dialog;
         super.onCreate();
+    }
+    public BoxStore getBoxStore(){
+        return boxStore;
     }
 
     /**

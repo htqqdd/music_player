@@ -1,0 +1,89 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:7680297848475436690",
+      "lastPropertyId": "16:4043563546312590503",
+      "name": "MusicDatabase",
+      "properties": [
+        {
+          "id": "2:7653776058020986371",
+          "name": "id"
+        },
+        {
+          "id": "3:2699474409226716684",
+          "name": "song"
+        },
+        {
+          "id": "4:2278970508233130967",
+          "name": "singer"
+        },
+        {
+          "id": "5:4117673637898023785",
+          "name": "path"
+        },
+        {
+          "id": "6:2742099217786992343",
+          "name": "album"
+        },
+        {
+          "id": "7:3921146914459236035",
+          "indexId": "1:8636594924175891653",
+          "name": "local_id"
+        },
+        {
+          "id": "8:6424977877807870287",
+          "name": "album_id"
+        },
+        {
+          "id": "9:406086291731563768",
+          "name": "duration"
+        },
+        {
+          "id": "10:5018106909097841635",
+          "name": "date"
+        },
+        {
+          "id": "11:7116026837947755337",
+          "name": "playtimes"
+        },
+        {
+          "id": "12:7207826430660930437",
+          "name": "isLocal"
+        },
+        {
+          "id": "13:3479819938450629345",
+          "name": "web_link"
+        },
+        {
+          "id": "14:3462036838781810650",
+          "name": "download_link"
+        },
+        {
+          "id": "15:1259279207423780562",
+          "name": "pic"
+        },
+        {
+          "id": "16:4043563546312590503",
+          "name": "net_id"
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "1:7680297848475436690",
+  "lastIndexId": "1:8636594924175891653",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 4,
+  "modelVersionParserMinimum": 4,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [
+    1872515276738187765
+  ],
+  "retiredRelationUids": [],
+  "version": 1
+}

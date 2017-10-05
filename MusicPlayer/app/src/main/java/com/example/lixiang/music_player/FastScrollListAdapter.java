@@ -75,37 +75,7 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                 .with(mContext)
                 .load(uri)
                 .placeholder(R.drawable.default_album)
-                .into(new SimpleTarget<GlideDrawable>() {
-                    @Override
-                    public void onLoadStarted(Drawable placeholder) {
-                        holder.cover.setImageDrawable(placeholder);
-                        super.onLoadStarted(placeholder);
-                    }
-
-                    @Override
-                    public void onLoadCleared(Drawable placeholder) {
-                        super.onLoadCleared(placeholder);
-                    }
-
-                    @Override
-                    public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
-                        holder.cover.setImageDrawable(resource);
-                    }
-
-                    @Override
-                    public void onLoadFailed(Exception e, Drawable errorDrawable) {
-//                        String uri = HttpUtil.getPic(musicInfoArrayList.get(position).getMusicTitle(),musicInfoArrayList.get(position).getMusicArtist());
-//                        if (uri !=null) {
-//                            Log.v("音乐图片地址","地址"+uri);
-//                            Glide
-//                                    .with(mContext)
-//                                    .load(uri)
-//                                    .placeholder(R.drawable.default_album)
-//                                    .into(holder.cover);
-//                        }
-                        super.onLoadFailed(e, errorDrawable);
-                    }
-                });
+                .into(holder.cover);
         //处理整个点击事件
         holder.relativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
