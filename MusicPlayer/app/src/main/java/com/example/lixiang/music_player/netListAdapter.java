@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -53,32 +54,36 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
         holder.relativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //播放
-                dialog = ProgressDialog.show(mContext,"请稍后","正在玩命加载中");
-                dialog.setOnKeyListener(new Dialog.OnKeyListener() {
+                if (Data.getLocal_net_mode() == false) {
+                    //播放
+                    dialog = ProgressDialog.show(mContext, "请稍后", "正在玩命加载中");
+                    dialog.setOnKeyListener(new Dialog.OnKeyListener() {
 
-                    @Override
-                    public boolean onKey(DialogInterface arg0, int keyCode,
-                                         KeyEvent event) {
-                        // TODO Auto-generated method stub
-                        if (keyCode == KeyEvent.KEYCODE_BACK) {
-                            Intent intent = new Intent("service_broadcast");
-                            intent.putExtra("ACTION", resetAction);
-                            mContext.sendBroadcast(intent);
-                            dialog.dismiss();
+                        @Override
+                        public boolean onKey(DialogInterface arg0, int keyCode,
+                                             KeyEvent event) {
+                            // TODO Auto-generated method stub
+                            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                Intent intent = new Intent("service_broadcast");
+                                intent.putExtra("ACTION", resetAction);
+                                mContext.sendBroadcast(intent);
+                                dialog.dismiss();
+                            }
+                            return true;
                         }
-                        return true;
-                    }
-                });
-                Data.setPlayMode(3);
-                Data.setFavourite(false);
-                Data.setRecent(false);
-                Data.setNet(true);
-                Data.setPosition(position);
-                Log.v("位置","位置"+position);
-                Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", playAction);
-                mContext.sendBroadcast(intent);
+                    });
+                    Data.setPlayMode(3);
+                    Data.setFavourite(false);
+                    Data.setRecent(false);
+                    Data.setNet(true);
+                    Data.setPosition(position);
+                    Log.v("位置", "位置" + position);
+                    Intent intent = new Intent("service_broadcast");
+                    intent.putExtra("ACTION", playAction);
+                    mContext.sendBroadcast(intent);
+                }else {
+                    Toast.makeText(mContext, "当前处于离线模式", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         //处理菜单点击
@@ -87,7 +92,7 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
             public void onClick(View view) {
                 //弹出菜单
                 String a = Data.getNetMusicList().get(position).getPic().toString();
-                Toast.makeText(mContext, "歌曲Id"+a.substring(0,a.length()-14), Toast.LENGTH_SHORT).show();
+//                Toast.makeText(mContext, "歌曲Id"+a.substring(0,a.length()-14), Toast.LENGTH_SHORT).show();
                 menu_util.popupNetMenu(mContext,view,position);
             }
         });

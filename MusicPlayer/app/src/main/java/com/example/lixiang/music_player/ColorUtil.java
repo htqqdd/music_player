@@ -12,13 +12,15 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.ColorInt;
 import android.support.v7.graphics.Palette;
 
+import static android.R.attr.bitmap;
+
 public class ColorUtil {
 
     public static boolean isColorLight(@ColorInt int color) {
         return getColorDarkness(color) < 0.5;
     }
 
-    private static double getColorDarkness(@ColorInt int color) {
+    public static double getColorDarkness(@ColorInt int color) {
         if (color == Color.BLACK)
             return 1.0;
         else if (color == Color.WHITE || color == Color.TRANSPARENT)
@@ -83,11 +85,11 @@ public class ColorUtil {
 
     public static int getColor (Palette p){
         Palette.Swatch s1 = p.getVibrantSwatch();
-        Palette.Swatch s2 = p.getDarkVibrantSwatch();
-        Palette.Swatch s3 = p.getMutedSwatch();
-        Palette.Swatch s4 = p.getDarkMutedSwatch();
-        Palette.Swatch s5 = p.getLightVibrantSwatch();
-        Palette.Swatch s6 = p.getLightMutedSwatch();
+        Palette.Swatch s3 = p.getDarkVibrantSwatch();
+        Palette.Swatch s2 = p.getMutedSwatch();
+        Palette.Swatch s6 = p.getDarkMutedSwatch();
+        Palette.Swatch s4 = p.getLightVibrantSwatch();
+        Palette.Swatch s5 = p.getLightMutedSwatch();
         Palette.Swatch s7 = p.getDominantSwatch();
         if (s1 != null) {
             return s1.getRgb();

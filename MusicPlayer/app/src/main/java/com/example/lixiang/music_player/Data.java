@@ -63,7 +63,16 @@ public class Data {
         Data.isFromSc = isFromSc;
     }
 
+    public static boolean getLocal_net_mode() {
+        return local_net_mode;
+    }
+
+    public static void setLocal_net_mode(boolean local_net_mode) {
+        Data.local_net_mode = local_net_mode;
+    }
+
     //变量
+    private static boolean local_net_mode = false;
     private static boolean isFromSc = false;
     private static boolean hasInitialized = false;
     private static ArrayList<musicInfo> musicInfoArrayList;
@@ -90,6 +99,8 @@ public class Data {
     private static ArrayList<music_playtimes> playtimesArrayList;
     private static SharedPreferences playtimes;
     public static boolean firstOpen = true;
+
+
 
     public static List<Music> getNetMusicList() {
         return netMusicList;

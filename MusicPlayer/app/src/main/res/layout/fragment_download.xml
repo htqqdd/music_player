@@ -3,79 +3,80 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:paddingBottom="?attr/actionBarSize">
     <android.support.v4.widget.SwipeRefreshLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id = "@+id/refresh">
-    <RelativeLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <LinearLayout
+        <RelativeLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="60dp"
-            android:orientation="vertical">
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id = "@+id/name_input"
-            android:layout_marginBottom="16dp"
-            android:layout_above="@id/search_button"
- >
-
-            <EditText
-                android:id="@+id/edit_text"
+            android:layout_height="match_parent">
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="例如：不要说话 陈奕迅"
-                android:textSize="16sp"
-                android:imeOptions="actionDone"
-                android:maxLines="1"
-                android:singleLine="true"
-                />
+                android:layout_centerInParent="true"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingBottom="60dp"
+                android:orientation="vertical">
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id = "@+id/name_input"
+                    android:layout_marginBottom="16dp"
+                    android:layout_above="@id/search_button"
+                    >
 
-        </android.support.design.widget.TextInputLayout>
-            <RadioGroup
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <RadioButton
-                    android:id ="@+id/name_radio"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:checked="true"
-                    android:text="音乐名称"/>
-                <RadioButton
-                    android:id ="@+id/id_radio"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="音乐编号"/>
-                <RadioButton
-                    android:id ="@+id/link_radio"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="歌曲网址"/>
-            </RadioGroup>
+                    <EditText
+                        android:id="@+id/edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="例如：不要说话 陈奕迅"
+                        android:textSize="16sp"
+                        android:imeOptions="actionDone"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        />
 
-            <Button
-                android:id="@+id/search_button"
-                style="?android:textAppearanceSmall"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="聚合搜索"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </RelativeLayout>
+                </android.support.design.widget.TextInputLayout>
+                <RadioGroup
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <RadioButton
+                        android:id ="@+id/name_radio"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checked="true"
+                        android:text="音乐名称"/>
+                    <RadioButton
+                        android:id ="@+id/id_radio"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="音乐编号"/>
+                    <RadioButton
+                        android:id ="@+id/link_radio"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="歌曲网址"/>
+                </RadioGroup>
+
+                <Button
+                    android:id="@+id/search_button"
+                    style="?android:textAppearanceSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="聚合搜索"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </RelativeLayout>
     </android.support.v4.widget.SwipeRefreshLayout>
     <android.support.design.widget.FloatingActionButton
         android:id = "@+id/search_list"
@@ -86,5 +87,3 @@
         android:layout_marginBottom="24dp"
         android:src = "@drawable/ic_list_white_24dp"/>
 </android.support.design.widget.CoordinatorLayout>
-
-

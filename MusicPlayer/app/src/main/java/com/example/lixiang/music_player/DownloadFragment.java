@@ -26,6 +26,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -211,19 +212,27 @@ public class DownloadFragment extends Fragment {
 
 
     private void searchAction(){
-        if (name_radio.isChecked()){
-            filter = "name";
-        } else if (id_radio.isChecked()){
-            filter = "id";
+        if (Data.getLocal_net_mode() == false) {
+            if (name_radio.isChecked()) {
+                filter = "name";
+            } else if (id_radio.isChecked()) {
+                filter = "id";
+            } else {
+                filter = "url";
+            }
+            input = editText.getText().toString();
+            if (input.equals("")) {
+                Snackbar.make(rootView, "请输入内容", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                    }
+                }).show();
+            } else {
+                refresh.setRefreshing(true);
+                new httpTask().execute(editText.getText().toString());
+            }
         }else {
-            filter = "url";
-        }
-        input = editText.getText().toString();
-        if (input.equals("")){
-            Snackbar.make(rootView,"请输入内容",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
-        }else {
-            refresh.setRefreshing(true);
-            new httpTask().execute(editText.getText().toString());
+            Toast.makeText(getActivity(), "当前处于离线模式", Toast.LENGTH_SHORT).show();
         }
     }
     private void setListListener(final int defaultNumber){

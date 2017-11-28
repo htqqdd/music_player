@@ -30,6 +30,11 @@
             android:entryValues="@array/music_filtration_entries_value"
             android:dialogTitle="音乐筛除"
             android:defaultValue="@string/music_filtration_entries_default" />
+        <SwitchPreference
+            android:key="local_net_mode"
+            android:summaryOn="离线模式"
+            android:summaryOff="联网模式"
+            android:title="开启离线模式，节省流量"/>
     </PreferenceCategory>
     <PreferenceCategory
         android:key="theme"

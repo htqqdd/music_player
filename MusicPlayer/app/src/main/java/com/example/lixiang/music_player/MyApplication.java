@@ -26,12 +26,12 @@ public class MyApplication extends Application {
     public void setIsNet(boolean b) {
         isNet = b;
     }
-    public BoxStore boxStore;
+//    public BoxStore boxStore;
 
 
     @Override
     public void onCreate() {
-        boxStore = MyObjectBox.builder().androidContext(this).build();
+//        boxStore = MyObjectBox.builder().androidContext(this).build();
         Context context = getApplicationContext();
 // 获取当前包名
         String packageName = context.getPackageName();
@@ -46,9 +46,9 @@ public class MyApplication extends Application {
 //        Beta.upgradeDialogLayoutId = R.layout.upgrade_dialog;
         super.onCreate();
     }
-    public BoxStore getBoxStore(){
-        return boxStore;
-    }
+//    public BoxStore getBoxStore(){
+//        return boxStore;
+//    }
 
     /**
      * 获取进程号对应的进程名
