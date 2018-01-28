@@ -15,7 +15,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-import static com.example.lixiang.music_player.Data.playAction;
+import java.util.List;
+
 
 
 /**
@@ -24,6 +25,13 @@ import static com.example.lixiang.music_player.Data.playAction;
 
 public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.ViewHolder> {
     private Context mContext;
+    private List<musicInfo> Datesublist;
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        Datesublist = MyApplication.getDatesublist();
+        super.onAttachedToRecyclerView(recyclerView);
+    }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -36,12 +44,12 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
 
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        final int Position = position;
-        holder.album.setText(Data.getAlbum(Data.getDateSublist().get(position).getPosition()));
-        holder.singer.setText(Data.getLocalArtist(Data.getDateSublist().get(position).getPosition()));
+        musicInfo musicNow = Datesublist.get(position);
+        holder.album.setText(musicNow.getMusicAlbum());
+        holder.singer.setText(musicNow.getMusicArtist());
         //设置歌曲封面
         Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-        Uri uri = ContentUris.withAppendedId(sArtworkUri, Data.getAlbumId(Data.getDateSublist().get(position).getPosition()));
+        Uri uri = ContentUris.withAppendedId(sArtworkUri, musicNow.getMusicAlbumId());
         Glide
                 .with(mContext)
                 .load(uri)
@@ -52,14 +60,10 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
             @Override
             public void onClick(View view) {
                 //播放
-                Data.setPlayMode(3);
-                Data.setRecent(true);
-                Data.setFavourite(false);
-                Data.setNet(false);
-                Data.setPosition(Data.getDateSublist().get(Position).getPosition());
-                Data.setRecent_position(Position);//获取Recent列表位置
+                MyApplication.setMusicListNow(Datesublist,"Datesublist");
+                MyApplication.setPositionNow(position);
                 Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", playAction);
+                intent.putExtra("ACTION", MyConstant.playAction);
                 mContext.sendBroadcast(intent);
             }
         });
@@ -68,7 +72,7 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
             @Override
             public void onClick(View view) {
                 //弹出菜单
-                menu_util.popupMenu((Activity) mContext, view, Data.getDateSublist().get(Position).getPosition());
+                menu_util.popupMenu((Activity) mContext, view, position,"Datesublist");
             }
         });
 
@@ -76,7 +80,7 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
 
     @Override
     public int getItemCount() {
-        return Data.getDateSublist().size();
+        return Datesublist.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {

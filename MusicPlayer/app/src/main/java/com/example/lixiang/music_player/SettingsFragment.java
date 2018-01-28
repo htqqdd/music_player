@@ -55,7 +55,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                 Glide.with(getActivity()).load(R.drawable.nav_black).into(imageView);
 //                imageView.setImageResource(R.drawable.nav_black);
             }
-            Data.firstOpen = true;
+//            Data.firstOpen = true;
         }
     }
 

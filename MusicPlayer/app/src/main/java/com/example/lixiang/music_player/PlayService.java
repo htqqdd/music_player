@@ -47,18 +47,6 @@ import com.bumptech.glide.request.target.Target;
 import java.util.Random;
 
 import static android.media.AudioManager.STREAM_MUSIC;
-import static com.example.lixiang.music_player.Data.deleteAction;
-import static com.example.lixiang.music_player.Data.initialize;
-import static com.example.lixiang.music_player.Data.isHasInitialized;
-import static com.example.lixiang.music_player.Data.mediaChangeAction;
-import static com.example.lixiang.music_player.Data.nextAction;
-import static com.example.lixiang.music_player.Data.pauseAction;
-import static com.example.lixiang.music_player.Data.pausing;
-import static com.example.lixiang.music_player.Data.playAction;
-import static com.example.lixiang.music_player.Data.playing;
-import static com.example.lixiang.music_player.Data.previousAction;
-import static com.example.lixiang.music_player.Data.resetAction;
-import static com.example.lixiang.music_player.Data.sc_playAction;
 import static com.tencent.bugly.crashreport.crash.c.m;
 
 public class PlayService extends Service implements AudioManager.OnAudioFocusChangeListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
@@ -124,8 +112,8 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             });
         }
 
-        Data.setServiceStarted(true);
-        Log.v("服务是否开启", "onCreate" + Data.getServiceState());
+        MyApplication.setServiceStarted(true);
+        Log.v("服务是否开启", "onCreate" + MyApplication.getServiceState());
 
         //监听耳机状态广播
         IntentFilter head_set_intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
@@ -140,23 +128,25 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 //        requestAudioFocus();
-if (intent !=null){
-            if (intent.getIntExtra("ACTION", -2) == initialize) {
-                Data.setPosition(0);
+        if (intent != null) {
+            if (intent.getIntExtra("ACTION", -2) == MyConstant.initialize) {
+                MyApplication.setPositionNow(0);
             }
-            if (intent.getIntExtra("ACTION", -2) == sc_playAction) {
-                if (isHasInitialized() == false) {
-                    Data.initialMusicInfo(this);
+            if (intent.getIntExtra("ACTION", -2) == MyConstant.sc_playAction) {
+                if (MyApplication.isHasInitialized() == false) {
+                    MyApplication.initialMusicInfo(this);
                 }
-                if (Data.getPlayMode() != 1) {
-                    play(Data.getPosition());
+                if (MyApplication.getPlayMode() != 1) {
+                    play(MyApplication.getPositionNow());
                 } else {
                     positionNow = randomPosition();
                     play(positionNow);
                 }
             }
-            Data.setServiceStarted(true);
-        }else {Data.setServiceStarted(false);}
+            MyApplication.setServiceStarted(true);
+        } else {
+            MyApplication.setServiceStarted(false);
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -195,7 +185,7 @@ if (intent !=null){
 //                audioManager.abandonAudioFocus(this);
                 //The service lost audio focus, the user probably moved to playing media on another app, so release the media player.
                 Log.v("AUDIOFOCUS_LOSS", "焦点丢失");
-                if (mediaPlayer !=null) {
+                if (mediaPlayer != null) {
                     if (mediaPlayer.isPlaying()) pause();
                 }
 //                releaseMedia();
@@ -203,7 +193,7 @@ if (intent !=null){
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 Log.v("FOCUS_LOSS_TRANSIENT", "焦点暂时丢失");
                 //Focus lost for a short time, pause the MediaPlayer.
-                if (mediaPlayer !=null) {
+                if (mediaPlayer != null) {
                     if (mediaPlayer.isPlaying()) {
                         pause();
                     }
@@ -215,7 +205,7 @@ if (intent !=null){
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
                 Boolean lost_focus = sharedPref.getBoolean("lost_focus", false);
                 if (lost_focus) {
-                    if (mediaPlayer !=null) {
+                    if (mediaPlayer != null) {
                         if (mediaPlayer.isPlaying()) mediaPlayer.setVolume(0.1f, 0.1f);
                     }
                 }
@@ -225,12 +215,12 @@ if (intent !=null){
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        if (Data.is_net) {
+        if (MyApplication.getMusicListNow().get(0).getMusicLink() != "") {
             Toast.makeText(this, "没有下一曲了", Toast.LENGTH_SHORT).show();
         } else {
 //            audioManager.abandonAudioFocus(this);
             Intent intent = new Intent("service_broadcast");
-            intent.putExtra("Control", nextAction);
+            intent.putExtra("Control", MyConstant.nextAction);
             sendBroadcast(intent);
         }
     }
@@ -242,16 +232,16 @@ if (intent !=null){
         sendBroadcast(dismiss_intent);
         if (onetime) {
             Intent intent = new Intent("play_broadcast");
-            intent.putExtra("UIChange", initialize);
+            intent.putExtra("UIChange", MyConstant.initialize);
             sendBroadcast(intent);
         }
         Intent intent = new Intent("play_broadcast");
-        intent.putExtra("UIChange", mediaChangeAction);
+        intent.putExtra("UIChange", MyConstant.mediaChangeAction);
         sendBroadcast(intent);
         updateMetaDataAndBuildNotification();
         mediaPlayer.start();
-        Data.setMediaDuration(mediaPlayer.getDuration());
-        Data.setState(playing);
+        MyApplication.setMediaDuration(mediaPlayer.getDuration());
+        MyApplication.setState(MyConstant.playing);
         //储存播放次数
         new savePlayTimesTask().execute();
     }
@@ -284,14 +274,11 @@ if (intent !=null){
     }
 
 
-
     public int getAudioSessionId() {
         return audioSessionId;
     }
 
     public void play(final int position) {
-
-        Log.v("play方法执行", "play" + Data.getServiceState());
         if (requestAudioFocus()) {
             if (mediaPlayer == null) {
                 mediaPlayer = new MediaPlayer();
@@ -303,14 +290,18 @@ if (intent !=null){
                 initialAudioEffect(audioSessionId);
             }
             mediaPlayer.reset();
-            Log.v("音乐Session", "音乐" + mediaPlayer.getAudioSessionId());
-            path = Data.getData(position);
-            Log.v("位置", "位置" + position);
-            Data.setPosition(position);
+            path = MyApplication.getMusicListNow().get(position).getMusicData();
+            MyApplication.setPositionNow(position);
             try {
+                if (path == null) {
+                    //关闭加载框
+                    Intent dismiss_intent = new Intent("dismiss_dialog");
+                    sendBroadcast(dismiss_intent);
+                    Toast.makeText(this, "未获取到此歌曲的链接，请尝试更换资源提供方", Toast.LENGTH_SHORT).show();
+                }
+
                 mediaPlayer.setDataSource(path);
                 mediaPlayer.prepareAsync(); // 进行缓冲
-                Log.v("音乐Session", "音乐" + mediaPlayer.getAudioSessionId());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -326,11 +317,12 @@ if (intent !=null){
     //生成随机数[0-n)
     public int randomPosition() {
         Random random = new Random();
-        if (Data.getTotalNumber() >1) {
-            int random_position = random.nextInt(Data.getTotalNumber() - 1);
+        int totalNumber = MyApplication.getMusicListNow().size();
+        if (totalNumber > 1) {
+            int random_position = random.nextInt(totalNumber - 1);
             return random_position;
-        }else {
-            int r=(int)(2*Math.random());
+        } else {
+            int r = (int) (2 * Math.random());
             return r;
         }
     }
@@ -339,34 +331,32 @@ if (intent !=null){
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getIntExtra("ACTION", -2) == playAction) {
-                Log.v("接收到playAction", "startCommand" + Data.getServiceState());
-                if (Data.getPlayMode() != 1) {
-                    play(Data.getPosition());
-                    Log.v("发送play方法", "startCommand" + Data.getServiceState());
+            if (intent.getIntExtra("ACTION", -2) == MyConstant.playAction) {
+                if (MyApplication.getPlayMode() != MyConstant.random) {
+                    play(MyApplication.getPositionNow());
                 } else {
                     positionNow = randomPosition();
                     play(positionNow);
                 }
             }
-            if (intent.getIntExtra("Control", 0) == previousAction) {
+            if (intent.getIntExtra("Control", 0) == MyConstant.previousAction) {
                 previous();
             }
-            if (intent.getIntExtra("Control", 0) == nextAction) {
+            if (intent.getIntExtra("Control", 0) == MyConstant.nextAction) {
                 next();
             }
-            if (intent.getIntExtra("Control", 0) == pauseAction) {
+            if (intent.getIntExtra("Control", 0) == MyConstant.pauseAction) {
                 removeAudioFocus();
                 pause();
             }
-            if (intent.getIntExtra("Control", 0) == playAction) {
+            if (intent.getIntExtra("Control", 0) == MyConstant.playAction) {
                 resume();
             }
-            if (intent.getIntExtra("Control", 0) == deleteAction) {
+            if (intent.getIntExtra("Control", 0) == MyConstant.deleteAction) {
                 deleteService(intent.getIntExtra("DelayControl", 0));
             }
-            if (intent.getIntExtra("Control", 0) == resetAction){
-                if (mediaPlayer !=null) {
+            if (intent.getIntExtra("Control", 0) == MyConstant.resetAction) {
+                if (mediaPlayer != null) {
                     mediaPlayer.reset();
                 }
             }
@@ -380,7 +370,7 @@ if (intent !=null){
             int duration = time * 60 * 1000;
             long setTime = duration + SystemClock.elapsedRealtime();
             //设置定时任务
-            manager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, setTime, pendingIntent(deleteAction));
+            manager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, setTime, pendingIntent(MyConstant.deleteAction));
         } else {
             pause();
             removeNotification();
@@ -396,15 +386,15 @@ if (intent !=null){
     }
 
     public void pause() {
-        if (mediaPlayer !=null) {
+        if (mediaPlayer != null) {
             mediaPlayer.pause();
             Intent intent = new Intent("play_broadcast");
-            intent.putExtra("UIChange", pauseAction);
+            intent.putExtra("UIChange", MyConstant.pauseAction);
             sendBroadcast(intent);
-            if (Data.getState() == playing) {
-                buildNotification(pausing);
+            if (MyApplication.getState() == MyConstant.playing) {
+                MyApplication.setState(MyConstant.pausing);
+                buildNotification(MyConstant.pausing);
             }
-            Data.setState(pausing);
         }
     }
 
@@ -413,20 +403,19 @@ if (intent !=null){
             requestAudioFocus();
             mediaPlayer.start();
         } else if (mediaPlayer == null) {
-            play(Data.getPosition());
+            play(MyApplication.getPositionNow());
         }
         Intent intent = new Intent("play_broadcast");
-        intent.putExtra("UIChange", playAction);
-        Data.setState(playing);
+        intent.putExtra("UIChange", MyConstant.playAction);
+        MyApplication.setState(MyConstant.playing);
         sendBroadcast(intent);
-        buildNotification(playing);
+        buildNotification(MyConstant.playing);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Data.setServiceStarted(false);
-        Log.v("服务是否开启", "onDestroy" + Data.getServiceState());
+        MyApplication.setServiceStarted(false);
         releaseMedia();
         removeNotification();
         removeAudioFocus();
@@ -468,7 +457,7 @@ if (intent !=null){
                 Log.v("焦点获得", "获得2");
                 return true;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         //Could not gain focus
@@ -480,95 +469,37 @@ if (intent !=null){
             if (audioManager != null) {
                 return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocus(this);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return true;
     }
 
-
     public class nextTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
-            //判断是否有用户设置下一曲
-            if (Data.getNextMusic() == -1) {
-//0:列表重复
-                if (Data.getPlayMode() == 0) {
-                    if (Data.IsRecent()) {
-                        if (Data.getRecent_position() < Data.getDateSublist().size() - 1) {
-                            positionNow = Data.getDateSublist().get(Data.getRecent_position() + 1).getPosition();
-                            Data.setRecent_position(Data.getRecent_position() + 1);
-                            return positionNow;
-                        } else {
-                            positionNow = Data.getDateSublist().get(0).getPosition();
-                            Data.setRecent_position(0);
-                            return positionNow;
-                        }
-                    } else if (Data.IsFavourite()) {
-
-                        if (Data.getFavourite_position() < Data.getTimessublist().size() - 1) {
-                            positionNow = Data.findPositionById(Data.getTimessublist().get(Data.getFavourite_position() + 1).getId());
-                            Data.setFavourite_position(Data.getFavourite_position() + 1);
-                            return positionNow;
-                        } else {
-                            positionNow = Data.findPositionById(Data.getTimessublist().get(0).getId());
-                            Data.setFavourite_position(0);
-                            return positionNow;
-                        }
-
-                    } else {
-
-                        if (Data.getPosition() < Data.getTotalNumber() - 1) {
-                            positionNow = Data.getPosition() + 1;
-                            return positionNow;
-                        } else {
-                            positionNow = 0;
-                            return positionNow;
-                        }
-                    }
-
-                } else if (Data.getPlayMode() == 1) {//1:随机
-                    positionNow = randomPosition();
-                    return positionNow;
-                } else if (Data.getPlayMode() == 2) {//2:单曲重复
-                    return Data.getPosition();
-                } else if (Data.getPlayMode() == 3) {//3:顺序
-                    if (Data.IsRecent()) {
-
-                        if (Data.getRecent_position() >= Data.getDateSublist().size() - 1) {
-                            return null;
-                        } else {
-                            positionNow = Data.getDateSublist().get(Data.getRecent_position() + 1).getPosition();
-                            Data.setRecent_position(Data.getRecent_position() + 1);
-                            return positionNow;
-                        }
-
-                    } else if (Data.IsFavourite()) {
-
-                        if (Data.getFavourite_position() >= Data.getTimessublist().size() - 1) {
-                            return null;
-                        } else {
-                            positionNow = Data.findPositionById(Data.getTimessublist().get(Data.getFavourite_position() + 1).getId());
-                            Data.setFavourite_position(Data.getFavourite_position() + 1);
-                            return positionNow;
-                        }
-
-                    } else {
-
-                        if (Data.getPosition() >= Data.getTotalNumber() - 1) {
-                            return null;
-                        } else {
-                            positionNow = Data.getPosition() + 1;
-                            return positionNow;
-                        }
-                    }
-
+            int playMode = MyApplication.getPlayMode();
+            int position = MyApplication.getPositionNow();
+            int size = MyApplication.getMusicListNow().size();
+            if (playMode == MyConstant.list_repeat) {
+                if (positionNow < size - 1) {
+                    positionNow = position + 1;
+                } else {
+                    positionNow = 0;
                 }
-
-            } else {
-                positionNow = Data.getNextMusic();
-                Data.setNextMusic(-1);
                 return positionNow;
+            } else if (playMode == MyConstant.random) {//1:随机
+                positionNow = randomPosition();
+                return positionNow;
+            } else if (playMode == MyConstant.one_repeat) {//2:单曲重复
+                return position;
+            } else if (playMode == MyConstant.list) {//3:顺序
+                if (positionNow >= size - 1) {
+                    return null;
+                } else {
+                    positionNow = position + 1;
+                    return positionNow;
+                }
             }
             return null;
         }
@@ -576,16 +507,16 @@ if (intent !=null){
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
-            if (Data.is_net){
-                if (Data.getPlayMode() !=3){
-                if (mediaPlayer !=null) {
-                    mediaPlayer.seekTo(0);
-                    mediaPlayer.start();
-                }
-                }else {
+            if (MyApplication.getMusicListNow().get(0).getMusicLink() != "") {//网络
+                if (MyApplication.getPlayMode() != MyConstant.list) {
+                    if (mediaPlayer != null) {
+                        mediaPlayer.seekTo(0);
+                        mediaPlayer.start();
+                    }
+                } else {
                     Toast.makeText(PlayService.this, "没有下一曲了", Toast.LENGTH_SHORT).show();
                 }
-            }else {
+            } else {
                 if (o != null) {
                     play((int) o);
                 } else {
@@ -598,78 +529,27 @@ if (intent !=null){
     public class previousTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
-            if (Data.getPlayMode() == 0) {//0:列表重复
-                if (Data.IsRecent()) {
-
-                    if (Data.getRecent_position() <= 0) {
-                        positionNow = Data.getDateSublist().get(Data.getDateSublist().size() - 1).getPosition();
-                        Data.setRecent_position(Data.getDateSublist().size() - 1);
-                        return positionNow;
-                    } else {
-                        positionNow = Data.getDateSublist().get(Data.getRecent_position() - 1).getPosition();
-                        Data.setRecent_position(Data.getRecent_position() - 1);
-                        return positionNow;
-                    }
-
-                } else if (Data.IsFavourite()) {
-
-                    if (Data.getFavourite_position() == 0) {
-                        positionNow = Data.findPositionById(Data.getTimessublist().get(Data.getTimessublist().size() - 1).getId());
-                        Data.setFavourite_position(Data.getTimessublist().size() - 1);
-                        return positionNow;
-                    } else {
-                        positionNow = Data.findPositionById(Data.getTimessublist().get(Data.getFavourite_position() - 1).getId());
-                        Data.setFavourite_position(Data.getFavourite_position() - 1);
-                        return positionNow;
-                    }
-
+            int playMode = MyApplication.getPlayMode();
+            int position = MyApplication.getPositionNow();
+            int size = MyApplication.getMusicListNow().size();
+            if (playMode == MyConstant.list_repeat) {//0:列表重复
+                if (position <= 0) {
+                    positionNow = size - 1;
                 } else {
-
-                    if (Data.getPosition() == 0) {
-                        positionNow = Data.getTotalNumber() - 1;
-                        return positionNow;
-                    } else {
-                        positionNow = Data.getPosition() - 1;
-                        return positionNow;
-                    }
+                    positionNow = position - 1;
                 }
-
-            } else if (Data.getPlayMode() == 1) {// 1:随机
+                return positionNow;
+            } else if (playMode == MyConstant.random) {// 1:随机
                 positionNow = randomPosition();
                 return positionNow;
-            } else if (Data.getPlayMode() == 2) {//2:单曲重复
-                return Data.getPosition();
-
+            } else if (playMode == MyConstant.one_repeat) {//2:单曲重复
+                return position;
             } else {//3:顺序
-                if (Data.IsRecent()) {
-
-                    if (Data.getRecent_position() == 0) {
-                        return null;
-                    } else {
-                        positionNow = Data.getDateSublist().get(Data.getRecent_position() - 1).getPosition();
-                        Data.setRecent_position(Data.getRecent_position() - 1);
-                        return positionNow;
-                    }
-
-                } else if (Data.IsFavourite()) {
-
-                    if (Data.getFavourite_position() == 0) {
-                        return null;
-                    } else {
-                        positionNow = Data.findPositionById(Data.getTimessublist().get(Data.getFavourite_position() - 1).getId());
-                        Data.setFavourite_position(Data.getFavourite_position() - 1);
-                        return positionNow;
-                    }
-
+                if (position == 0) {
+                    return null;
                 } else {
-
-                    if (Data.getPosition() == 0) {
-                        return null;
-                    } else {
-                        positionNow = Data.getPosition() - 1;
-                        return positionNow;
-                    }
-
+                    positionNow = position - 1;
+                    return positionNow;
                 }
             }
         }
@@ -677,16 +557,16 @@ if (intent !=null){
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
-            if (Data.is_net){
-                if (Data.getPlayMode() !=3){
-                    if (mediaPlayer !=null) {
+            if (MyApplication.getMusicListNow().get(0).getMusicLink() != "") {//网络
+                if (MyApplication.getPlayMode() != MyConstant.list) {
+                    if (mediaPlayer != null) {
                         mediaPlayer.seekTo(0);
                         mediaPlayer.start();
                     }
-                }else {
+                } else {
                     Toast.makeText(PlayService.this, "没有上一曲了", Toast.LENGTH_SHORT).show();
                 }
-            }else {
+            } else {
                 if (o != null) {
                     play((int) o);
                 } else {
@@ -696,14 +576,14 @@ if (intent !=null){
         }
     }
 
-
     public class savePlayTimesTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
-            int Playtimes = Data.findPlayTimesById(Data.getId(Data.getPosition()));
+            int musicId = MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicId();
+            int Playtimes = MyApplication.findPlayTimesById(musicId);
             Playtimes++;
             SharedPreferences.Editor editor = getSharedPreferences("playtimes", MODE_PRIVATE).edit();
-            editor.putInt(String.valueOf(Data.getId(Data.getPosition())), Playtimes);
+            editor.putInt(String.valueOf(musicId), Playtimes);
             editor.apply();
             return null;
         }
@@ -711,15 +591,16 @@ if (intent !=null){
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
-            Log.v("Playtimes", "播放次数" + Data.findPlayTimesById(Data.getId(Data.getPosition())));
         }
     }
 
     private void updateMetaDataAndBuildNotification() {
-        singerNow = Data.getArtist(Data.getPosition());
-        titleNow = Data.getTitle(Data.getPosition());
-        if (Data.is_net) {
-            Glide.with(this).load(Data.getNetMusicList().get(Data.getPosition()).getMediumPic()).asBitmap().listener(new RequestListener<String, Bitmap>() {
+        int positionNow = MyApplication.getPositionNow();
+        musicInfo musicNow = MyApplication.getMusicListNow().get(positionNow);
+        singerNow = musicNow.getMusicArtist();
+        titleNow = musicNow.getMusicTitle();
+        if (musicNow.getMusicLink() != "") {//网络
+            Glide.with(this).load(musicNow.getMusicAlbum()).asBitmap().listener(new RequestListener<String, Bitmap>() {
                 @Override
                 public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
                     BitmapDrawable resourceDrawable = (BitmapDrawable) getDrawable(R.drawable.default_album);
@@ -733,7 +614,7 @@ if (intent !=null){
                     PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
                     stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
                     mediaSession.setPlaybackState(stateBuilder.build());
-                    buildNotification(playing);
+                    buildNotification(MyConstant.playing);
                     return false;
                 }
 
@@ -748,18 +629,17 @@ if (intent !=null){
                     PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
                     stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
                     mediaSession.setPlaybackState(stateBuilder.build());
-                    buildNotification(playing);
+                    buildNotification(MyConstant.playing);
                     return false;
                 }
-            }).into(300,300);
+            }).into(300, 300);
 
         } else {
             Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-            Uri uri = ContentUris.withAppendedId(sArtworkUri, Data.getAlbumId(Data.getPosition()));
+            Uri uri = ContentUris.withAppendedId(sArtworkUri, musicNow.getMusicAlbumId());
             Glide.with(this).load(uri).asBitmap().listener(new RequestListener<Uri, Bitmap>() {
                 @Override
                 public boolean onException(Exception e, Uri model, Target<Bitmap> target, boolean isFirstResource) {
-                    Log.v("成功获取封面","失败");
                     BitmapDrawable resourceDrawable = (BitmapDrawable) getDrawable(R.drawable.default_album);
                     Bitmap resource = resourceDrawable.getBitmap();
                     albumNow = resource;
@@ -771,13 +651,12 @@ if (intent !=null){
                     PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
                     stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
                     mediaSession.setPlaybackState(stateBuilder.build());
-                    buildNotification(playing);
+                    buildNotification(MyConstant.playing);
                     return false;
                 }
 
                 @Override
                 public boolean onResourceReady(Bitmap resource, Uri model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                    Log.v("成功获取封面","成功");
                     albumNow = resource;
                     mediaSession.setMetadata(new MediaMetadata.Builder()
                             .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, resource)
@@ -787,53 +666,100 @@ if (intent !=null){
                     PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
                     stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
                     mediaSession.setPlaybackState(stateBuilder.build());
-                    buildNotification(playing);
+                    buildNotification(MyConstant.playing);
                     return false;
                 }
-            }).into(300,300);
+            }).into(300, 300);
 
         }
     }
 
+    private void buildNotification(String playState) {
+        Palette p = Palette.from(albumNow).generate();
+        int notificationAction = R.drawable.ic_pause_black_24dp;//needs to be initialized
+        PendingIntent play_pauseIntent = null;
+        //Build a new notification according to the current state of the MediaPlayer
+        if (playState == MyConstant.playing) {
+            notificationAction = R.drawable.ic_pause_black_24dp;
+            //create the pause action
+            play_pauseIntent = pendingIntent(MyConstant.pauseAction);
+        } else if (playState == MyConstant.pausing) {
+            notificationAction = R.drawable.ic_play_arrow_black_24dp;
+            //create the play action
+            play_pauseIntent = pendingIntent(MyConstant.playAction);
+        }
+        Intent startMain = new Intent(PlayService.this, MainActivity.class);
+        PendingIntent startMainActivity = PendingIntent.getActivity(PlayService.this, 0, startMain, PendingIntent.FLAG_UPDATE_CURRENT);
+        Log.e("服务","Ongoing"+"MyApplication.getState()"+MyApplication.getState());
+        notification = new Notification.Builder(PlayService.this)
+                // Show controls on lock screen even when user hides sensitive content.
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setLargeIcon(albumNow)
+                .setSmallIcon(R.drawable.ic_album_black_24dp)
+                .setDeleteIntent(pendingIntent(MyConstant.deleteAction))
+                .setColor(ColorUtil.getColor(p))
+                .setContentIntent(startMainActivity)
+
+                .setOngoing(MyApplication.getState().equals(MyConstant.playing))//该选项会导致手表通知不显示
+                // Add media control buttons that invoke intents in your media service
+                .addAction(R.drawable.ic_fast_rewind_black_24dp, "SkiptoPrevious", pendingIntent(MyConstant.previousAction)) // #0
+                .addAction(notificationAction, "Play or Pause", play_pauseIntent)  // #1
+                .addAction(R.drawable.ic_fast_forward_black_24dp, "SkiptoNext", pendingIntent(MyConstant.nextAction))     // #2
+                // Apply the media style template
+                .setStyle(new Notification.MediaStyle()
+                        .setShowActionsInCompactView(0, 1, 2)
+                        .setMediaSession(mediaSession.getSessionToken())
+                )
+                .setContentTitle(MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicTitle())
+                .setContentText(MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicArtist())
+                .build();
+
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(NOTIFICATION_ID, notification);
+
+    }
+
+
+    //以下为音效部分
     private void initialAudioEffect(int audioSessionId) {
-        try{
+        try {
             loudnessEnhancer = new LoudnessEnhancer(audioSessionId);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try{
+        try {
             mBass = new BassBoost(0, audioSessionId);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try{
+        try {
             mVirtualizer = new Virtualizer(0, audioSessionId);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try{
+        try {
             mEqualizer = new Equalizer(0, audioSessionId);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try{
+        try {
             canceler = AcousticEchoCanceler.create(audioSessionId);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try{
+        try {
             control = AutomaticGainControl.create(audioSessionId);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try{
+        try {
             suppressor = NoiseSuppressor.create(audioSessionId);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try{
+        try {
             getPreference();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -843,9 +769,9 @@ if (intent !=null){
     }
 
     public void setEqualizer(boolean b) {
-        try{
-        mEqualizer.setEnabled(b);
-        }catch (Exception e){
+        try {
+            mEqualizer.setEnabled(b);
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -854,7 +780,7 @@ if (intent !=null){
     public void setEqualizerBandLevel(Short band, Short level) {
         try {
             mEqualizer.setBandLevel(band, level);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -862,23 +788,23 @@ if (intent !=null){
     public void setCanceler(boolean b) {
         try {
             canceler.setEnabled(b);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void setControl(boolean b) {
-try {
-    control.setEnabled(b);
-}catch (Exception e){
-    e.printStackTrace();
-}
+        try {
+            control.setEnabled(b);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void setSuppressor(boolean b) {
         try {
             suppressor.setEnabled(b);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -886,11 +812,11 @@ try {
 
     public void setBass(boolean b) {
         try {
-           mBass.setEnabled(b);
-            Log.v("开启","bass"+mBass.getEnabled());
-            Log.v("开启","增强"+loudnessEnhancer.getEnabled());
+            mBass.setEnabled(b);
+            Log.v("开启", "bass" + mBass.getEnabled());
+            Log.v("开启", "增强" + loudnessEnhancer.getEnabled());
             loudnessEnhancer.setEnabled(mBass.getEnabled() || mVirtualizer.getEnabled());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -898,7 +824,7 @@ try {
     public void setBassStrength(Short strength) {
         try {
             mBass.setStrength(strength);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -906,10 +832,10 @@ try {
     public void setVirtualizer(Boolean b) {
         try {
             mVirtualizer.setEnabled(b);
-            Log.v("开启","virtualizer"+mVirtualizer.getEnabled());
+            Log.v("开启", "virtualizer" + mVirtualizer.getEnabled());
             loudnessEnhancer.setEnabled(mVirtualizer.getEnabled() || mBass.getEnabled());
-            Log.v("开启","增强"+loudnessEnhancer.getEnabled());
-        }catch (Exception e){
+            Log.v("开启", "增强" + loudnessEnhancer.getEnabled());
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -917,59 +843,59 @@ try {
     public void setVirtualizerStrength(Short s) {
         try {
             mVirtualizer.setStrength(s);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void getPreference() {
         SharedPreferences bundle = this.getSharedPreferences("audioEffect", MODE_PRIVATE);
-        Log.v("开启","getPreference");
+        Log.v("开启", "getPreference");
         //超强音量
         try {
-            if ((bundle.getBoolean("Bass", false) || bundle.getBoolean("Virtualizer", false)) == true){
+            if ((bundle.getBoolean("Bass", false) || bundle.getBoolean("Virtualizer", false)) == true) {
                 loudnessEnhancer.setEnabled(true);
-                Log.v("开启","loudness");
+                Log.v("开启", "loudness");
                 loudnessEnhancer.setTargetGain(500);
 
-            }else {
+            } else {
                 loudnessEnhancer.setEnabled(false);
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         //虚拟环绕
-        try{
+        try {
             if (bundle.getBoolean("Virtualizer", false) == false) {
                 setVirtualizer(false);
-            }else {
+            } else {
                 setVirtualizer(true);
                 setVirtualizerStrength((short) bundle.getInt("Virtualizer_seekBar", 0));
-                Log.v("强度","Virtualizer"+bundle.getInt("Virtualizer_seekBar", 0));
+                Log.v("强度", "Virtualizer" + bundle.getInt("Virtualizer_seekBar", 0));
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         //低音增强
-        try{
-            Log.v("开启",String.valueOf(bundle.getBoolean("Bass", false)));
+        try {
+            Log.v("开启", String.valueOf(bundle.getBoolean("Bass", false)));
             if (bundle.getBoolean("Bass", false) == false) {
                 setBass(false);
-            }else {
+            } else {
                 setBass(true);
-                Log.v("开启","Bass"+bundle.getBoolean("Bass", false));
+                Log.v("开启", "Bass" + bundle.getBoolean("Bass", false));
                 setBassStrength((short) bundle.getInt("Bass_seekBar", 0));
-                Log.v("强度","Bass"+bundle.getInt("Bass_seekBar", 0));
+                Log.v("强度", "Bass" + bundle.getInt("Bass_seekBar", 0));
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         //均衡器
         try {
             if (bundle.getBoolean("Equalizer", false) == true) {
                 mEqualizer.setEnabled(true);
-                Log.v("开启","Equalzier");
+                Log.v("开启", "Equalzier");
                 switch (bundle.getInt("Spinner", 0)) {
                     case 0:
                         mEqualizer.setBandLevel((short) 0, (short) 300);
@@ -1057,10 +983,10 @@ try {
                         return;
                     default:
                 }
-            }else {
+            } else {
                 mEqualizer.setEnabled(false);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -1075,54 +1001,10 @@ try {
             if (NoiseSuppressor.isAvailable()) {
                 suppressor.setEnabled(bundle.getBoolean("Suppressor", false));
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-    private void buildNotification (String playState){
-        Palette p = Palette.from(albumNow).generate();
-        int notificationAction = R.drawable.ic_pause_black_24dp;//needs to be initialized
-        PendingIntent play_pauseIntent = null;
-        //Build a new notification according to the current state of the MediaPlayer
-        if (playState == playing) {
-            notificationAction = R.drawable.ic_pause_black_24dp;
-            //create the pause action
-            play_pauseIntent = pendingIntent(pauseAction);
-        } else if (playState == pausing) {
-            notificationAction = R.drawable.ic_play_arrow_black_24dp;
-            //create the play action
-            play_pauseIntent = pendingIntent(playAction);
-        }
-        Intent startMain = new Intent(PlayService.this, MainActivity.class);
-        PendingIntent startMainActivity = PendingIntent.getActivity(PlayService.this, 0, startMain, PendingIntent.FLAG_UPDATE_CURRENT);
-        notification = new Notification.Builder(PlayService.this)
-                // Show controls on lock screen even when user hides sensitive content.
-                .setVisibility(Notification.VISIBILITY_PUBLIC)
-                .setLargeIcon(albumNow)
-                .setSmallIcon(R.drawable.ic_album_black_24dp)
-                .setDeleteIntent(pendingIntent(deleteAction))
-                .setColor(ColorUtil.getColor(p))
-                .setContentIntent(startMainActivity)
-                .setOngoing(Data.getState() == playing)//该选项会导致手表通知不显示
-                // Add media control buttons that invoke intents in your media service
-                .addAction(R.drawable.ic_fast_rewind_black_24dp, "SkiptoPrevious", pendingIntent(previousAction)) // #0
-                .addAction(notificationAction, "Play or Pause", play_pauseIntent)  // #1
-                .addAction(R.drawable.ic_fast_forward_black_24dp, "SkiptoNext", pendingIntent(nextAction))     // #2
-                // Apply the media style template
-                .setStyle(new Notification.MediaStyle()
-                        .setShowActionsInCompactView(0, 1, 2)
-                        .setMediaSession(mediaSession.getSessionToken())
-                )
-                .setContentTitle(Data.getTitle(Data.getPosition()))
-                .setContentText(Data.getArtist(Data.getPosition()))
-                .build();
-
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(NOTIFICATION_ID, notification);
-
-    }
-
 
     //Becoming noisy
     private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {

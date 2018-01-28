@@ -55,7 +55,8 @@ public class RecommendFragment extends Fragment {
 
         if(ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
             permissionGranted = true;
-            new initialTask().execute();
+            showRecentList();
+            showFavouriteList();
         }
         return rootView;
     }
@@ -63,15 +64,16 @@ public class RecommendFragment extends Fragment {
     private class PermissionReceiver extends BroadcastReceiver{
         @Override
         public void onReceive(Context context, Intent intent) {
-            new initialTask().execute();
+            showRecentList();
+            showFavouriteList();
         }
     }
     private void showRecentList(){
+//        MyApplication.initialMusicDate(this.getContext());
         RecyclerView recent = (RecyclerView) rootView.findViewById(R.id.recent_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         recent.setLayoutManager(layoutManager);
-//        recent.setItemAnimator(new DefaultItemAnimator());
         RecentListAdapter adapter = new RecentListAdapter();
         recent.setAdapter(adapter);
     }
@@ -79,7 +81,6 @@ public class RecommendFragment extends Fragment {
         RecyclerView favourite = (RecyclerView) rootView.findViewById(R.id.favourite_recycler_view);
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity(),3);
         favourite.setLayoutManager(layoutManager);
-//        favourite.setItemAnimator(new DefaultItemAnimator());
         FavouriteListAdapter adapter = new FavouriteListAdapter();
         favourite.setAdapter(adapter);
         //与Scrollview滑动冲突
@@ -93,20 +94,5 @@ public class RecommendFragment extends Fragment {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         context.startActivityForResult(intent, 42);
 
-    }
-
-    private class initialTask extends AsyncTask{
-        @Override
-        protected Object doInBackground(Object[] objects) {
-            Data.initialMusicInfo(getActivity());
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Object o) {
-            super.onPostExecute(o);
-            showRecentList();
-            showFavouriteList();
-        }
     }
 }

@@ -83,28 +83,19 @@ public class ColorUtil {
                 Math.min(b,255));
     }
 
-    public static int getColor (Palette p){
-        Palette.Swatch s1 = p.getVibrantSwatch();
-        Palette.Swatch s3 = p.getDarkVibrantSwatch();
-        Palette.Swatch s2 = p.getMutedSwatch();
-        Palette.Swatch s6 = p.getDarkMutedSwatch();
-        Palette.Swatch s4 = p.getLightVibrantSwatch();
-        Palette.Swatch s5 = p.getLightMutedSwatch();
-        Palette.Swatch s7 = p.getDominantSwatch();
-        if (s1 != null) {
-            return s1.getRgb();
-        } else if (s2 != null) {
-            return s2.getRgb();
-        } else if (s3 != null) {
-            return s3.getRgb();
-        } else if (s4 != null) {
-            return s4.getRgb();
-        } else if (s5 != null) {
-            return s5.getRgb();
-        } else if (s6 != null) {
-            return s6.getRgb();
-        } else if (s7 != null) {
-            return s7.getRgb();
+    public static int getColor (Palette palette){
+        if (palette.getVibrantSwatch() != null) {
+            return palette.getVibrantSwatch().getRgb();
+        } else if (palette.getMutedSwatch() != null) {
+            return palette.getMutedSwatch().getRgb();
+        } else if (palette.getDarkVibrantSwatch() != null) {
+            return palette.getDarkVibrantSwatch().getRgb();
+        } else if (palette.getDarkMutedSwatch() != null) {
+            return palette.getDarkMutedSwatch().getRgb();
+        } else if (palette.getLightVibrantSwatch() != null) {
+            return palette.getLightVibrantSwatch().getRgb();
+        } else if (palette.getLightMutedSwatch() != null) {
+            return palette.getLightMutedSwatch().getRgb();
         } else {
             return Color.parseColor("#009688");
         }

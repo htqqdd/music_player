@@ -24,10 +24,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
-
-import static android.media.CamcorderProfile.get;
-import static com.example.lixiang.music_player.Data.playAction;
-import static com.example.lixiang.music_player.Data.resetAction;
+import java.util.List;
 
 /**
  * Created by lixiang on 2017/8/15.
@@ -43,8 +40,12 @@ public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder
 
 public searchAdapter(){
     previous = new ArrayList<music_title>();
-    for (int i = 0; i < Data.getTotalNumber(); i++) {
-        previous.add(new music_title(i,Data.getTitle(i)));
+    int size = MyApplication.getMusicListNow().size();
+    List<musicInfo> listNow = MyApplication.getMusicListNow();
+    if (size != 0 ) {
+        for (int i = 0; i < size; i++) {
+            previous.add(new music_title(i, listNow.get(i).getMusicTitle()));
+        }
     }
     filtered = previous;
     }
@@ -60,20 +61,21 @@ public searchAdapter(){
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         final int Position = filtered.get(position).getPosition();
-        holder.song.setText(Data.getTitle(Position));
-        holder.singer.setText(Data.getArtist(Position));
+        final musicInfo musicNow = MyApplication.getMusicListNow().get(position);
+        holder.song.setText(musicNow.getMusicTitle());
+        holder.singer.setText(musicNow.getMusicArtist());
         //设置歌曲封面
-        if (Data.is_net){
+        if (musicNow.getMusicLink() != "") {//网络
             Glide
                     .with(mContext)
-                    .load(Data.getNetMusicList().get(Position).getRealPic())
+                    .load(musicNow.getMusicAlbum())
                     .placeholder(R.drawable.default_album)
                     .into(holder.cover);
-        }else {
+        }else{
             Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-            Uri uri = ContentUris.withAppendedId(sArtworkUri, Data.getAlbumId(Position));
+            Uri uri = ContentUris.withAppendedId(sArtworkUri, musicNow.getMusicAlbumId());
             Glide
                     .with(mContext)
                     .load(uri)
@@ -84,7 +86,7 @@ public searchAdapter(){
         holder.relativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (Data.is_net){
+                if (musicNow.getMusicLink() != ""){//网络
                     dialog = ProgressDialog.show(mContext,"请稍后","正在玩命加载中");
                     dialog.setOnKeyListener(new Dialog.OnKeyListener() {
 
@@ -94,32 +96,19 @@ public searchAdapter(){
                             // TODO Auto-generated method stub
                             if (keyCode == KeyEvent.KEYCODE_BACK) {
                                 Intent intent = new Intent("service_broadcast");
-                                intent.putExtra("ACTION", resetAction);
+                                intent.putExtra("ACTION", MyConstant.resetAction);
                                 mContext.sendBroadcast(intent);
                                 dialog.dismiss();
                             }
                             return true;
                         }
                     });
-                    Data.setPlayMode(3);
-                    Data.setFavourite(false);
-                    Data.setRecent(false);
-                    Data.setNet(true);
-                    Data.setPosition(Position);
-                    Log.v("位置","位置"+Position);
-                    Intent intent = new Intent("service_broadcast");
-                    intent.putExtra("ACTION", playAction);
-                    mContext.sendBroadcast(intent);
-                }else {
-                //播放
-                Data.setPlayMode(3);
-                Data.setRecent(false);
-                Data.setFavourite(false);
-                Data.setPosition(Position);
-                Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", playAction);
-                mContext.sendBroadcast(intent);
                 }
+                //播放
+                MyApplication.setPositionNow(position);
+                Intent intent = new Intent("service_broadcast");
+                intent.putExtra("ACTION", MyConstant.playAction);
+                mContext.sendBroadcast(intent);
             }
         });
         //处理菜单点击
@@ -127,10 +116,10 @@ public searchAdapter(){
             @Override
             public void onClick(View view) {
                 //弹出菜单
-                if(Data.is_net){
+                if(MyApplication.getMusicListNow().get(position).getMusicLink() != ""){
                     menu_util.popupNetMenu((Activity) mContext,view,Position);
                 }else {
-                    menu_util.popupMenu((Activity) mContext, view, Position);
+                    menu_util.popupMenu((Activity) mContext, view, Position,"");
                 }
             }
         });
@@ -170,12 +159,13 @@ public searchAdapter(){
     class MyFilter extends Filter {
         @Override
         protected FilterResults performFiltering(CharSequence constraint) {
-
             filtered =new ArrayList<music_title>();
             if (constraint != null && constraint.toString().trim().length() > 0) {
+                List<musicInfo> listNow = MyApplication.getMusicListNow();
                 for (int i = 0; i < previous.size(); i++) {
-                    String title = Data.getTitle(i);
-                    String singer =Data.getArtist(i);
+                    musicInfo musicNow = listNow.get(i);
+                    String title = musicNow.getMusicTitle();
+                    String singer = musicNow.getMusicArtist();
                     if (title.contains(constraint) || singer.contains(constraint)) {
                         filtered.add(new music_title(i,title));
                     }
@@ -214,7 +204,7 @@ public searchAdapter(){
     public void dismissDialog(){
         if (dialog !=null) {
             dialog.dismiss();
-            Snackbar.make(rootView,"在线播放仅作为预览，请在"+Data.getNetMusicList().get(0).getType()+"下载正版音乐后播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+            Snackbar.make(rootView,"在线播放仅作为预览，请在来源网站下载正版音乐后播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
         }
     }
 }

@@ -5,7 +5,14 @@ package com.example.lixiang.music_player;
  */
 
 public class Music {
-
+    private String author;
+    private String link;
+    private String music;
+    private String name;
+    private String pic;
+    private String realPic;
+    private String songid;
+    private String type;
     public String getRealPic() {
         //网易、QQ、虾米、百度、咪咕、蜻蜓支持
         if (pic!=null) {
@@ -27,7 +34,6 @@ public class Music {
         }
         return pic;
     }
-
     public String getMediumPic() {
         if (pic!=null) {
             if (pic.contains("?param=100x100")) {//?param=100x100网易
@@ -48,55 +54,24 @@ public class Music {
         }
         return pic;
     }
-
     public String getAuthor() {
         return author;
     }
-
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
     public String getLink() {
         return link;
     }
-
-    public void setLink(String link) {
-        this.link = link;
-    }
-
     public String getMusic() {
         return music;
     }
-
-    public void setMusic(String music) {
-        this.music = music;
-    }
-
     public String getName() {
         return name;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getPic() {
         return pic;
     }
-
-    public void setPic(String pic) {
-        this.pic = pic;
+    public int getSongid() {
+        return Integer.valueOf(songid);
     }
-
-    public String getSongid() {
-        return songid;
-    }
-
-    public void setSongid(String songid) {
-        this.songid = songid;
-    }
-
     public String getType() {
         switch (type) {
             case "163":
@@ -127,18 +102,4 @@ public class Music {
         }
         return type;
     }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    private String author;
-    private String link;
-    private String music;
-    private String name;
-    private String pic;
-    private String realPic;
-    private String songid;
-    private String type;
-
 }

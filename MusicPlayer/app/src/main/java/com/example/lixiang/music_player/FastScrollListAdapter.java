@@ -1,6 +1,7 @@
 package com.example.lixiang.music_player;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
@@ -32,9 +33,7 @@ import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import static com.example.lixiang.music_player.Data.playAction;
-import static com.example.lixiang.music_player.R.drawable.nav;
+import java.util.List;
 
 /**
  * Created by lixiang on 2017/8/3.
@@ -42,18 +41,14 @@ import static com.example.lixiang.music_player.R.drawable.nav;
 
 public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAdapter.ViewHolder> implements FastScrollRecyclerView.SectionedAdapter {
     private Context mContext;
-    private String[] media_music_info;
-    private Cursor cursor;
-    private ArrayList<musicInfo> musicInfoArrayList;
+    private List<musicInfo> musicInfoArrayList;
 
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         mContext = recyclerView.getContext();
-        initialMusicInfo(mContext);
+        musicInfoArrayList = MyApplication.getMusicInfoArrayList();
         super.onAttachedToRecyclerView(recyclerView);
     }
-
-
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -66,11 +61,12 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final int Position = position;
-        holder.song.setText(musicInfoArrayList.get(position).getMusicTitle());
-        holder.singer.setText(musicInfoArrayList.get(position).getMusicArtist());
+        musicInfo musicNow = musicInfoArrayList.get(position);
+        holder.song.setText(musicNow.getMusicTitle());
+        holder.singer.setText(musicNow.getMusicArtist());
         //设置歌曲封面
         Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-        Uri uri = ContentUris.withAppendedId(sArtworkUri, musicInfoArrayList.get(position).getMusicAlbumId());
+        Uri uri = ContentUris.withAppendedId(sArtworkUri, musicNow.getMusicAlbumId());
         Glide
                 .with(mContext)
                 .load(uri)
@@ -81,13 +77,10 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
             @Override
             public void onClick(View view) {
                 //播放
-                Data.setPlayMode(3);
-                Data.setRecent(false);
-                Data.setFavourite(false);
-                Data.setNet(false);
-                Data.setPosition(position);
+                MyApplication.setMusicListNow(musicInfoArrayList,"musicInfoArrayList");
+                MyApplication.setPositionNow(position);
                 Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", playAction);
+                intent.putExtra("ACTION", MyConstant.playAction);
                 mContext.sendBroadcast(intent);
             }
         });
@@ -96,7 +89,7 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
             @Override
             public void onClick(View view) {
                 //弹出菜单
-                menu_util.popupMenu((Activity) mContext, view, position);
+                menu_util.popupMenu((Activity) mContext, view, position,"musicInfoArrayList");
             }
         });
 
@@ -131,39 +124,4 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
         return s.subSequence(0, 1).toString();
     }
 
-    private void initialMusicInfo(Context context) {
-        musicInfoArrayList = new ArrayList<musicInfo>();
-        int filter_duration = 30000;
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        String filtration = sharedPref.getString("filtration", "");
-        switch (filtration) {
-            case "thirty":
-                filter_duration = 30000;
-                break;
-            case "forty_five":
-                filter_duration = 45000;
-                break;
-            case "sixty":
-                filter_duration =60000;
-                break;
-            default:
-        }
-        //初始化音乐信息
-        media_music_info = new String[]{
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM};
-
-        cursor = context.getContentResolver().query(
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, media_music_info,
-                null, null, MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
-        int total = cursor.getCount();
-        cursor.moveToFirst();// 将游标移动到初始位置
-        for (int i = 0; i < total; i++) {
-            if (cursor.getInt(1) > filter_duration) {
-                musicInfoArrayList.add(new musicInfo(cursor.getInt(3), cursor.getInt(5), cursor.getInt(1), cursor.getString(0), cursor.getString(2), cursor.getString(4), cursor.getString(6)));
-            }
-            cursor.moveToNext();// 将游标移到下一行
-        }
-    }
 }

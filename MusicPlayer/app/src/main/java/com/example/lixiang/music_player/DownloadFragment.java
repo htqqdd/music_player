@@ -1,4 +1,5 @@
 package com.example.lixiang.music_player;
+
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -30,9 +31,13 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
+
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -64,7 +69,9 @@ public class DownloadFragment extends Fragment {
     private FloatingActionButton search_list;
     private String previousType = "163";
     private List<Music> musicList;
+    private List<musicInfo> netMusicList;
     private SwipeRefreshLayout refresh;
+
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -132,9 +139,9 @@ public class DownloadFragment extends Fragment {
     @Override
     public void onDestroy() {
         SharedPreferences.Editor editor = getActivity().getSharedPreferences("default_resource", MODE_PRIVATE).edit();
-        editor.putString("default",type);
+        editor.putString("default", type);
         editor.apply();
-        Log.v("执行","退出"+type);
+        Log.v("执行", "退出" + type);
         super.onDestroy();
     }
 
@@ -149,12 +156,12 @@ public class DownloadFragment extends Fragment {
         return false;
     }
 
-    private class httpTask extends AsyncTask<String,Integer,String> {
+    private class httpTask extends AsyncTask<String, Integer, String> {
         @Override
         protected String doInBackground(String... strings) {
             try {
-               OkHttpClient client = new OkHttpClient();
-                if (filter.equals("url")){
+                OkHttpClient client = new OkHttpClient();
+                if (filter.equals("url")) {
                     previousType = type;
                     type = "_";
                 }
@@ -169,11 +176,16 @@ public class DownloadFragment extends Fragment {
                     Gson gson = new Gson();
                     musicList = gson.fromJson(data, new TypeToken<List<Music>>() {
                     }.getType());
-                    Data.setNetMusicList(musicList);
+                    netMusicList = new ArrayList<musicInfo>();
+                    for (int i = 0; i < musicList.size(); i++) {
+                        netMusicList.add(new musicInfo(musicList.get(i).getSongid(),0,0,musicList.get(i).getName(),musicList.get(i).getAuthor(),musicList.get(i).getMusic(),musicList.get(i).getRealPic(),0,musicList.get(i).getLink()));
+                    }
+                    MyApplication.setNetMusiclist(netMusicList);
+//                    MyApplication.setMusicListNow(netMusicList,"netMusicList");
                     return "200";
                 }
             } catch (Exception e) {
-                if (e instanceof java.net.UnknownHostException){
+                if (e instanceof java.net.UnknownHostException) {
                     return "404";
                 }
                 e.printStackTrace();
@@ -185,23 +197,35 @@ public class DownloadFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             refresh.setRefreshing(false);
-            if (filter.equals("url")){
+            if (filter.equals("url")) {
                 type = previousType;
             }
-            switch (s){
+            switch (s) {
                 case "200":
-                    Intent intent = new Intent(getActivity(),netMusicActivity.class);
+                    Intent intent = new Intent(getActivity(), netMusicActivity.class);
                     startActivity(intent);
                     break;
                 case "404":
-                    if (!hasNetwork(getActivity())){
-                        Snackbar.make(rootView,"请检查您的网络",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
-                    }else {
-                        Snackbar.make(rootView,"服务器开小差了，请稍后再试",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                    if (!hasNetwork(getActivity())) {
+                        Snackbar.make(rootView, "请检查您的网络", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                            }
+                        }).show();
+                    } else {
+                        Snackbar.make(rootView, "服务器开小差了，请稍后再试", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                            }
+                        }).show();
                     }
                     break;
                 case "unKnown":
-                    Snackbar.make(rootView,"未获取到资源",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                    Snackbar.make(rootView, "未获取到资源", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                        }
+                    }).show();
                     break;
                 default:
             }
@@ -211,8 +235,8 @@ public class DownloadFragment extends Fragment {
     }
 
 
-    private void searchAction(){
-        if (Data.getLocal_net_mode() == false) {
+    private void searchAction() {
+        if (MyApplication.getLocal_net_mode() == false) {
             if (name_radio.isChecked()) {
                 filter = "name";
             } else if (id_radio.isChecked()) {
@@ -231,16 +255,17 @@ public class DownloadFragment extends Fragment {
                 refresh.setRefreshing(true);
                 new httpTask().execute(editText.getText().toString());
             }
-        }else {
+        } else {
             Toast.makeText(getActivity(), "当前处于离线模式", Toast.LENGTH_SHORT).show();
         }
     }
-    private void setListListener(final int defaultNumber){
+
+    private void setListListener(final int defaultNumber) {
         search_list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setTitle("选择提供者");
+                builder.setTitle("选择来源");
                 builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -250,7 +275,7 @@ public class DownloadFragment extends Fragment {
                 builder.setSingleChoiceItems(items, defaultNumber, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        switch (i){
+                        switch (i) {
                             case 0:
                                 type = "163";
                                 break;
@@ -288,7 +313,7 @@ public class DownloadFragment extends Fragment {
                                 break;
                             default:
                         }
-                        Log.v("类型","类型"+type);
+                        Log.v("类型", "类型" + type);
                         setListListener(i);
                     }
                 });
@@ -302,7 +327,7 @@ public class DownloadFragment extends Fragment {
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 searchAction();
-                InputMethodManager imm = (InputMethodManager)v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 return true;
             }
@@ -325,17 +350,18 @@ public class DownloadFragment extends Fragment {
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
-            if (o !=null){
+            if (o != null) {
                 refresh.setColorSchemeColors((int) o);
             } else {
                 refresh.setColorSchemeColors(getResources().getColor(R.color.colorAccent));
             }
         }
     }
-    private class setDefaultTask extends AsyncTask{
+
+    private class setDefaultTask extends AsyncTask {
         @Override
         protected void onPostExecute(Object o) {
-            if (o !=null) {
+            if (o != null) {
                 setListListener((int) o);
             }
             super.onPostExecute(o);
@@ -344,9 +370,9 @@ public class DownloadFragment extends Fragment {
         @Override
         protected Object doInBackground(Object[] objects) {
 
-            SharedPreferences bundle = getActivity().getSharedPreferences("default_resource",MODE_PRIVATE);
-            Log.v("执行","读取"+bundle.getString("default","163"));
-            switch (bundle.getString("default","163")) {
+            SharedPreferences bundle = getActivity().getSharedPreferences("default_resource", MODE_PRIVATE);
+            Log.v("执行", "读取" + bundle.getString("default", "163"));
+            switch (bundle.getString("default", "163")) {
                 case "163":
                     type = "163";
                     return 0;

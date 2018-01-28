@@ -14,7 +14,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
-import static com.example.lixiang.music_player.Data.playAction;
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Created by lixiang on 2017/3/26.
@@ -22,6 +24,14 @@ import static com.example.lixiang.music_player.Data.playAction;
 
 public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdapter.ViewHolder>{
     private Context mContext;
+    private List<musicInfo> Timessublist;
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        Timessublist = MyApplication.getTimessublist();
+        super.onAttachedToRecyclerView(recyclerView);
+    }
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
@@ -32,14 +42,14 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        final int Position = position;
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         //设置标题，歌手
-        holder.album.setText(Data.getAlbum(Data.findPositionById(Data.getTimessublist().get(position).getId())));
-        holder.singer.setText(Data.getLocalArtist(Data.findPositionById(Data.getTimessublist().get(position).getId())));
+        musicInfo musicNow = Timessublist.get(position);
+        holder.album.setText(musicNow.getMusicAlbum());
+        holder.singer.setText(musicNow.getMusicArtist());
         //设置歌曲封面
         Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-        Uri uri = ContentUris.withAppendedId(sArtworkUri, Data.getAlbumId(Data.findPositionById(Data.getTimessublist().get(position).getId())));
+        Uri uri = ContentUris.withAppendedId(sArtworkUri, musicNow.getMusicAlbumId());
         Glide
                 .with(mContext)
                 .load(uri)
@@ -50,15 +60,10 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //播放
-                Data.setPlayMode(3);
-                Data.setFavourite(true);
-                Data.setRecent(false);
-                Data.setNet(false);
-                Data.setPosition(Data.findPositionById(Data.getTimessublist().get(Position).getId()));
-                Data.setFavourite_position (Position);//获取Favourite列表位置
+                MyApplication.setMusicListNow(Timessublist,"Timessublist");
+                MyApplication.setPositionNow(position);
                 Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", playAction);
+                intent.putExtra("ACTION", MyConstant.playAction);
                 mContext.sendBroadcast(intent);
             }
         });
@@ -67,14 +72,14 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
             @Override
             public void onClick(View view) {
                 //弹出菜单
-                menu_util.popupMenu((Activity) mContext, view, Data.findPositionById(Data.getTimessublist().get(Position).getId()));
+                menu_util.popupMenu((Activity) mContext, view, position,"Timessublist");
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return Data.getTimessublist().size();
+        return Timessublist.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {

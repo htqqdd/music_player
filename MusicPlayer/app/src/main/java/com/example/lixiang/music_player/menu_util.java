@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.List;
 
 
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
@@ -42,8 +43,8 @@ public class menu_util {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.openLink:
-                        if (Data.getNetMusicList().get(position).getLink() !=null){
-                        Uri web_uri = Uri.parse(Data.getNetMusicList().get(position).getLink());
+                        if (MyApplication.getMusicListNow().get(position).getMusicLink() !=null){
+                            Uri web_uri = Uri.parse(MyApplication.getMusicListNow().get(position).getMusicLink());
                             Intent intent = new Intent(Intent.ACTION_VIEW, web_uri);
                             context.startActivity(intent);
                         }else {
@@ -51,8 +52,8 @@ public class menu_util {
                         }
                         return true;
                     case R.id.getLink:
-                        if (Data.getNetMusicList().get(position).getMusic() != null){
-                        Uri download_uri = Uri.parse(Data.getNetMusicList().get(position).getMusic());
+                        if (MyApplication.getMusicListNow().get(position).getMusicData() != null){
+                            Uri download_uri = Uri.parse(MyApplication.getMusicListNow().get(position).getMusicData());
                             Intent web_intent = new Intent(Intent.ACTION_VIEW, download_uri);
                             context.startActivity(web_intent);
                         }else {
@@ -65,80 +66,59 @@ public class menu_util {
         });
         popup.show(); //showing popup menu
     }
-public static  void popupMenu(final Activity context, View v,final int position) {
-    rootview = v;
-    final PopupMenu popup = new PopupMenu(context, v);
-    popup.getMenuInflater().inflate(R.menu.list_popup_menu, popup.getMenu());
-    popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-        public boolean onMenuItemClick(MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.setAsNext:
-                    setAsNext(context,position);
-                    return true;
-                case delete:
-                    deleteFile(context,Data.getData(position));
-                    return true;
-                case R.id.setAsRingtone:
-                    menu_util.setAsRingtone(context, position);
-                    return true;
-                case R.id.musicInfo:
-                    showMusicInfo(context,position);
-                    return true;
+    public static  void popupMenu(final Activity context, View v, final int position, final String fromWhichList) {
+        rootview = v;
+        final PopupMenu popup = new PopupMenu(context, v);
+        popup.getMenuInflater().inflate(R.menu.list_popup_menu, popup.getMenu());
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.setAsNext:
+                        setAsNext(context,position,fromWhichList);
+                        return true;
+                    case delete:
+                        deleteFile(context,position,fromWhichList);
+                        return true;
+                    case R.id.setAsRingtone:
+                        menu_util.setAsRingtone(context, position,fromWhichList);
+                        return true;
+                    case R.id.musicInfo:
+                        showMusicInfo(context,position,fromWhichList);
+                        return true;
+                }
+                return true;
             }
-            return true;
-        }
-    });
-    popup.show(); //showing popup menu
-}
+        });
+        popup.show(); //showing popup menu
+    }
 
-    public static void setAsRingtone(final Activity context, int position) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.System.canWrite(context)) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
-                Uri.parse("package:" + context.getPackageName()));
+    public static void setAsRingtone(final Activity context, int position,String fromWhich) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.System.canWrite(context)) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + context.getPackageName()));
                 context.startActivity(intent);
-            } else {
-                File music = new File(Data.getData(position)); // path is a file to /sdcard/media/ringtone
-                ContentValues values = new ContentValues();
-                values.put(MediaStore.MediaColumns.DATA, music.getAbsolutePath());
-                values.put(MediaStore.MediaColumns.TITLE, Data.getTitle(position));
-                values.put(MediaStore.MediaColumns.MIME_TYPE, "audio/mp3");
-                values.put(MediaStore.Audio.Media.ARTIST, Data.getArtist(position));
-                values.put(MediaStore.Audio.Media.IS_RINGTONE, true);
-                values.put(MediaStore.Audio.Media.IS_NOTIFICATION, false);
-                values.put(MediaStore.Audio.Media.IS_ALARM, false);
-                values.put(MediaStore.Audio.Media.IS_MUSIC, false);
-
-                //Insert it into the database
-                Uri uri = MediaStore.Audio.Media.getContentUriForPath(music.getAbsolutePath());
-                context.getContentResolver().delete(uri, MediaStore.MediaColumns.DATA + "=\"" + music.getAbsolutePath() + "\"", null);
-                Uri newUri = context.getContentResolver().insert(uri, values);
-
-                RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE, newUri);
-                //Snackbar
-                Snackbar.make(rootview, "已成功设置为来电铃声", Snackbar.LENGTH_LONG).setAction("好的", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                    }
-                }).show();
-            }
         } else {
-            File music = new File(Data.getData(position)); // path is a file to /sdcard/media/ringtone
+            List<musicInfo> list;
+            if (fromWhich == "Timessublist"){
+                list = MyApplication.getTimessublist();
+            }else if (fromWhich == "Datesublist"){
+                list = MyApplication.getDatesublist();
+            }else {
+                list = MyApplication.getMusicInfoArrayList();
+            }
+            File music = new File(list.get(position).getMusicData()); // path is a file to /sdcard/media/ringtone
             ContentValues values = new ContentValues();
             values.put(MediaStore.MediaColumns.DATA, music.getAbsolutePath());
-            values.put(MediaStore.MediaColumns.TITLE, Data.getTitle(position));
+            values.put(MediaStore.MediaColumns.TITLE, list.get(position).getMusicTitle());
             values.put(MediaStore.MediaColumns.MIME_TYPE, "audio/mp3");
-            values.put(MediaStore.Audio.Media.ARTIST, Data.getArtist(position));
+            values.put(MediaStore.Audio.Media.ARTIST, list.get(position).getMusicArtist());
             values.put(MediaStore.Audio.Media.IS_RINGTONE, true);
             values.put(MediaStore.Audio.Media.IS_NOTIFICATION, false);
             values.put(MediaStore.Audio.Media.IS_ALARM, false);
             values.put(MediaStore.Audio.Media.IS_MUSIC, false);
-
             //Insert it into the database
             Uri uri = MediaStore.Audio.Media.getContentUriForPath(music.getAbsolutePath());
             context.getContentResolver().delete(uri, MediaStore.MediaColumns.DATA + "=\"" + music.getAbsolutePath() + "\"", null);
             Uri newUri = context.getContentResolver().insert(uri, values);
-
             RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE, newUri);
             //Snackbar
             Snackbar.make(rootview, "已成功设置为来电铃声", Snackbar.LENGTH_LONG).setAction("好的", new View.OnClickListener() {
@@ -148,13 +128,21 @@ public static  void popupMenu(final Activity context, View v,final int position)
             }).show();
         }
     }
-    public static void setAsNext(Activity context,int position){
-        Data.setNextMusic(position);
+    public static void setAsNext(Activity context,int position,String fromWhich){
+        List<musicInfo> list;
+        if (fromWhich == "Timessublist"){
+            list = MyApplication.getTimessublist();
+        }else if (fromWhich == "Datesublist"){
+            list = MyApplication.getDatesublist();
+        }else {
+            list = MyApplication.getMusicInfoArrayList();
+        }
+        MyApplication.getMusicListNow().add(MyApplication.getPositionNow(),list.get(position));
         com.sothree.slidinguppanel.SlidingUpPanelLayout main_layout = (com.sothree.slidinguppanel.SlidingUpPanelLayout) context.findViewById(R.id.sliding_layout);
         Snackbar.make(rootview,"已成功设置为下一首播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
     }
 
-    public  static void showMusicInfo(Activity context,int position){
+    public  static void showMusicInfo(Activity context,int position,String fromWhich){
         LayoutInflater inflater = context.getLayoutInflater();
         View musicinfo_dialog = inflater.inflate(R.layout.musicinfo_dialog,(ViewGroup) context.findViewById(R.id.musicInfo_dialog));
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -173,25 +161,36 @@ public static  void popupMenu(final Activity context, View v,final int position)
         TextView duration = (TextView) musicinfo_dialog.findViewById(R.id.dialog_duration);
         TextView playtimes = (TextView) musicinfo_dialog.findViewById(R.id.dialog_playtimes);
         TextView path = (TextView) musicinfo_dialog.findViewById(R.id.dialog_path);
-        title.setText(Data.getTitle(position));
-        artist.setText(Data.getArtist(position));
-        album.setText(Data.getAlbum(position));
-        int totalSecond = Data.getDuration(position)/1000;
+        List<musicInfo> list;
+        if (fromWhich == "Timessublist"){
+            list = MyApplication.getTimessublist();
+        }else if (fromWhich == "Datesublist"){
+            list = MyApplication.getDatesublist();
+        }else {
+            list = MyApplication.getMusicInfoArrayList();
+        }
+        title.setText(list.get(position).getMusicTitle());
+        artist.setText(list.get(position).getMusicArtist());
+        album.setText(list.get(position).getMusicAlbum());
+        int totalSecond = list.get(position).getMusicDuration()/1000;
         int minute = totalSecond/60;
         int second = totalSecond - minute*60;
         duration.setText(String.valueOf(minute)+"分"+String.valueOf(second)+"秒");
-        playtimes.setText(String.valueOf(Data.findPlayTimesById(Data.getId(position))));
-        path.setText(Data.getData(position));
+        playtimes.setText(String.valueOf(list.get(position).getTimes()));
+        path.setText(list.get(position).getMusicData());
         builder.show();
     }
 
-    /**
-     * 删除单个文件
-     * @param   filePath    被删除文件的文件名
-     * @return 文件删除成功返回true，否则返回false
-     */
-    public static boolean deleteFile(final Activity context,String filePath) {
-        final File file = new File(filePath);
+    public static boolean deleteFile(final Activity context,int position,String fromWhich) {
+        String musicData;
+        if (fromWhich == "Timessublist"){
+            musicData = MyApplication.getTimessublist().get(position).getMusicData();
+        }else if (fromWhich == "Datesublist"){
+            musicData = MyApplication.getDatesublist().get(position).getMusicData();
+        }else {
+            musicData = MyApplication.getMusicInfoArrayList().get(position).getMusicData();
+        }
+        final File file = new File(musicData);
         if (file.isFile() && file.exists()) {
             //警告窗口
             AlertDialog.Builder builder = new AlertDialog.Builder(context);

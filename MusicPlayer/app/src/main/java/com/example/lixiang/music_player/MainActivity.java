@@ -3,6 +3,7 @@ package com.example.lixiang.music_player;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.Activity;
 import android.app.TimePickerDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -110,12 +111,6 @@ import static android.R.attr.handle;
 import static android.R.attr.resource;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static com.example.lixiang.music_player.Data.initialize;
-import static com.example.lixiang.music_player.Data.mediaChangeAction;
-import static com.example.lixiang.music_player.Data.pauseAction;
-import static com.example.lixiang.music_player.Data.pausing;
-import static com.example.lixiang.music_player.Data.playAction;
-import static com.example.lixiang.music_player.Data.playing;
 import static com.example.lixiang.music_player.R.id.music_info_cardView;
 import static com.example.lixiang.music_player.R.id.now_on_play_text;
 import static com.example.lixiang.music_player.R.id.other_lrc_view;
@@ -164,7 +159,6 @@ public class MainActivity extends AestheticActivity {
         Log.e("OnCreate执行", "OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        DataUtil.loadDataBase(this);
 
         //沉浸状态栏
         ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).init();
@@ -342,7 +336,7 @@ public class MainActivity extends AestheticActivity {
             public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
                 if (previousState == COLLAPSED && newState == DRAGGING) {
                     if (playService != null) {
-                        seekBar.setMax(Data.getMediaDuration());
+                        seekBar.setMax(MyApplication.getMediaDuration());
                     }
                     updateSeekBar();
                 }
@@ -360,7 +354,8 @@ public class MainActivity extends AestheticActivity {
                         public void onClick(View view) {
                             if (!otherLyricView.hasLrc()) {
                                 //判断是否有本地歌词
-                            String path = Data.getData(Data.getPosition());
+                            musicInfo musicNow = MyApplication.getMusicListNow().get(MyApplication.getPositionNow());
+                            String path = musicNow.getMusicData();
                             int total = path.length();
                             File file = new File(path.substring(0,total-4)+".lrc");
                             if (file.isFile() && file.exists()){
@@ -375,8 +370,8 @@ public class MainActivity extends AestheticActivity {
                                         return false;
                                     }
                                 });
-                            }else if (Data.getLocal_net_mode() == false) {
-                                new getLyricTask().execute(Data.getTitle(Data.getPosition()), Data.getArtist(Data.getPosition()));
+                            }else if (MyApplication.getLocal_net_mode() == false) {
+                                new getLyricTask().execute(musicNow.getMusicTitle(), musicNow.getMusicArtist());
                                 changeVisibility();
                             }else {
                                 Toast.makeText(MainActivity.this, "当前处于离线模式", Toast.LENGTH_SHORT).show();                            }
@@ -398,8 +393,6 @@ public class MainActivity extends AestheticActivity {
                 }
             }
         });
-
-//        ImageView back = (ImageView) findViewById(R.id.back);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -409,7 +402,6 @@ public class MainActivity extends AestheticActivity {
                 }
             }
         });
-//        ImageView about = (ImageView) findViewById(R.id.about);
         about.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -454,8 +446,8 @@ public class MainActivity extends AestheticActivity {
         });
 
 
-        if (Data.getState() == playing) {
-            ChangeScrollingUpPanel(Data.getPosition());
+        if (MyApplication.getState() == MyConstant.playing) {
+            ChangeScrollingUpPanel(MyApplication.getPositionNow());
             random_play.hide();
             mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
             mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f));
@@ -519,7 +511,7 @@ public class MainActivity extends AestheticActivity {
                         playService.seekto(progress);
                         fromLyric = false;
                     }
-                    if (Data.getState() == playing) {
+                    if (MyApplication.getState() == MyConstant.playing) {
                         //更新歌词
                         otherLyricView.updateTime(playService.getCurrentPosition());
                     }
@@ -560,15 +552,13 @@ public class MainActivity extends AestheticActivity {
             }
         }
 
-//        final FloatingActionButton random_play = (FloatingActionButton) findViewById(R.id.random_play);
         random_play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Data.setPlayMode(1);
-                Data.setRecent(false);
-                Data.setFavourite(false);
+                MyApplication.setPlayMode(MyConstant.random);
+                MyApplication.setMusicListNow(MyApplication.getMusicInfoArrayList(),"musicInfoArrayList");
                 Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", playAction);
+                intent.putExtra("ACTION", MyConstant.playAction);
                 sendBroadcast(intent);
             }
         });
@@ -591,7 +581,7 @@ public class MainActivity extends AestheticActivity {
     protected void onDestroy() {
         unregisterReceiver(msgReceiver);
         Log.v("OnDestory执行", "OnDestory");
-        if (Data.getState() == pausing) {
+        if (MyApplication.getState() == MyConstant.pausing) {
             unbindService(conn);
             stopService(new Intent(this, PlayService.class));
         }
@@ -600,6 +590,9 @@ public class MainActivity extends AestheticActivity {
     //以下为公共方法
 
     public void sendPermissionGranted() {
+        //初始化音乐信息
+        MyApplication.initialMusicInfo(this);
+        //其他界面初始化列表
         Intent intent = new Intent("permission_granted");
         sendBroadcast(intent);
         Intent intent2 = new Intent("list_permission_granted");
@@ -609,19 +602,19 @@ public class MainActivity extends AestheticActivity {
 
     //播放，暂停按钮
     public void title_play_or_pause(View view) {
-        if (Data.getState() == playing) {
+        if (MyApplication.getState() == MyConstant.playing) {
             playService.pause();
             playService.removeAudioFocus();
-        } else if (Data.getState() == pausing) {
+        } else if (MyApplication.getState() == MyConstant.pausing) {
             playService.resume();
         }
     }
 
     public void main_play_or_pause(View v) {
-        if (Data.getState() == playing) {
+        if (MyApplication.getState() == MyConstant.playing) {
             playService.pause();
             playService.removeAudioFocus();
-        } else if (Data.getState() == pausing) {
+        } else if (MyApplication.getState() == MyConstant.pausing) {
             playService.resume();
         }
     }
@@ -639,27 +632,27 @@ public class MainActivity extends AestheticActivity {
         ImageView repeat_button = (ImageView) findViewById(R.id.repeat_button);
         ImageView shuffle_button = (ImageView) findViewById(R.id.shuffle_button);
 
-        switch (Data.getPlayMode()) {
-            case 3:
-                Data.setPlayMode(0);
+        switch (MyApplication.getPlayMode()) {
+            case MyConstant.list:
+                MyApplication.setPlayMode(MyConstant.list_repeat);
                 Snackbar.make(mLayout,"列表循环播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
                 repeat_button.setImageResource(R.drawable.repeat);
                 shuffle_button.setImageResource(R.drawable.shuffle_grey);
                 break;
-            case 0:
-                Data.setPlayMode(2);
+            case MyConstant.list_repeat:
+                MyApplication.setPlayMode(MyConstant.one_repeat);
                 Snackbar.make(mLayout,"单曲循环播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
                 repeat_button.setImageResource(R.drawable.repeat_one);
                 shuffle_button.setImageResource(R.drawable.shuffle_grey);
                 break;
-            case 2:
-                Data.setPlayMode(3);
+            case MyConstant.one_repeat:
+                MyApplication.setPlayMode(MyConstant.list);
                 Snackbar.make(mLayout,"顺序播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
                 repeat_button.setImageResource(R.drawable.repeat_grey);
                 shuffle_button.setImageResource(R.drawable.shuffle_grey);
                 break;
-            case 1:
-                Data.setPlayMode(0);
+            case MyConstant.random:
+                MyApplication.setPlayMode(MyConstant.list_repeat);
                 Snackbar.make(mLayout,"列表重复播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
                 shuffle_button.setImageResource(R.drawable.shuffle_grey);
                 repeat_button.setImageResource(R.drawable.repeat);
@@ -671,13 +664,13 @@ public class MainActivity extends AestheticActivity {
     public void changeShuffle(View v) {
         ImageView repeat_button = (ImageView) findViewById(R.id.repeat_button);
         ImageView shuffle_button = (ImageView) findViewById(R.id.shuffle_button);
-        if (Data.getPlayMode() == 1) {
-            Data.setPlayMode(3);
+        if (MyApplication.getPlayMode() == MyConstant.random) {
+            MyApplication.setPlayMode(MyConstant.list);
             Snackbar.make(mLayout,"顺序播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
             repeat_button.setImageResource(R.drawable.repeat_grey);
         } else {
-            Data.setPlayMode(1);
+            MyApplication.setPlayMode(MyConstant.random);
             Snackbar.make(mLayout,"随机播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
             shuffle_button.setImageResource(R.drawable.shuffle);
             repeat_button.setImageResource(R.drawable.repeat_grey);
@@ -736,44 +729,45 @@ public class MainActivity extends AestheticActivity {
     }
 
     public void ChangeScrollingUpPanel(int position) {
-        String path = Data.getData(position);
-        String title = Data.getTitle(position);
-        int album_id = Data.getAlbumId(position);
-        String artist = Data.getArtist(position);
-        int id = Data.getId(position);
+        musicInfo nowMusic = MyApplication.getMusicListNow().get(position);
+        String title = nowMusic.getMusicTitle();
+        String artist = nowMusic.getMusicArtist();
+//        String path = MyApplication.getMusicListNow().get(position).getMusicData();
+//        int album_id = nowMusic.getMusicAlbumId();
+//        int id = MyApplication.getMusicListNow().get(position).getMusicId();
         seekBar.setProgress(0);
         TextView currentPosition = (TextView) findViewById(R.id.current_position);
         final TextView duration = (TextView) findViewById(R.id.duration);
-        duration.setText(toTime(Data.getMediaDuration()));
-        seekBar.setMax(Data.getMediaDuration());
+        duration.setText(toTime(MyApplication.getMediaDuration()));
+        seekBar.setMax(MyApplication.getMediaDuration());
         TextView main_song_title = (TextView) findViewById(R.id.main_song_title);
         final ImageView repeat_button = (ImageView) findViewById(R.id.repeat_button);
         ImageView shuffle_button = (ImageView) findViewById(R.id.shuffle_button);
         FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
-        main_song_title.setText(Data.getTitle(position));
+        main_song_title.setText(title);
 //设置播放模式按钮
         //playMode 0:列表重复 1:随机 2:单曲重复 3:顺序
-        if (Data.getPlayMode() == 0) {
+        if (MyApplication.getPlayMode() == MyConstant.list_repeat) {
             repeat_button.setImageResource(R.drawable.repeat);
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
         }
-        if (Data.getPlayMode() == 1) {
+        if (MyApplication.getPlayMode() == MyConstant.random) {
             shuffle_button.setImageResource(R.drawable.shuffle);
             repeat_button.setImageResource(R.drawable.repeat_grey);
         }
-        if (Data.getPlayMode() == 2) {
+        if (MyApplication.getPlayMode() == MyConstant.one_repeat) {
             repeat_button.setImageResource(R.drawable.repeat_one);
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
         }
-        if (Data.getPlayMode() == 3) {
+        if (MyApplication.getPlayMode() == MyConstant.list) {
             repeat_button.setImageResource(R.drawable.repeat_grey);
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
         }
 
         //设置封面,自动封面获取颜色
-        if (Data.is_net){
+        if (nowMusic.getMusicLink() != ""){//网络
             final ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
-            Glide.with(this).load(Data.getNetMusicList().get(position).getRealPic()).listener(new RequestListener<String, GlideDrawable>() {
+            Glide.with(this).load(nowMusic.getMusicAlbum()).listener(new RequestListener<String, GlideDrawable>() {
                 @Override
                 public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
                     Bitmap resource = ((BitmapDrawable) getDrawable(R.drawable.default_album)).getBitmap();
@@ -792,7 +786,7 @@ public class MainActivity extends AestheticActivity {
             }).thumbnail(0.1f).placeholder(R.drawable.default_album).into(play_now_cover);
         } else {
             Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-            Uri uri = ContentUris.withAppendedId(sArtworkUri, Data.getAlbumId(Data.getPosition()));
+            Uri uri = ContentUris.withAppendedId(sArtworkUri, nowMusic.getMusicAlbumId());
             ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
             Glide.with(this).load(uri).listener(new RequestListener<Uri, GlideDrawable>() {
                 @Override
@@ -820,10 +814,10 @@ public class MainActivity extends AestheticActivity {
         play_now_singer.setText(artist);
 
         //设置播放按钮
-        if (Data.getState() == playing) {
+        if (MyApplication.getState() == MyConstant.playing) {
             floatingActionButton.setImageResource(R.drawable.pause_black);
             play_pause_button.setImageResource(R.drawable.pause_black);
-        } else if (Data.getState() == pausing) {
+        } else if (MyApplication.getState() == MyConstant.pausing) {
             floatingActionButton.setImageResource(R.drawable.play_black);
             play_pause_button.setImageResource(R.drawable.play_black);
         }
@@ -888,27 +882,27 @@ public class MainActivity extends AestheticActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             //更新UI
-            if (intent.getIntExtra("UIChange", 0) == initialize) {
+            if (intent.getIntExtra("UIChange", 0) == MyConstant.initialize) {
                 FloatingActionButton random_play = (FloatingActionButton) findViewById(R.id.random_play);
                 random_play.hide();
                 SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
                 mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f));
             }
 
-            if (intent.getIntExtra("UIChange", 0) == pauseAction) {
+            if (intent.getIntExtra("UIChange", 0) == MyConstant.pauseAction) {
                 ImageView play_pause_button = (ImageView) findViewById(R.id.play_pause_button);
                 FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
                 play_pause_button.setImageResource(R.drawable.play_black);
                 floatingActionButton.setImageResource(R.drawable.play_black);
             }
-            if (intent.getIntExtra("UIChange", 0) == playAction) {
+            if (intent.getIntExtra("UIChange", 0) == MyConstant.playAction) {
                 ImageView play_pause_button = (ImageView) findViewById(R.id.play_pause_button);
                 FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
                 play_pause_button.setImageResource(R.drawable.pause_black);
                 floatingActionButton.setImageResource(R.drawable.pause_black);
             }
-            if (intent.getIntExtra("UIChange", 0) == mediaChangeAction) {
-                ChangeScrollingUpPanel(Data.getPosition());
+            if (intent.getIntExtra("UIChange", 0) == MyConstant.mediaChangeAction) {
+                ChangeScrollingUpPanel(MyApplication.getPositionNow());
                 Log.v("歌曲更换","接收到");
                 if (otherLyricView.getVisibility() == VISIBLE){
                     changeVisibility();
@@ -930,13 +924,18 @@ public class MainActivity extends AestheticActivity {
     }
 
     public void play_now_menu_button(View v) {
-        menu_util.popupMenu(this, v, Data.getPosition());
+        if (MyApplication.getListlabel() !="netMusicList"){
+            menu_util.popupMenu(this, v, MyApplication.getPositionNow(),MyApplication.getListlabel());
+        }else {
+            menu_util.popupNetMenu(this,v,MyApplication.getPositionNow());
+        }
+
     }
 
     private void ensureServiceStarted() {
-        if (Data.getServiceState() == false) {
+        if (MyApplication.getServiceState() == false) {
             Intent intent = new Intent(this, PlayService.class);
-            intent.putExtra("ACTION", initialize);
+            intent.putExtra("ACTION", MyConstant.initialize);
             startService(intent);
 
         }
@@ -948,7 +947,7 @@ public class MainActivity extends AestheticActivity {
             //检测网络模式设置
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
             Boolean local_net_mode = sharedPref.getBoolean("local_net_mode", false);
-            Data.setLocal_net_mode(local_net_mode);
+            MyApplication.setLocal_net_mode(local_net_mode);
             return (int) (getResources().getDisplayMetrics().heightPixels * 0.6);
         }
 
@@ -992,10 +991,10 @@ public class MainActivity extends AestheticActivity {
             @Override
             public void run() {
                 if (playService != null) {
-                    if (Data.getDuration(Data.getPosition()) == 0){
-                        seekBar.setMax(Data.getMediaDuration());
+                    if (MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicDuration() == 0){
+                        seekBar.setMax(MyApplication.getMediaDuration());
                     }
-                    if (Data.getState() == playing) {
+                    if (MyApplication.getState() == MyConstant.playing) {
                         seekBar.setProgress(playService.getCurrentPosition());
                     }
                 }
@@ -1140,8 +1139,8 @@ public class MainActivity extends AestheticActivity {
         protected void onPostExecute(String s) {
             switch (s){
                 case "200":
-                        if (Data.getTitle(Data.getPosition()).contains(lyricList.get(0).getName())) {
-                            new GetLyricbyIdTask().execute(lyricList.get(0).getSongid());
+                        if (MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicTitle().contains(lyricList.get(0).getName())) {
+                            new GetLyricbyIdTask().execute(String.valueOf(lyricList.get(0).getSongid()));
                         } else {
                             otherLyricView.loadLrc("");
                             otherLyricView.setLabel("未搜索到匹配歌词");

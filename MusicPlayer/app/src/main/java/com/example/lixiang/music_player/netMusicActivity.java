@@ -15,8 +15,6 @@ import android.widget.TextView;
 
 import com.afollestad.aesthetic.AestheticActivity;
 
-import static com.example.lixiang.music_player.Data.resetAction;
-
 public class netMusicActivity extends AestheticActivity {
     private DismissReceiver dismissReceiver;
     private netListAdapter adapter;
@@ -41,7 +39,7 @@ public class netMusicActivity extends AestheticActivity {
 
 
         TextView title = (TextView) findViewById(R.id.net_title);
-        title.setText("以下音乐版权属于"+Data.getNetMusicList().get(0).getType());
+        title.setText("以下音乐版权属于原资源提供方");
         net = (RecyclerView) findViewById(R.id.netRecyclerView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -62,7 +60,7 @@ public class netMusicActivity extends AestheticActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             adapter.dismissDialog();
-            Snackbar.make(net,"在线播放仅作为预览，请在"+Data.getNetMusicList().get(0).getType()+"下载正版音乐后播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+            Snackbar.make(net,"在线播放仅作为预览，请在来源网站下载正版音乐后播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
         }
     }
 }

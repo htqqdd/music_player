@@ -15,8 +15,6 @@ import android.view.MenuItem;
 
 import com.afollestad.aesthetic.AestheticActivity;
 
-import static com.example.lixiang.music_player.Data.resetAction;
-
 
 public class searchActivity extends AestheticActivity implements SearchView.OnQueryTextListener{
     private SearchView searchView;

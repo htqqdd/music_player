@@ -19,8 +19,8 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
-import static com.example.lixiang.music_player.Data.playAction;
-import static com.example.lixiang.music_player.Data.resetAction;
+import java.util.List;
+
 
 /**
  * Created by lixiang on 2017/8/21.
@@ -29,6 +29,7 @@ import static com.example.lixiang.music_player.Data.resetAction;
 public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHolder>{
     private Context mContext;
     private ProgressDialog dialog;
+    private List<musicInfo> netMusicList;
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
@@ -39,22 +40,28 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
     }
 
     @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        netMusicList = MyApplication.getNetMusiclist();
+        super.onAttachedToRecyclerView(recyclerView);
+    }
+
+    @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        final int Position = position;
+        musicInfo musicNow = netMusicList.get(position);
         //设置标题，歌手
-        holder.title.setText(Data.getNetMusicList().get(position).getName());
-        holder.singer.setText(Data.getNetMusicList().get(position).getAuthor());
+        holder.title.setText(musicNow.getMusicTitle());
+        holder.singer.setText(musicNow.getMusicArtist());
         //设置歌曲封面
         Glide
                 .with(mContext)
-                .load(Data.getNetMusicList().get(position).getMediumPic())
+                .load(musicNow.getMusicAlbum())
                 .placeholder(R.drawable.default_album)
                 .into(holder.cover);
         //处理整个点击事件
         holder.relativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (Data.getLocal_net_mode() == false) {
+                if (MyApplication.getLocal_net_mode() == false) {
                     //播放
                     dialog = ProgressDialog.show(mContext, "请稍后", "正在玩命加载中");
                     dialog.setOnKeyListener(new Dialog.OnKeyListener() {
@@ -65,21 +72,17 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
                             // TODO Auto-generated method stub
                             if (keyCode == KeyEvent.KEYCODE_BACK) {
                                 Intent intent = new Intent("service_broadcast");
-                                intent.putExtra("ACTION", resetAction);
+                                intent.putExtra("ACTION", MyConstant.resetAction);
                                 mContext.sendBroadcast(intent);
                                 dialog.dismiss();
                             }
                             return true;
                         }
                     });
-                    Data.setPlayMode(3);
-                    Data.setFavourite(false);
-                    Data.setRecent(false);
-                    Data.setNet(true);
-                    Data.setPosition(position);
-                    Log.v("位置", "位置" + position);
+                    MyApplication.setMusicListNow(netMusicList,"netMusicList");
+                    MyApplication.setPositionNow(position);
                     Intent intent = new Intent("service_broadcast");
-                    intent.putExtra("ACTION", playAction);
+                    intent.putExtra("ACTION", MyConstant.playAction);
                     mContext.sendBroadcast(intent);
                 }else {
                     Toast.makeText(mContext, "当前处于离线模式", Toast.LENGTH_SHORT).show();
@@ -91,8 +94,6 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
             @Override
             public void onClick(View view) {
                 //弹出菜单
-                String a = Data.getNetMusicList().get(position).getPic().toString();
-//                Toast.makeText(mContext, "歌曲Id"+a.substring(0,a.length()-14), Toast.LENGTH_SHORT).show();
                 menu_util.popupNetMenu(mContext,view,position);
             }
         });
@@ -100,7 +101,7 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
 
     @Override
     public int getItemCount() {
-        return Data.getNetMusicList().size();
+        return MyApplication.getNetMusiclist().size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
