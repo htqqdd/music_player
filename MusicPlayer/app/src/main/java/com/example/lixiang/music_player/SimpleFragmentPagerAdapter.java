@@ -16,14 +16,16 @@ public class SimpleFragmentPagerAdapter extends FragmentPagerAdapter {
             return new RecommendFragment();
         } else if (position == 1) {
             return new MusiclistFragment();
-        } else {
+        } else if (position == 2){
             return new DownloadFragment();
+        }else {
+            return new customFragment();
         }
     }
 
     @Override
     public int getCount() {
-        return 3;
+        return 4;
     }
 
     @Override

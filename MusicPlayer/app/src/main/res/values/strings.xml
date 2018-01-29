@@ -8,13 +8,13 @@
     <string name="accentColorPickerTitle">"强调色"</string>
     <string name="sc_cloud">全网资源</string>
     <string name="sc_library">建议曲目</string>
-    <string name="sc_list">歌曲列表</string>
+    <string name="sc_list">本地歌曲</string>
     <string name="sc_randomPlay">"随机播放所有曲目"</string>
     <string name="preference_color_primary">"随机播放所有曲目"</string>
 
     <string-array name="start_page_entries">
         <item>建议曲目</item>
-        <item>歌曲列表</item>
+        <item>本地歌曲</item>
         <item>全网资源</item>
     </string-array>
 
@@ -70,7 +70,7 @@
         <item>eighteen</item>
     </string-array>
     <string name="suggestion_entries_default">eighteen</string>
-<!--全局主题-->
+    <!--全局主题-->
     <string-array name="global_theme_entries">
         <item>白天模式</item>
         <item>夜间模式</item>

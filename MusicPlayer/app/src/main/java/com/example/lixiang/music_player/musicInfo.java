@@ -3,11 +3,28 @@ package com.example.lixiang.music_player;
 import java.io.File;
 import java.util.Date;
 
+import io.objectbox.annotation.Entity;
+import io.objectbox.annotation.Id;
+import io.objectbox.annotation.Index;
+import io.objectbox.annotation.NameInDb;
+
 /**
  * Created by lixiang on 2017/8/16.
  */
-
+@Entity
 public class musicInfo {
+
+    public long getStoreId() {
+        return storeId;
+    }
+
+    public void setStoreId(long storeId) {
+        this.storeId = storeId;
+    }
+
+    @Id
+    private long storeId;
+    @Index
     public int mId = 0;
     public int mAlbumId = 0;
     public int mDuration = 0;
@@ -18,6 +35,7 @@ public class musicInfo {
     public int mTimes = 0;
     public String mLink = "";
 
+    public musicInfo(){}
     public musicInfo(int id, int albumId, int duration, String title, String artist, String data, String album, int playTimes,String link) {
         mId = id;
         mAlbumId = albumId;
@@ -28,6 +46,18 @@ public class musicInfo {
         mAlbum = album;
         mTimes = playTimes;
         mLink = link;
+    }
+
+    public void setmTitle(String mTitle) {
+        this.mTitle = mTitle;
+    }
+
+    public void setmArtist(String mArtist) {
+        this.mArtist = mArtist;
+    }
+
+    public void setmAlbum(String mAlbum) {
+        this.mAlbum = mAlbum;
     }
 
     public int getMusicId() {
@@ -75,5 +105,9 @@ public class musicInfo {
 
     public int getTimes() {
         return mTimes;
+    }
+
+    public void setTimes(int time){
+        mTimes = time;
     }
 }

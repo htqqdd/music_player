@@ -19,6 +19,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,8 +44,8 @@ public class menu_util {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.openLink:
-                        if (MyApplication.getMusicListNow().get(position).getMusicLink() !=null){
-                            Uri web_uri = Uri.parse(MyApplication.getMusicListNow().get(position).getMusicLink());
+                        if (MyApplication.getNetMusiclist().get(position).getMusicLink() !=null){
+                            Uri web_uri = Uri.parse(MyApplication.getNetMusiclist().get(position).getMusicLink());
                             Intent intent = new Intent(Intent.ACTION_VIEW, web_uri);
                             context.startActivity(intent);
                         }else {
@@ -52,8 +53,8 @@ public class menu_util {
                         }
                         return true;
                     case R.id.getLink:
-                        if (MyApplication.getMusicListNow().get(position).getMusicData() != null){
-                            Uri download_uri = Uri.parse(MyApplication.getMusicListNow().get(position).getMusicData());
+                        if (MyApplication.getNetMusiclist().get(position).getMusicData() != null){
+                            Uri download_uri = Uri.parse(MyApplication.getNetMusiclist().get(position).getMusicData());
                             Intent web_intent = new Intent(Intent.ACTION_VIEW, download_uri);
                             context.startActivity(web_intent);
                         }else {
@@ -75,6 +76,9 @@ public class menu_util {
                 switch (item.getItemId()) {
                     case R.id.setAsNext:
                         setAsNext(context,position,fromWhichList);
+                        return true;
+                    case R.id.hidefromlist:
+                        deleteFile(context,position,fromWhichList);
                         return true;
                     case delete:
                         deleteFile(context,position,fromWhichList);
@@ -142,26 +146,16 @@ public class menu_util {
         Snackbar.make(rootview,"已成功设置为下一首播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
     }
 
-    public  static void showMusicInfo(Activity context,int position,String fromWhich){
+    public  static void showMusicInfo(final Activity context, final int position, String fromWhich){
         LayoutInflater inflater = context.getLayoutInflater();
-        View musicinfo_dialog = inflater.inflate(R.layout.musicinfo_dialog,(ViewGroup) context.findViewById(R.id.musicInfo_dialog));
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("歌曲信息");
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-            }
-        });
-
-        builder.setView(musicinfo_dialog);
-        TextView title = (TextView) musicinfo_dialog.findViewById(R.id.dialog_title);
-        Log.v("title","title"+title);
-        TextView artist = (TextView) musicinfo_dialog.findViewById(R.id.dialog_artist);
-        TextView album = (TextView) musicinfo_dialog.findViewById(R.id.dialog_album);
+        final View musicinfo_dialog = inflater.inflate(R.layout.musicinfo_dialog,(ViewGroup) context.findViewById(R.id.musicInfo_dialog));
+        final EditText title = (EditText) musicinfo_dialog.findViewById(R.id.dialog_title);
+        final EditText artist = (EditText) musicinfo_dialog.findViewById(R.id.dialog_artist);
+        final EditText album = (EditText) musicinfo_dialog.findViewById(R.id.dialog_album);
         TextView duration = (TextView) musicinfo_dialog.findViewById(R.id.dialog_duration);
         TextView playtimes = (TextView) musicinfo_dialog.findViewById(R.id.dialog_playtimes);
         TextView path = (TextView) musicinfo_dialog.findViewById(R.id.dialog_path);
-        List<musicInfo> list;
+        final List<musicInfo> list;
         if (fromWhich == "Timessublist"){
             list = MyApplication.getTimessublist();
         }else if (fromWhich == "Datesublist"){
@@ -178,19 +172,36 @@ public class menu_util {
         duration.setText(String.valueOf(minute)+"分"+String.valueOf(second)+"秒");
         playtimes.setText(String.valueOf(list.get(position).getTimes()));
         path.setText(list.get(position).getMusicData());
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("歌曲信息");
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                musicInfo nowMusic = list.get(position);
+                nowMusic.setmTitle(title.getText().toString());
+                nowMusic.setmArtist(artist.getText().toString());
+                nowMusic.setmAlbum(album.getText().toString());
+                MyApplication.getBoxStore().boxFor(musicInfo.class).put(nowMusic);
+                Intent intent = new Intent("permission_granted");
+                context.sendBroadcast(intent);
+                Intent intent2 = new Intent("list_permission_granted");
+                context.sendBroadcast(intent2);
+            }
+        });
+        builder.setView(musicinfo_dialog);
         builder.show();
     }
 
     public static boolean deleteFile(final Activity context,int position,String fromWhich) {
-        String musicData;
+        final musicInfo musicinfo;
         if (fromWhich == "Timessublist"){
-            musicData = MyApplication.getTimessublist().get(position).getMusicData();
+            musicinfo = MyApplication.getTimessublist().get(position);
         }else if (fromWhich == "Datesublist"){
-            musicData = MyApplication.getDatesublist().get(position).getMusicData();
+            musicinfo = MyApplication.getDatesublist().get(position);
         }else {
-            musicData = MyApplication.getMusicInfoArrayList().get(position).getMusicData();
+            musicinfo = MyApplication.getMusicInfoArrayList().get(position);
         }
-        final File file = new File(musicData);
+        final File file = new File(musicinfo.getMusicData());
         if (file.isFile() && file.exists()) {
             //警告窗口
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -216,12 +227,16 @@ public class menu_util {
 //                        });
                         alert.show();
                     } else {
+                        MyApplication.getBoxStore().boxFor(musicInfo.class).remove(musicinfo);
                         Snackbar.make(rootview,"文件删除成功",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
                         //更新mediastore
                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
                         //重启界面
+                        MyApplication.initialMusicInfo(context);
                         Intent intent = new Intent("permission_granted");
                         context.sendBroadcast(intent);
+                        Intent intent2 = new Intent("list_permission_granted");
+                        context.sendBroadcast(intent2);
                     }
                 }
             });

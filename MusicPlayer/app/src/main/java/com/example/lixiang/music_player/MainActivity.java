@@ -4,6 +4,8 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -24,6 +26,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
+import android.preference.DialogPreference;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -44,6 +47,7 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -128,6 +132,7 @@ public class MainActivity extends AestheticActivity {
     private boolean isFirstTime = true;
     private ViewPager viewPager;
     private MsgReceiver msgReceiver;
+    private DismissReceiver dismissReceiver;
     private boolean isfromSc = false;
     private int flag = 0;
     private int cx = 0;
@@ -145,6 +150,7 @@ public class MainActivity extends AestheticActivity {
     private List<Music> lyricList;
     private LrcView otherLyricView;
     private boolean fromLyric = false;
+    private Dialog dialog;
     boolean visible;
     private TransitionSet set = new TransitionSet()
 //                                .addTransition(new Scale(0.7f))
@@ -208,6 +214,11 @@ public class MainActivity extends AestheticActivity {
                         random_play.show();
                     }
                     navigationView.setCheckedItem(R.id.music_list_view);
+                }else if (position == 3) {
+                    if (mLayout.getPanelHeight() == 0) {
+                        random_play.show();
+                    }
+                    navigationView.setCheckedItem(R.id.custom_list_view);
                 } else {
                     random_play.hide();
                     navigationView.setCheckedItem(R.id.download_view);
@@ -228,19 +239,22 @@ public class MainActivity extends AestheticActivity {
 
         final TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+        View view0 = getLayoutInflater().inflate(R.layout.custom_tab, null);
+        TextView textView0 = (TextView) view0.findViewById(R.id.text);
+        textView0.setText("建议");
+        tabLayout.getTabAt(0).setCustomView(view0);
         View view1 = getLayoutInflater().inflate(R.layout.custom_tab, null);
-        TextView textView = (TextView) view1.findViewById(R.id.text);
-        textView.setText("建议");
-        tabLayout.getTabAt(0).setCustomView(view1);
+        TextView textView1 = (TextView) view1.findViewById(R.id.text);
+        textView1.setText("歌曲");
+        tabLayout.getTabAt(1).setCustomView(view1);
         View view2 = getLayoutInflater().inflate(R.layout.custom_tab, null);
         TextView textView2 = (TextView) view2.findViewById(R.id.text);
-        textView2.setText("歌曲");
-        tabLayout.getTabAt(1).setCustomView(view2);
+        textView2.setText("下载");
+        tabLayout.getTabAt(2).setCustomView(view2);
         View view3 = getLayoutInflater().inflate(R.layout.custom_tab, null);
         TextView textView3 = (TextView) view3.findViewById(R.id.text);
-        textView3.setText("下载");
-        tabLayout.getTabAt(2).setCustomView(view3);
-
+        textView3.setText("列表");
+        tabLayout.getTabAt(3).setCustomView(view3);
 
         //新标题栏
         Toolbar main_toolbar = (Toolbar) findViewById(R.id.main_toolbar);
@@ -304,6 +318,8 @@ public class MainActivity extends AestheticActivity {
                     viewPager.setCurrentItem(1);
                 } else if (id == R.id.download_view) {
                     viewPager.setCurrentItem(2);
+                }else if (id == R.id.custom_list_view) {
+                    viewPager.setCurrentItem(3);
                 } else if (id == R.id.nav_settings) {
                     flag = id;
                 } else if (id == R.id.nav_about) {
@@ -320,6 +336,10 @@ public class MainActivity extends AestheticActivity {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("play_broadcast");
         registerReceiver(msgReceiver, intentFilter);
+        dismissReceiver = new DismissReceiver();
+        IntentFilter iFilter = new IntentFilter();
+        iFilter.addAction("dismiss_dialog");
+        registerReceiver(dismissReceiver, intentFilter);
 
         //上滑面板
         mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
@@ -383,7 +403,9 @@ public class MainActivity extends AestheticActivity {
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                 }
                 if (previousState == DRAGGING && newState == COLLAPSED) {
-                    mTimer.cancel();
+                    if (mTimer !=null) {
+                        mTimer.cancel();
+                    }
                     play_pause_button.setClickable(true);
                     lunch_play_now_button.setClickable(true);
                     about.setClickable(false);
@@ -580,6 +602,7 @@ public class MainActivity extends AestheticActivity {
     @Override
     protected void onDestroy() {
         unregisterReceiver(msgReceiver);
+        unregisterReceiver(dismissReceiver);
         Log.v("OnDestory执行", "OnDestory");
         if (MyApplication.getState() == MyConstant.pausing) {
             unbindService(conn);
@@ -625,6 +648,27 @@ public class MainActivity extends AestheticActivity {
 
     public void next(View v) {
         playService.next();
+        if (!MyApplication.getMusicListNow().get(0).getMusicLink().equals("")) {//网络
+            showDialog();
+        }
+    }
+
+    private void showDialog(){
+        dialog = ProgressDialog.show(this, "请稍后", "正在玩命加载中");
+        dialog.setOnKeyListener(new Dialog.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface arg0, int keyCode,
+                                 KeyEvent event) {
+                // TODO Auto-generated method stub
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    Intent intent = new Intent("service_broadcast");
+                    intent.putExtra("ACTION", MyConstant.resetAction);
+                    sendBroadcast(intent);
+                    dialog.dismiss();
+                }
+                return true;
+            }
+        });
     }
 
     public void changeRepeat(View v) {
@@ -729,12 +773,10 @@ public class MainActivity extends AestheticActivity {
     }
 
     public void ChangeScrollingUpPanel(int position) {
+        Log.e("MainActivity","位置"+position);
         musicInfo nowMusic = MyApplication.getMusicListNow().get(position);
         String title = nowMusic.getMusicTitle();
         String artist = nowMusic.getMusicArtist();
-//        String path = MyApplication.getMusicListNow().get(position).getMusicData();
-//        int album_id = nowMusic.getMusicAlbumId();
-//        int id = MyApplication.getMusicListNow().get(position).getMusicId();
         seekBar.setProgress(0);
         TextView currentPosition = (TextView) findViewById(R.id.current_position);
         final TextView duration = (TextView) findViewById(R.id.duration);
@@ -763,9 +805,9 @@ public class MainActivity extends AestheticActivity {
             repeat_button.setImageResource(R.drawable.repeat_grey);
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
         }
-
+        Log.e("MainActivity","位置"+nowMusic.getMusicLink());
         //设置封面,自动封面获取颜色
-        if (nowMusic.getMusicLink() != ""){//网络
+        if (!nowMusic.getMusicLink().equals("")){//网络
             final ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
             Glide.with(this).load(nowMusic.getMusicAlbum()).listener(new RequestListener<String, GlideDrawable>() {
                 @Override
@@ -783,7 +825,7 @@ public class MainActivity extends AestheticActivity {
                     return false;
                 }
 
-            }).thumbnail(0.1f).placeholder(R.drawable.default_album).into(play_now_cover);
+            }).placeholder(R.drawable.default_album).into(play_now_cover);
         } else {
             Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
             Uri uri = ContentUris.withAppendedId(sArtworkUri, nowMusic.getMusicAlbumId());
@@ -922,7 +964,15 @@ public class MainActivity extends AestheticActivity {
         }
 
     }
-
+    private class DismissReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (dialog !=null) {
+                dialog.dismiss();
+                dialog = null;
+            }
+        }
+    }
     public void play_now_menu_button(View v) {
         if (MyApplication.getListlabel() !="netMusicList"){
             menu_util.popupMenu(this, v, MyApplication.getPositionNow(),MyApplication.getListlabel());
@@ -931,7 +981,6 @@ public class MainActivity extends AestheticActivity {
         }
 
     }
-
     private void ensureServiceStarted() {
         if (MyApplication.getServiceState() == false) {
             Intent intent = new Intent(this, PlayService.class);
@@ -940,7 +989,6 @@ public class MainActivity extends AestheticActivity {
 
         }
     }
-
     private class screenAdaptionTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
@@ -965,7 +1013,6 @@ public class MainActivity extends AestheticActivity {
 
         }
     }
-
     private ServiceConnection conn = new ServiceConnection() {
 
         @Override
@@ -979,7 +1026,6 @@ public class MainActivity extends AestheticActivity {
             playService = ((PlayService.musicBinder) service).getService();
         }
     };
-
     private void updateSeekBar() {
         mTimer = new Timer();
         TextView currentPosition = (TextView) findViewById(R.id.current_position);
@@ -1002,7 +1048,6 @@ public class MainActivity extends AestheticActivity {
         };
         mTimer.schedule(task, 0, 1000);
     }
-
     private void sleeper() {
         final java.util.Calendar c = java.util.Calendar.getInstance();
         final int hourNow = c.get(java.util.Calendar.HOUR_OF_DAY);
@@ -1020,7 +1065,6 @@ public class MainActivity extends AestheticActivity {
             }
         }, hourNow, minuteNow, true).show();
     }
-
     private void equalizer() {
         SharedPreferences bundle = MainActivity.this.getSharedPreferences("first_audioEffect", MainActivity.this.MODE_PRIVATE);
         if (bundle.getBoolean("isFirst", true)) {
@@ -1055,7 +1099,6 @@ public class MainActivity extends AestheticActivity {
         int second = primary_second - minute*60;
         return String.format("%2d",minute).replace(" ", "0")+":"+String.format("%2d",second).replace(" ", "0");
     }
-
     private class GetLyricbyIdTask extends AsyncTask<String,Integer,String>{
         @Override
         protected String doInBackground(String... strings) {
@@ -1096,7 +1139,6 @@ public class MainActivity extends AestheticActivity {
             }
         }
     }
-
     private class getLyricTask extends AsyncTask<String,Integer,String> {
         @Override
         protected void onPreExecute() {
@@ -1175,7 +1217,6 @@ public class MainActivity extends AestheticActivity {
         }
         return false;
     }
-
     private String praseLyric(String lyric) {
         Log.v("歌词", "歌词" + lyric);
         try {
@@ -1211,7 +1252,6 @@ public class MainActivity extends AestheticActivity {
         }
         return lyric;
     }
-
     private void changeVisibility(){
         View music_info_cardView = findViewById(R.id.music_info_cardView);
         View control_layout =  findViewById(R.id.control_layout);

@@ -32,6 +32,9 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        if (key.equals("local_net_mode")) {
+            MyApplication.setLocal_net_mode(sharedPref.getBoolean("local_net_mode", false));
+        }
         if (key.equals("default_color")) {
             Aesthetic.get().colorPrimary(sharedPref.getInt("default_color", 0)).colorStatusBarAuto().colorNavigationBarAuto().apply();
         }

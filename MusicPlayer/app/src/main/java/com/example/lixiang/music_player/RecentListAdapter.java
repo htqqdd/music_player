@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,6 +63,7 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
                 //播放
                 MyApplication.setMusicListNow(Datesublist,"Datesublist");
                 MyApplication.setPositionNow(position);
+                Log.e("Adapter","位置"+position);
                 Intent intent = new Intent("service_broadcast");
                 intent.putExtra("ACTION", MyConstant.playAction);
                 mContext.sendBroadcast(intent);

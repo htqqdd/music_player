@@ -10,11 +10,15 @@
                 <item
                     android:id="@+id/music_list_view"
                     android:icon="@drawable/ic_queue_music_black_24dp"
-                    android:title="本地列表"/>
+                    android:title="本地歌曲"/>
                 <item
                     android:id="@+id/download_view"
                     android:icon="@drawable/ic_cloud_black_24dp"
                     android:title="全网资源"/>
+                <item
+                    android:id="@+id/custom_list_view"
+                    android:icon="@drawable/ic_queue_black_24dp"
+                    android:title="歌曲列表"/>
             </group>
         </menu>
     </item>

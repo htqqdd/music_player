@@ -1,13 +1,16 @@
 package com.example.lixiang.music_player;
 
 import android.app.AlarmManager;
+import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -35,6 +38,7 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v7.graphics.Palette;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -507,22 +511,11 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
-            if (MyApplication.getMusicListNow().get(0).getMusicLink() != "") {//网络
-                if (MyApplication.getPlayMode() != MyConstant.list) {
-                    if (mediaPlayer != null) {
-                        mediaPlayer.seekTo(0);
-                        mediaPlayer.start();
-                    }
-                } else {
-                    Toast.makeText(PlayService.this, "没有下一曲了", Toast.LENGTH_SHORT).show();
-                }
-            } else {
                 if (o != null) {
                     play((int) o);
                 } else {
                     Toast.makeText(PlayService.this, "没有下一曲了", Toast.LENGTH_SHORT).show();
                 }
-            }
         }
     }
 
@@ -557,34 +550,22 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         @Override
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
-            if (MyApplication.getMusicListNow().get(0).getMusicLink() != "") {//网络
-                if (MyApplication.getPlayMode() != MyConstant.list) {
-                    if (mediaPlayer != null) {
-                        mediaPlayer.seekTo(0);
-                        mediaPlayer.start();
-                    }
-                } else {
-                    Toast.makeText(PlayService.this, "没有上一曲了", Toast.LENGTH_SHORT).show();
-                }
-            } else {
                 if (o != null) {
                     play((int) o);
                 } else {
                     Toast.makeText(PlayService.this, "没有上一曲了", Toast.LENGTH_SHORT).show();
                 }
-            }
         }
     }
 
     public class savePlayTimesTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
-            int musicId = MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicId();
-            int Playtimes = MyApplication.findPlayTimesById(musicId);
-            Playtimes++;
-            SharedPreferences.Editor editor = getSharedPreferences("playtimes", MODE_PRIVATE).edit();
-            editor.putInt(String.valueOf(musicId), Playtimes);
-            editor.apply();
+            musicInfo musicNow = MyApplication.getMusicListNow().get(MyApplication.getPositionNow());
+            if (musicNow.getMusicLink().equals("")) {
+                musicNow.setTimes(musicNow.getTimes() + 1);
+                MyApplication.getBoxStore().boxFor(musicInfo.class).put(musicNow);
+            }
             return null;
         }
 
@@ -599,7 +580,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         musicInfo musicNow = MyApplication.getMusicListNow().get(positionNow);
         singerNow = musicNow.getMusicArtist();
         titleNow = musicNow.getMusicTitle();
-        if (musicNow.getMusicLink() != "") {//网络
+        if (!musicNow.getMusicLink().equals("")) {//网络
             Glide.with(this).load(musicNow.getMusicAlbum()).asBitmap().listener(new RequestListener<String, Bitmap>() {
                 @Override
                 public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
@@ -718,6 +699,8 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         mNotificationManager.notify(NOTIFICATION_ID, notification);
 
     }
+
+
 
 
     //以下为音效部分

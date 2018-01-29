@@ -4,6 +4,9 @@
         android:id="@+id/setAsNext"
         android:title="下一首播放"/>
     <item
+        android:id="@+id/hidefromlist"
+        android:title="不再显示此歌曲"/>
+    <item
         android:id="@+id/delete"
         android:title="从设备删除"/>
 
