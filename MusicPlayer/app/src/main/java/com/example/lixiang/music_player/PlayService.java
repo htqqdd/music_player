@@ -69,7 +69,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     private LoudnessEnhancer loudnessEnhancer;
     private Virtualizer mVirtualizer;
     private int audioSessionId = 0;
-    private int positionNow = 0;
+//    private int positionNow = 0;
     private String titleNow;
     private String singerNow;
     private Bitmap albumNow;
@@ -143,8 +143,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 if (MyApplication.getPlayMode() != 1) {
                     play(MyApplication.getPositionNow());
                 } else {
-                    positionNow = randomPosition();
-                    play(positionNow);
+                    play(randomPosition());
                 }
             }
             MyApplication.setServiceStarted(true);
@@ -219,14 +218,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        if (MyApplication.getMusicListNow().get(0).getMusicLink() != "") {
-            Toast.makeText(this, "没有下一曲了", Toast.LENGTH_SHORT).show();
-        } else {
-//            audioManager.abandonAudioFocus(this);
-            Intent intent = new Intent("service_broadcast");
-            intent.putExtra("Control", MyConstant.nextAction);
-            sendBroadcast(intent);
-        }
+        Intent intent = new Intent("service_broadcast");
+        intent.putExtra("Control", MyConstant.nextAction);
+        sendBroadcast(intent);
     }
 
     @Override
@@ -294,9 +288,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 initialAudioEffect(audioSessionId);
             }
             mediaPlayer.reset();
+            try {
             path = MyApplication.getMusicListNow().get(position).getMusicData();
             MyApplication.setPositionNow(position);
-            try {
                 if (path == null) {
                     //关闭加载框
                     Intent dismiss_intent = new Intent("dismiss_dialog");
@@ -339,8 +333,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 if (MyApplication.getPlayMode() != MyConstant.random) {
                     play(MyApplication.getPositionNow());
                 } else {
-                    positionNow = randomPosition();
-                    play(positionNow);
+                    play(randomPosition());
                 }
             }
             if (intent.getIntExtra("Control", 0) == MyConstant.previousAction) {
@@ -382,11 +375,52 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     }
 
     public void previous() {
-        new previousTask().execute();
+        int playMode = MyApplication.getPlayMode();
+        int position = MyApplication.getPositionNow();
+        int size = MyApplication.getMusicListNow().size();
+        if (playMode == MyConstant.list_repeat) {//0:列表重复
+            if (position <= 0) {
+                play(size - 1);
+            } else {
+                play(position - 1);
+            }
+        } else if (playMode == MyConstant.random) {// 1:随机
+            play(randomPosition());
+        } else if (playMode == MyConstant.one_repeat) {//2:单曲重复
+            play(position);
+        } else {//3:顺序
+            if (position == 0) {
+                Toast.makeText(PlayService.this, "没有上一曲了", Toast.LENGTH_SHORT).show();
+                return;
+            } else {
+                play(position - 1);
+            }
+        }
+
     }
 
     public void next() {
-        new nextTask().execute();
+        int playMode = MyApplication.getPlayMode();
+        int position = MyApplication.getPositionNow();
+        int size = MyApplication.getMusicListNow().size();
+        if (playMode == MyConstant.list_repeat) {
+            if (position < size - 1) {
+                play(position + 1);
+            } else {
+                play(0);
+            }
+        } else if (playMode == MyConstant.random) {//1:随机
+            play(randomPosition());
+        } else if (playMode == MyConstant.one_repeat) {//2:单曲重复
+            play(position);
+        } else if (playMode == MyConstant.list) {//3:顺序
+            if (position >= size - 1) {
+                Toast.makeText(PlayService.this, "没有下一曲了", Toast.LENGTH_SHORT).show();
+                return;
+            } else {
+                play(position+1);
+            }
+        }
     }
 
     public void pause() {
@@ -479,85 +513,6 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         return true;
     }
 
-    public class nextTask extends AsyncTask {
-        @Override
-        protected Object doInBackground(Object[] objects) {
-            int playMode = MyApplication.getPlayMode();
-            int position = MyApplication.getPositionNow();
-            int size = MyApplication.getMusicListNow().size();
-            if (playMode == MyConstant.list_repeat) {
-                if (positionNow < size - 1) {
-                    positionNow = position + 1;
-                } else {
-                    positionNow = 0;
-                }
-                return positionNow;
-            } else if (playMode == MyConstant.random) {//1:随机
-                positionNow = randomPosition();
-                return positionNow;
-            } else if (playMode == MyConstant.one_repeat) {//2:单曲重复
-                return position;
-            } else if (playMode == MyConstant.list) {//3:顺序
-                if (positionNow >= size - 1) {
-                    return null;
-                } else {
-                    positionNow = position + 1;
-                    return positionNow;
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Object o) {
-            super.onPostExecute(o);
-                if (o != null) {
-                    play((int) o);
-                } else {
-                    Toast.makeText(PlayService.this, "没有下一曲了", Toast.LENGTH_SHORT).show();
-                }
-        }
-    }
-
-    public class previousTask extends AsyncTask {
-        @Override
-        protected Object doInBackground(Object[] objects) {
-            int playMode = MyApplication.getPlayMode();
-            int position = MyApplication.getPositionNow();
-            int size = MyApplication.getMusicListNow().size();
-            if (playMode == MyConstant.list_repeat) {//0:列表重复
-                if (position <= 0) {
-                    positionNow = size - 1;
-                } else {
-                    positionNow = position - 1;
-                }
-                return positionNow;
-            } else if (playMode == MyConstant.random) {// 1:随机
-                positionNow = randomPosition();
-                return positionNow;
-            } else if (playMode == MyConstant.one_repeat) {//2:单曲重复
-                return position;
-            } else {//3:顺序
-                if (position == 0) {
-                    return null;
-                } else {
-                    positionNow = position - 1;
-                    return positionNow;
-                }
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Object o) {
-            super.onPostExecute(o);
-                if (o != null) {
-                    play((int) o);
-                } else {
-                    Toast.makeText(PlayService.this, "没有上一曲了", Toast.LENGTH_SHORT).show();
-                }
-        }
-    }
-
     public class savePlayTimesTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
@@ -576,8 +531,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     }
 
     private void updateMetaDataAndBuildNotification() {
-        int positionNow = MyApplication.getPositionNow();
-        musicInfo musicNow = MyApplication.getMusicListNow().get(positionNow);
+        musicInfo musicNow = MyApplication.getMusicListNow().get(MyApplication.getPositionNow());
         singerNow = musicNow.getMusicArtist();
         titleNow = musicNow.getMusicTitle();
         if (!musicNow.getMusicLink().equals("")) {//网络
@@ -671,7 +625,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         }
         Intent startMain = new Intent(PlayService.this, MainActivity.class);
         PendingIntent startMainActivity = PendingIntent.getActivity(PlayService.this, 0, startMain, PendingIntent.FLAG_UPDATE_CURRENT);
-        Log.e("服务","Ongoing"+"MyApplication.getState()"+MyApplication.getState());
+        Log.e("服务", "Ongoing" + "MyApplication.getState()" + MyApplication.getState());
         notification = new Notification.Builder(PlayService.this)
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -680,27 +634,24 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 .setDeleteIntent(pendingIntent(MyConstant.deleteAction))
                 .setColor(ColorUtil.getColor(p))
                 .setContentIntent(startMainActivity)
-
                 .setOngoing(MyApplication.getState().equals(MyConstant.playing))//该选项会导致手表通知不显示
                 // Add media control buttons that invoke intents in your media service
-                .addAction(R.drawable.ic_fast_rewind_black_24dp, "SkiptoPrevious", pendingIntent(MyConstant.previousAction)) // #0
+                .addAction(R.drawable.ic_skip_previous_black_24dp, "SkiptoPrevious", pendingIntent(MyConstant.previousAction)) // #0
                 .addAction(notificationAction, "Play or Pause", play_pauseIntent)  // #1
-                .addAction(R.drawable.ic_fast_forward_black_24dp, "SkiptoNext", pendingIntent(MyConstant.nextAction))     // #2
+                .addAction(R.drawable.ic_skip_next_black_24dp, "SkiptoNext", pendingIntent(MyConstant.nextAction))     // #2
                 // Apply the media style template
                 .setStyle(new Notification.MediaStyle()
                         .setShowActionsInCompactView(0, 1, 2)
                         .setMediaSession(mediaSession.getSessionToken())
                 )
-                .setContentTitle(MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicTitle())
-                .setContentText(MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicArtist())
+                .setContentTitle(titleNow)
+                .setContentText(singerNow)
                 .build();
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.notify(NOTIFICATION_ID, notification);
 
     }
-
-
 
 
     //以下为音效部分

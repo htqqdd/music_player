@@ -5,11 +5,12 @@
   "entities": [
     {
       "id": "3:7091941750748593683",
-      "lastPropertyId": "11:350295176608302108",
+      "lastPropertyId": "13:3062592765596425170",
       "name": "musicInfo",
       "properties": [
         {
           "id": "1:8268234283878410365",
+          "indexId": "3:409048820498679832",
           "name": "mId"
         },
         {
@@ -47,14 +48,46 @@
         {
           "id": "11:350295176608302108",
           "name": "storeId"
+        },
+        {
+          "id": "12:3204564063398825999",
+          "indexId": "4:2341793933318303954",
+          "name": "PlaylistId"
+        },
+        {
+          "id": "13:3062592765596425170",
+          "indexId": "6:6004955152275991627",
+          "name": "hide"
         }
       ],
       "relations": []
+    },
+    {
+      "id": "4:6101326128670023527",
+      "lastPropertyId": "2:6208003327898091584",
+      "name": "Playlist",
+      "properties": [
+        {
+          "id": "1:1271913927779985540",
+          "name": "Id"
+        },
+        {
+          "id": "2:6208003327898091584",
+          "indexId": "5:3557362581643997269",
+          "name": "name"
+        }
+      ],
+      "relations": [
+        {
+          "id": "1:1635808164375064554",
+          "name": "musicInfos"
+        }
+      ]
     }
   ],
-  "lastEntityId": "3:7091941750748593683",
-  "lastIndexId": "2:6422960155855344872",
-  "lastRelationId": "0:0",
+  "lastEntityId": "4:6101326128670023527",
+  "lastIndexId": "6:6004955152275991627",
+  "lastRelationId": "1:1635808164375064554",
   "lastSequenceId": "0:0",
   "modelVersion": 4,
   "modelVersionParserMinimum": 4,

@@ -58,7 +58,7 @@
             android:layout_alignParentRight="true"
             android:layout_alignTop="@id/Recent_list_album"
             android:scaleType="centerCrop"
-            android:src="@drawable/about_grey"
+            android:src="@drawable/ic_more_vert_black_24dp"
             android:tint="?android:textColorSecondary"
             android:background="?android:attr/selectableItemBackgroundBorderless"/>
     </RelativeLayout>

@@ -85,5 +85,6 @@
         android:layout_gravity="bottom|end"
         android:layout_marginRight="16dp"
         android:layout_marginBottom="24dp"
-        android:src = "@drawable/ic_list_white_24dp"/>
+        android:src = "@drawable/ic_list_black_24dp"
+        android:tint="@color/colorCustomAccent"/>
 </android.support.design.widget.CoordinatorLayout>

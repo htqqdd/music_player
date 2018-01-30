@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.widget.Toast;
 
 import com.danielstone.materialaboutlibrary.ConvenienceBuilder;
 import com.danielstone.materialaboutlibrary.MaterialAboutActivity;
@@ -36,7 +37,7 @@ public class AboutActivity extends MaterialAboutActivity {
                 .icon(R.mipmap.new_launcher)
                 .build());
 
-        appCardBuilder.addItem(ConvenienceBuilder.createVersionActionItem(c, getResources().getDrawable(R.drawable.ic_info), "版本", false)
+        appCardBuilder.addItem(ConvenienceBuilder.createVersionActionItem(c, getResources().getDrawable(R.drawable.ic_info_outline_black_24dp), "版本", false)
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
@@ -46,13 +47,13 @@ public class AboutActivity extends MaterialAboutActivity {
 
         appCardBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text("更新历史")
-                .icon(getResources().getDrawable(R.drawable.ic_changelog))
+                .icon(getResources().getDrawable(R.drawable.ic_update_black_24dp))
                 .setOnClickAction(ConvenienceBuilder.createWebViewDialogOnClickAction(c, "更新历史", "https://github.com/htqqdd/music_player/releases", true, false))
                 .build());
 
         appCardBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text("许可信息")
-                .icon(getResources().getDrawable(R.drawable.ic_file))
+                .icon(getResources().getDrawable(R.drawable.ic_insert_drive_file_black_24dp))
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
@@ -71,7 +72,7 @@ public class AboutActivity extends MaterialAboutActivity {
                 .build());
         appCardBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text("Bug反馈")
-                .icon(getResources().getDrawable(R.drawable.ic_bug))
+                .icon(getResources().getDrawable(R.drawable.ic_bug_report_black_24dp))
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
@@ -91,7 +92,7 @@ public class AboutActivity extends MaterialAboutActivity {
                     }
                 })
                 .build());
-        appCardBuilder.addItem(ConvenienceBuilder.createRateActionItem(c,getResources().getDrawable(R.drawable.ic_rate), "喜欢它，给个好评吧", null));
+        appCardBuilder.addItem(ConvenienceBuilder.createRateActionItem(c,getResources().getDrawable(R.drawable.ic_star_black_24dp), "喜欢它，给个好评吧", null));
 
 
         MaterialAboutCard.Builder authorCardBuilder = new MaterialAboutCard.Builder();
@@ -99,22 +100,32 @@ public class AboutActivity extends MaterialAboutActivity {
         authorCardBuilder.title("作者信息");
 
         authorCardBuilder.addItem(new MaterialAboutActionItem.Builder()
-                .text("李翔")
-                .subText("JiangSu Province China")
-                .icon(getResources().getDrawable(R.drawable.ic_person))
+                .text("htqqdd")
+                .subText("给作者买杯泡面（纯属自愿）")
+                .icon(getResources().getDrawable(R.drawable.ic_person_black_24dp))
+                .setOnClickAction(new MaterialAboutItemOnClickAction() {
+                    @Override
+                    public void onClick() {
+                        if(AlipayUtil.hasInstalledAlipayClient(AboutActivity.this)){
+                            AlipayUtil.startAlipayClient(AboutActivity.this, "FKX09974L1BJWNDN6ZEX6E");  //第二个参数代表要给被支付的二维码code  可以在用草料二维码在线生成
+                        }else{
+                            Toast.makeText(c, "没有检测到支付宝客户端", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
                 .build());
 
-        authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,getResources().getDrawable(R.drawable.ic_web),
+        authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,getResources().getDrawable(R.drawable.ic_public_black_24dp),
                 "访问网站",
                 true,
                 Uri.parse("https://www.pgyer.com/lx_mp")));
 
-        authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,getResources().getDrawable(R.drawable.ic_github),
+        authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,getResources().getDrawable(R.drawable.ic_people_outline_black_24dp),
                 "开源地址",
                 true,
                 Uri.parse("https://github.com/htqqdd/music_player")));
 
-        authorCardBuilder.addItem(ConvenienceBuilder.createEmailItem(c,getResources().getDrawable(R.drawable.ic_mail),
+        authorCardBuilder.addItem(ConvenienceBuilder.createEmailItem(c,getResources().getDrawable(R.drawable.ic_mail_outline_black_24dp),
                 "发送邮件",
                 true,
                 "htqqdd@gmail.com",

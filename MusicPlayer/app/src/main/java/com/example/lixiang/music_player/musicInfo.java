@@ -7,6 +7,7 @@ import io.objectbox.annotation.Entity;
 import io.objectbox.annotation.Id;
 import io.objectbox.annotation.Index;
 import io.objectbox.annotation.NameInDb;
+import io.objectbox.relation.ToOne;
 
 /**
  * Created by lixiang on 2017/8/16.
@@ -34,7 +35,8 @@ public class musicInfo {
     public String mAlbum = "";
     public int mTimes = 0;
     public String mLink = "";
-
+    @Index
+    public Boolean hide = false;
     public musicInfo(){}
     public musicInfo(int id, int albumId, int duration, String title, String artist, String data, String album, int playTimes,String link) {
         mId = id;
@@ -46,6 +48,14 @@ public class musicInfo {
         mAlbum = album;
         mTimes = playTimes;
         mLink = link;
+    }
+
+    public Boolean getHide() {
+        return hide;
+    }
+
+    public void setHide(Boolean hide) {
+        this.hide = hide;
     }
 
     public void setmTitle(String mTitle) {

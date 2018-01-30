@@ -43,7 +43,7 @@ public class MyApplication extends Application {
     public static List<musicInfo> netMusiclist;
     public static List<musicInfo> MusicListNow;
     public static String Listlabel = "musicInfoArrayList";
-    public static SharedPreferences playtimes;
+    public static String customListNow;
 
     public static int playMode = MyConstant.list;
     public static String state = MyConstant.pausing;
@@ -57,10 +57,10 @@ public class MyApplication extends Application {
 
     @Override
     public void onCreate() {
-        //初始化Bug汇报
-        initialBugly();
         //初始化ObjectBox
         boxStore = MyObjectBox.builder().androidContext(this).build();
+        //初始化Bug汇报
+        initialBugly();
         super.onCreate();
     }
 
@@ -98,8 +98,8 @@ public class MyApplication extends Application {
                 break;
             default:
         }
-        musicInfoArrayList = boxStore.boxFor(musicInfo.class).query().greater(musicInfo_.mDuration,filter_duration).build().find();
-        Timessublist = boxStore.boxFor(musicInfo.class).query().orderDesc(musicInfo_.mTimes).build().find(0,number);
+        musicInfoArrayList = boxStore.boxFor(musicInfo.class).query().greater(musicInfo_.mDuration, filter_duration).equal(musicInfo_.hide,false).build().find();
+        Timessublist = boxStore.boxFor(musicInfo.class).query().orderDesc(musicInfo_.mTimes).equal(musicInfo_.hide,false).build().find(0, number);
         if (musicInfoArrayList.size() == 0) {
             musicInfoArrayList = new ArrayList<musicInfo>();
             //初始化音乐信息
@@ -129,100 +129,113 @@ public class MyApplication extends Application {
             }
             Timessublist = Timessublist.subList(0, number);
         }
-            hasInitialized = true;
-            Datesublist = new ArrayList<musicInfo>();
-            for (int j = 0; j < musicInfoArrayList.size(); j++) {
-                musicInfo musicInfo = musicInfoArrayList.get(j);
-                Datesublist.add(musicInfo);
-            }
-            //从最近到之前排列
-            Comparator<musicInfo> Datecomparator = new Comparator<musicInfo>() {
-                @Override
-                public int compare(musicInfo t1, musicInfo t2) {
-                    if (t1.getDate().before(t2.getDate())) {
-                        return 1;
-                    } else if (t1.getDate().after(t2.getDate())) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-
-            };
-            Collections.sort(Datesublist, Datecomparator);
-            //获取最近歌曲
-            if (number > Datesublist.size()) {
-                number = Datesublist.size();
-            }
-            Datesublist = Datesublist.subList(0, number);
+        if (MusicListNow == null) {
+            MusicListNow = musicInfoArrayList;
         }
+        if (musicInfoArrayList.size() !=0) {
+            hasInitialized = true;
+        }
+        Datesublist = new ArrayList<musicInfo>();
+        for (int j = 0; j < musicInfoArrayList.size(); j++) {
+            musicInfo musicInfo = musicInfoArrayList.get(j);
+            Datesublist.add(musicInfo);
+        }
+        //从最近到之前排列
+        Comparator<musicInfo> Datecomparator = new Comparator<musicInfo>() {
+            @Override
+            public int compare(musicInfo t1, musicInfo t2) {
+                if (t1.getDate().before(t2.getDate())) {
+                    return 1;
+                } else if (t1.getDate().after(t2.getDate())) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
 
-        public static void ReloadMusicInfo(Context context){
-            List<musicInfo> mediaStored  = new ArrayList<musicInfo>();
-            List<musicInfo> boxStored = getBoxStore().boxFor(musicInfo.class).getAll();
-            //初始化音乐信息
-            String[] media_music_info = new String[]{
-                    MediaStore.Audio.Media.TITLE,
-                    MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST,
-                    MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM};
-            cursor = context.getContentResolver().query(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, media_music_info,
-                    null, null, MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
-            int total = cursor.getCount();
-            cursor.moveToFirst();
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-            int filter_duration = 30000;
-            String filtration = sharedPref.getString("filtration", "");
-            switch (filtration) {
-                case "thirty":
-                    filter_duration = 30000;
-                    break;
-                case "forty_five":
-                    filter_duration = 45000;
-                    break;
-                case "sixty":
-                    filter_duration = 60000;
-                    break;
-                default:
-            }
-            int found = 0;
-            int remove = 0;
-            String musicIDString = "";
-            //从MediaStore添加歌曲
-            if (total >=1) {
-                for (int i = 0; i < total; i++) {
-                    if (cursor.getInt(1) > filter_duration) {
-                        mediaStored.add(new musicInfo(cursor.getInt(3), cursor.getInt(5), cursor.getInt(1), cursor.getString(0), cursor.getString(2), cursor.getString(4), cursor.getString(6), 0, ""));
-                        if (boxStore.boxFor(musicInfo.class).query().equal(musicInfo_.mId, cursor.getInt(3)).build().findUnique() == null) {
-                            boxStore.boxFor(musicInfo.class).put(mediaStored.get(i));
-                            found = found + 1;
-                        }
-                    }
-                    cursor.moveToNext();// 将游标移到下一行
-                }
-            }
-            //从BoxStore删除歌曲
-            if (mediaStored.size() >=1) {
-                for (int i = 0; i < mediaStored.size(); i++) {
-                    musicIDString = musicIDString+String.valueOf(mediaStored.get(i).getMusicId())+".";
-                }
-            }
-            if (boxStored.size() >=1) {
-                for (int i = 0; i < boxStored.size(); i++) {
-                    if (!musicIDString.contains(String.valueOf(boxStored.get(i).getMusicId()))){
-                        boxStore.boxFor(musicInfo.class).remove(boxStored.get(i));
-                        remove = remove + 1;
+        };
+        Collections.sort(Datesublist, Datecomparator);
+        //获取最近歌曲
+        if (number > Datesublist.size()) {
+            number = Datesublist.size();
+        }
+        Datesublist = Datesublist.subList(0, number);
+    }
+
+    public static void ReloadMusicInfo(Context context) {
+        List<musicInfo> mediaStored = new ArrayList<musicInfo>();
+        List<musicInfo> boxStored = getBoxStore().boxFor(musicInfo.class).getAll();
+        //初始化音乐信息
+        String[] media_music_info = new String[]{
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM};
+        cursor = context.getContentResolver().query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, media_music_info,
+                null, null, MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
+        int total = cursor.getCount();
+        cursor.moveToFirst();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        int filter_duration = 30000;
+        String filtration = sharedPref.getString("filtration", "");
+        switch (filtration) {
+            case "thirty":
+                filter_duration = 30000;
+                break;
+            case "forty_five":
+                filter_duration = 45000;
+                break;
+            case "sixty":
+                filter_duration = 60000;
+                break;
+            default:
+        }
+        int found = 0;
+        int remove = 0;
+        String musicIDString = "";
+        //从MediaStore添加歌曲
+        if (total >= 1) {
+            for (int i = 0; i < total; i++) {
+                if (cursor.getInt(1) > filter_duration) {
+                    mediaStored.add(new musicInfo(cursor.getInt(3), cursor.getInt(5), cursor.getInt(1), cursor.getString(0), cursor.getString(2), cursor.getString(4), cursor.getString(6), 0, ""));
+                    if (boxStore.boxFor(musicInfo.class).query().equal(musicInfo_.mId, cursor.getInt(3)).equal(musicInfo_.hide,false).build().findFirst() == null) {
+                        boxStore.boxFor(musicInfo.class).put(mediaStored.get(i));
+                        found = found + 1;
                     }
                 }
+                cursor.moveToNext();// 将游标移到下一行
             }
-            Toast.makeText(context, "新发现"+found+"首歌曲，删除"+remove+"首无效歌曲", Toast.LENGTH_SHORT).show();
-            //界面初始化
-            MyApplication.initialMusicInfo(context);
+        }
+        //从BoxStore删除歌曲
+        if (mediaStored.size() >= 1) {
+            for (int i = 0; i < mediaStored.size(); i++) {
+                musicIDString = musicIDString + String.valueOf(mediaStored.get(i).getMusicId()) + ".";
+            }
+        }
+        if (boxStored.size() >= 1) {
+            for (int i = 0; i < boxStored.size(); i++) {
+                if (!musicIDString.contains(String.valueOf(boxStored.get(i).getMusicId()))) {
+                    boxStore.boxFor(musicInfo.class).remove(boxStored.get(i));
+                    remove = remove + 1;
+                }
+            }
+        }
+        Toast.makeText(context, "新发现" + found + "首歌曲，删除" + remove + "首无效歌曲", Toast.LENGTH_SHORT).show();
+        reDisplay(context);
+    }
+
+    public static void reDisplay(Context context){
+        //界面初始化
+        MyApplication.initialMusicInfo(context);
+        if (hasInitialized) {
             Intent intent = new Intent("permission_granted");
             context.sendBroadcast(intent);
             Intent intent2 = new Intent("list_permission_granted");
             context.sendBroadcast(intent2);
+            Intent intent3 = new Intent("list_changed");
+            context.sendBroadcast(intent3);
         }
+    }
 
     private void initialBugly() {
         Context context = getApplicationContext();
@@ -293,6 +306,14 @@ public class MyApplication extends Application {
 
     public static void setNetMusiclist(List<musicInfo> netMusiclist) {
         MyApplication.netMusiclist = netMusiclist;
+    }
+
+    public static String getCustomListNow() {
+        return customListNow;
+    }
+
+    public static void setCustomListNow(String customListNow) {
+        MyApplication.customListNow = customListNow;
     }
 
     public static int getPlayMode() {

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/rename_list"
+        android:title="重命名" />
+    <item
+        android:id="@+id/delete_list"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:title="删除该列表"/>
+</menu>

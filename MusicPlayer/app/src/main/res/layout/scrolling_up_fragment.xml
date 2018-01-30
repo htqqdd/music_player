@@ -30,7 +30,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="16dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_up"
+                android:src="@drawable/ic_expand_less_black_24dp"
                 android:tint="?android:textColorSecondary" />
 
             <TextView
@@ -57,7 +57,7 @@
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:baselineAlignBottom="true"
                 android:onClick="title_play_or_pause"
-                android:src="@drawable/play_black"
+                android:src="@drawable/ic_play_arrow_black_24dp"
                 android:tint="?android:textColorSecondary" />
         </RelativeLayout>
 
@@ -182,7 +182,7 @@
             android:layout_centerInParent="true"
             android:onClick="main_play_or_pause"
             android:scaleType="centerInside"
-            android:src="@drawable/play_black"
+            android:src="@drawable/ic_play_arrow_black_24dp"
             android:tag=":aesthetic_ignore"
             app:backgroundTint="#ffffff" />
 
@@ -195,7 +195,8 @@
             android:foreground="?android:attr/selectableItemBackgroundBorderless"
             android:onClick="next"
             android:padding="16dp"
-            android:src="@drawable/next" />
+            android:src="@drawable/ic_skip_next_black_24dp"
+            android:tint="@color/colorCustomAccent"/>
 
         <ImageView
             android:id="@+id/left"
@@ -206,7 +207,8 @@
             android:foreground="?android:attr/selectableItemBackgroundBorderless"
             android:onClick="previous"
             android:padding="16dp"
-            android:src="@drawable/previous" />
+            android:src="@drawable/ic_skip_previous_black_24dp"
+            android:tint="@color/colorCustomAccent"/>
 
         <ImageView
             android:id="@+id/shuffle_button"
@@ -262,7 +264,7 @@
                     android:layout_centerVertical="true"
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="16dp"
-                    android:src="@drawable/volume"
+                    android:src="@drawable/ic_volume_up_black_24dp"
                     android:tint="?android:textColorSecondary" />
 
                 <LinearLayout
@@ -309,7 +311,7 @@
                     android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:onClick="play_now_menu_button"
                     android:padding="4dp"
-                    android:src="@drawable/about_grey"
+                    android:src="@drawable/ic_more_vert_black_24dp"
                     android:tint="?android:textColorSecondary" />
             </RelativeLayout>
         </LinearLayout>
