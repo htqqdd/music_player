@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.lixiangsoft.lixiang.music_player.EqualizerActivity">
+    tools:context="com.example.lixiang.music_player.EqualizerActivity">
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbarlayout"
         android:layout_width="match_parent"
