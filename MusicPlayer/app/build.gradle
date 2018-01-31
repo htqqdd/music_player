@@ -5,11 +5,11 @@ android {
     compileSdkVersion 25
     buildToolsVersion '27.0.1'
     defaultConfig {
-        applicationId "com.example.lixiang.music_player"
+        applicationId "com.lixiangsoft.lixiang.music_player"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 42
-        versionName "0.4.2"
+        versionCode 50
+        versionName "0.5.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

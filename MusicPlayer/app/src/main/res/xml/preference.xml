@@ -30,7 +30,7 @@
             android:entryValues="@array/music_filtration_entries_value"
             android:dialogTitle="音乐筛除"
             android:defaultValue="@string/music_filtration_entries_default" />
-        <com.example.lixiang.music_player.ReloadMusicInfoDialog
+        <com.lixiangsoft.lixiang.music_player.ReloadMusicInfoDialog
             android:title="歌曲扫描"
             android:dialogMessage="即将全盘扫描手机的本地歌曲，重建曲库，点击确定继续。"
             android:summary="全盘扫描手机的本地歌曲，重建曲库"/>
