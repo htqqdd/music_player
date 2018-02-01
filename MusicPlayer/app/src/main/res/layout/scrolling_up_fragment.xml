@@ -76,25 +76,28 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:gravity="center">
 
             <ImageView
                 android:id="@+id/back"
-                android:layout_width="26dp"
+                android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginTop="5dp"
+                android:padding="3dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:src="@mipmap/ic_back" />
+                android:src="@drawable/ic_arrow_back_black_24dp"
+                android:tint="@color/colorCustomAccent"/>
 
             <ImageView
                 android:id="@+id/about"
-                android:layout_width="26dp"
+                android:layout_width="30dp"
                 android:layout_height="30dp"
+                android:padding="3dp"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="12dp"
-                android:layout_marginTop="5dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:src="@mipmap/ic_about" />
+                android:src="@drawable/ic_more_vert_black_24dp"
+                android:tint="@color/colorCustomAccent"/>
         </RelativeLayout>
     </android.support.v7.widget.Toolbar>
 

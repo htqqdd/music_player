@@ -30,13 +30,14 @@ public class SimpleFragmentPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int position) {
-//        if (position == 0) {
-//            return "建议";
-//        } else if (position == 1) {
-//            return "歌曲";
-//        } else{
-//            return "下载";
-//        }
-        return "";
+        if (position == 0) {
+            return "建议";
+        } else if (position == 1) {
+            return "歌曲";
+        } else if (position == 2){
+            return "搜索";
+        }else {
+            return "列表";
+        }
     }
 }

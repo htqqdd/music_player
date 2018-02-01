@@ -101,13 +101,15 @@ public class AboutActivity extends MaterialAboutActivity {
 
         authorCardBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text("htqqdd")
-                .subText("给作者买杯泡面（纯属自愿）")
+                .subText("给作者买碗泡面")
                 .icon(getResources().getDrawable(R.drawable.ic_person_black_24dp))
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
                         if(AlipayUtil.hasInstalledAlipayClient(AboutActivity.this)){
-                            AlipayUtil.startAlipayClient(AboutActivity.this, "FKX09974L1BJWNDN6ZEX6E");  //第二个参数代表要给被支付的二维码code  可以在用草料二维码在线生成
+                            if (AlipayUtil.startAlipayClient(AboutActivity.this, "FKX09974L1BJWNDN6ZEX6E")){
+                                Toast.makeText(c, "感谢您的捐赠", Toast.LENGTH_SHORT).show();
+                            }
                         }else{
                             Toast.makeText(c, "没有检测到支付宝客户端", Toast.LENGTH_SHORT).show();
                         }

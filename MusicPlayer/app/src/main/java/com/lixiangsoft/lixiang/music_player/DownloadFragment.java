@@ -61,13 +61,12 @@ public class DownloadFragment extends Fragment {
     private EditText editText;
     private String input;
     private String filter = "name";
-    private String type = "163";
-    private CharSequence[] items;
-    private RadioButton name_radio;
-    private RadioButton id_radio;
-    private RadioButton url_radio;
+    private String type = "netease";
+    private int page =1;
     private FloatingActionButton search_list;
-    private String previousType = "163";
+    private String[] items = {"网易云音乐", "QQ音乐", "酷狗音乐","酷我音乐","虾米音乐","百度音乐","一听音乐","咪咕音乐","荔枝音乐","蜻蜓音乐","喜马拉雅","5Sing音乐"};
+    private String[] item_type = {"netease","qq","kugou","kuwo","xiami","baidu","1ting","migu","lizhi","qingting","ximalaya","5singyc"};
+    private String previousType = "netease";
     private List<Music> musicList;
     private List<musicInfo> netMusicList;
     private SwipeRefreshLayout refresh;
@@ -77,43 +76,29 @@ public class DownloadFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_download, container, false);
-        items = new CharSequence[12];
-        items[0] = "网易云音乐";
-        items[1] = "QQ音乐";
-        items[2] = "酷狗音乐";
-        items[3] = "酷我音乐";
-        items[4] = "虾米音乐";
-        items[5] = "百度音乐";
-        items[6] = "一听音乐";
-        items[7] = "咪咕音乐";
-        items[8] = "荔枝音乐";
-        items[9] = "蜻蜓音乐";
-        items[10] = "5Sing音乐";
-        items[11] = "SoundCloud";
-
         refresh = (SwipeRefreshLayout) rootView.findViewById(R.id.refresh);
         search_list = (FloatingActionButton) rootView.findViewById(R.id.search_list);
         new setDefaultTask().execute();
         final TextInputLayout inputLayout = (TextInputLayout) rootView.findViewById(R.id.name_input);
-        name_radio = (RadioButton) rootView.findViewById(R.id.name_radio);
-        id_radio = (RadioButton) rootView.findViewById(R.id.id_radio);
-        url_radio = (RadioButton) rootView.findViewById(R.id.link_radio);
+        RadioButton name_radio = (RadioButton) rootView.findViewById(R.id.name_radio);
+        RadioButton id_radio = (RadioButton) rootView.findViewById(R.id.id_radio);
+        RadioButton url_radio = (RadioButton) rootView.findViewById(R.id.link_radio);
         name_radio.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (b) inputLayout.setHint("例如：不要说话 陈奕迅");
+                if (b) inputLayout.setHint("例如：不要说话 陈奕迅");filter = "name";
             }
         });
         id_radio.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (b) inputLayout.setHint("例如：25906124");
+                if (b) inputLayout.setHint("例如：25906124");filter = "id";
             }
         });
         url_radio.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (b) inputLayout.setHint("例如：http://music.163.com/#/song?id=25906124");
+                if (b) inputLayout.setHint("例如：http://music.163.com/#/song?id=25906124");filter = "url";
             }
         });
         editText = (EditText) rootView.findViewById(R.id.edit_text);
@@ -141,7 +126,6 @@ public class DownloadFragment extends Fragment {
         SharedPreferences.Editor editor = getActivity().getSharedPreferences("default_resource", MODE_PRIVATE).edit();
         editor.putString("default", type);
         editor.apply();
-        Log.v("执行", "退出" + type);
         super.onDestroy();
     }
 
@@ -165,8 +149,8 @@ public class DownloadFragment extends Fragment {
                     previousType = type;
                     type = "_";
                 }
-                RequestBody requestBody = new FormBody.Builder().add("music_input", strings[0]).add("music_filter", filter).add("music_type", type).build();
-                Request request = new Request.Builder().url("http://www.yove.net/yinyue/").addHeader("Origin", "http://www.yove.net").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Accept", "application/json, text/javascript, */*; q=0.01").post(requestBody).build();
+                RequestBody requestBody = new FormBody.Builder().add("input", input).add("filter", filter).add("type", type).add("page",String.valueOf(page)).build();
+                Request request = new Request.Builder().url("https://music.2333.me").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").addHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36").addHeader("Referer","https://music.2333.me/?name="+java.net.URLEncoder.encode(input,"utf-8")+"&type="+type).post(requestBody).build();
                 Response response = client.newCall(request).execute();
                 String res = response.body().string();
                 JSONObject jsonObject = new JSONObject(res);
@@ -178,10 +162,9 @@ public class DownloadFragment extends Fragment {
                     }.getType());
                     netMusicList = new ArrayList<musicInfo>();
                     for (int i = 0; i < musicList.size(); i++) {
-                        netMusicList.add(new musicInfo(musicList.get(i).getSongid(),0,0,musicList.get(i).getName(),musicList.get(i).getAuthor(),musicList.get(i).getMusic(),musicList.get(i).getRealPic(),0,musicList.get(i).getLink()));
+                        netMusicList.add(new musicInfo(0,0,0,musicList.get(i).getName(),musicList.get(i).getAuthor(),musicList.get(i).getMusic(),musicList.get(i).getRealPic(),0,musicList.get(i).getLink()));
                     }
                     MyApplication.setNetMusiclist(netMusicList);
-//                    MyApplication.setMusicListNow(netMusicList,"netMusicList");
                     return "200";
                 }
             } catch (Exception e) {
@@ -202,7 +185,12 @@ public class DownloadFragment extends Fragment {
             }
             switch (s) {
                 case "200":
+                    Bundle bundle = new Bundle();
+                    bundle.putString("input",input);
+                    bundle.putString("filter",filter);
+                    bundle.putString("type",type);
                     Intent intent = new Intent(getActivity(), netMusicActivity.class);
+                    intent.putExtra("info",bundle);
                     startActivity(intent);
                     break;
                 case "404":
@@ -234,16 +222,8 @@ public class DownloadFragment extends Fragment {
 
     }
 
-
     private void searchAction() {
         if (MyApplication.getLocal_net_mode() == false) {
-            if (name_radio.isChecked()) {
-                filter = "name";
-            } else if (id_radio.isChecked()) {
-                filter = "id";
-            } else {
-                filter = "url";
-            }
             input = editText.getText().toString();
             if (input.equals("")) {
                 Snackbar.make(rootView, "请输入内容", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
@@ -253,7 +233,7 @@ public class DownloadFragment extends Fragment {
                 }).show();
             } else {
                 refresh.setRefreshing(true);
-                new httpTask().execute(editText.getText().toString());
+                new httpTask().execute(input);
             }
         } else {
             Toast.makeText(getActivity(), "当前处于离线模式", Toast.LENGTH_SHORT).show();
@@ -269,51 +249,12 @@ public class DownloadFragment extends Fragment {
                 builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
                     }
                 });
                 builder.setSingleChoiceItems(items, defaultNumber, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        switch (i) {
-                            case 0:
-                                type = "163";
-                                break;
-                            case 1:
-                                type = "qq";
-                                break;
-                            case 2:
-                                type = "kugou";
-                                break;
-                            case 3:
-                                type = "kuwo";
-                                break;
-                            case 4:
-                                type = "xiami";
-                                break;
-                            case 5:
-                                type = "baidu";
-                                break;
-                            case 6:
-                                type = "1ting";
-                                break;
-                            case 7:
-                                type = "migu";
-                                break;
-                            case 8:
-                                type = "lizhi";
-                                break;
-                            case 9:
-                                type = "qingting";
-                            case 10:
-                                type = "5sing";
-                                break;
-                            case 11:
-                                type = "soundcloud";
-                                break;
-                            default:
-                        }
-                        Log.v("类型", "类型" + type);
+                        type = item_type[i];
                         setListListener(i);
                     }
                 });
@@ -369,51 +310,36 @@ public class DownloadFragment extends Fragment {
 
         @Override
         protected Object doInBackground(Object[] objects) {
-
             SharedPreferences bundle = getActivity().getSharedPreferences("default_resource", MODE_PRIVATE);
-            Log.v("执行", "读取" + bundle.getString("default", "163"));
-            switch (bundle.getString("default", "163")) {
-                case "163":
-                    type = "163";
-                    return 0;
-                case "qq":
-                    type = "qq";
-                    return 1;
-                case "kugou":
-                    type = "kugou";
-                    return 2;
-                case "kuwo":
-                    type = "kuwo";
-                    return 3;
-                case "xiami":
-                    type = "xiami";
-                    return 4;
-                case "baidu":
-                    type = "baidu";
-                    return 5;
-                case "1ting":
-                    type = "1ting";
-                    return 6;
-                case "migu":
-                    type = "migu";
-                    return 7;
-                case "lizhi":
-                    type = "lizhi";
-                    return 8;
-                case "qingting":
-                    type = "qingting";
-                    return 9;
-                case "5sing":
-                    type = "5sing";
-                    return 10;
-                case "soundcloud":
-                    type = "soundcloud";
-                    return 11;
-                default:
+            type = bundle.getString("default", "netease");
+            for (int i = 0; i < 12; i++) {
+                if (type.equals(item_type[i])) return i;
             }
             return null;
         }
     }
 
+    public class http_request_info {
+        public String mInput;
+        public String mFilter;
+        public String mType;
+        public http_request_info(String input,String filter,String type){
+            mInput = input;
+            mFilter = filter;
+            mType = type;
+        }
+
+        public String getInput() {
+            return mInput;
+        }
+
+        public String getFilter() {
+            return mFilter;
+        }
+
+        public String getType() {
+            return mType;
+        }
+    }
 
 }

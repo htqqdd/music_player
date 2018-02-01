@@ -26,25 +26,12 @@ import java.util.List;
  * Created by lixiang on 2017/8/15.
  */
 
-public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder> implements Filterable {
+public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder>{
+    private List<list_filter_info> listFiltered;
     private Context mContext;
-    private MyFilter myFilter;
-    private ArrayList<music_title> previous;
-    private ArrayList<music_title> filtered;
     private ProgressDialog dialog;
     private View rootView;
 
-    public searchAdapter() {
-        previous = new ArrayList<music_title>();
-        int size = MyApplication.getMusicInfoArrayList().size();
-        List<musicInfo> listNow = MyApplication.getMusicInfoArrayList();
-        if (size != 0) {
-            for (int i = 0; i < size; i++) {
-                previous.add(new music_title(i, listNow.get(i).getMusicTitle()));
-            }
-        }
-        filtered = previous;
-    }
 
     @Override
     public searchAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -57,21 +44,30 @@ public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder
     }
 
     @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        List<musicInfo> musicInfoList = MyApplication.getMusicInfoArrayList();
+        listFiltered = new ArrayList<>();
+        for (int i = 0; i < musicInfoList.size(); i++) {
+            listFiltered.add(new list_filter_info(i, musicInfoList.get(i).getMusicAlbumId(), musicInfoList.get(i).getMusicTitle(), musicInfoList.get(i).getMusicArtist()));
+            super.onAttachedToRecyclerView(recyclerView);
+        }
+    }
+
+    @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        final int Position = filtered.get(position).getPosition();
-        final musicInfo musicNow = MyApplication.getMusicInfoArrayList().get(position);
-        holder.song.setText(musicNow.getMusicTitle());
-        holder.singer.setText(musicNow.getMusicArtist());
+        final list_filter_info info = listFiltered.get(position);
+        holder.song.setText(info.getTitle());
+        holder.singer.setText(info.getArtist());
         //设置歌曲封面
         Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-        Uri uri = ContentUris.withAppendedId(sArtworkUri, musicNow.getMusicAlbumId());
+        Uri uri = ContentUris.withAppendedId(sArtworkUri, info.getmAlbumId());
         Glide.with(mContext).load(uri).placeholder(R.drawable.default_album).into(holder.cover);
         //处理整个点击事件
         holder.relativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //播放
-                MyApplication.setPositionNow(position);
+                MyApplication.setPositionNow(info.getPosition());
                 Intent intent = new Intent("service_broadcast");
                 intent.putExtra("ACTION", MyConstant.playAction);
                 mContext.sendBroadcast(intent);
@@ -81,24 +77,26 @@ public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder
         holder.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                menu_util.popupMenu((Activity) mContext, view, Position, "musicInfoArrayList");
+                menu_util.popupMenu((Activity) mContext, view, info.getPosition(), "musicInfoArrayList");
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return filtered.size();
+        return listFiltered.size();
     }
 
-    @Override
-    public Filter getFilter() {
-        if (myFilter == null) {
-            myFilter = new MyFilter();
+    public void setFilter(String text) {
+        listFiltered = new ArrayList<>();
+        List<musicInfo> musicInfoList = MyApplication.getMusicInfoArrayList();
+        for (int i = 0; i < musicInfoList.size(); i++) {
+            if (musicInfoList.get(i).getMusicArtist().toLowerCase().contains(text)|| musicInfoList.get(i).getMusicTitle().toLowerCase().contains(text)){
+                listFiltered.add(new list_filter_info(i,musicInfoList.get(i).getMusicAlbumId(),musicInfoList.get(i).getMusicTitle(),musicInfoList.get(i).getMusicArtist()));
+            }
         }
-        return myFilter;
+        notifyDataSetChanged();
     }
-
 
     class ViewHolder extends RecyclerView.ViewHolder {
         ImageView cover;
@@ -117,54 +115,54 @@ public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder
         }
     }
 
-    class MyFilter extends Filter {
-        @Override
-        protected FilterResults performFiltering(CharSequence constraint) {
-            filtered = new ArrayList<music_title>();
-            if (constraint != null && constraint.toString().trim().length() > 0) {
-                List<musicInfo> listNow = MyApplication.getMusicInfoArrayList();
-                for (int i = 0; i < previous.size(); i++) {
-                    musicInfo musicNow = listNow.get(i);
-                    String title = musicNow.getMusicTitle();
-                    String singer = musicNow.getMusicArtist();
-                    if (title.contains(constraint) || singer.contains(constraint)) {
-                        filtered.add(new music_title(i, title));
-                    }
-                }
+//    class MyFilter extends Filter {
+//        @Override
+//        protected FilterResults performFiltering(CharSequence constraint) {
+//            filtered = new ArrayList<music_title>();
+//            if (constraint != null && constraint.toString().trim().length() > 0) {
+//                List<musicInfo> listNow = MyApplication.getMusicInfoArrayList();
+//                for (int i = 0; i < previous.size(); i++) {
+//                    musicInfo musicNow = listNow.get(i);
+//                    String title = musicNow.getMusicTitle();
+//                    String singer = musicNow.getMusicArtist();
+//                    if (title.contains(constraint) || singer.contains(constraint)) {
+//                        filtered.add(new music_title(i, title));
+//                    }
+//                }
+//
+//            } else {
+//                filtered = previous;
+//            }
+//            FilterResults filterResults = new FilterResults();
+//            filterResults.count = filtered.size();
+//            filterResults.values = filtered;
+//            return filterResults;
+//        }
+//
+//        @Override
+//        protected void publishResults(CharSequence constraint, FilterResults results) {
+//            filtered = (ArrayList<music_title>) results.values;
+//            notifyDataSetChanged();
+//        }
+//    }
 
-            } else {
-                filtered = previous;
-            }
-            FilterResults filterResults = new FilterResults();
-            filterResults.count = filtered.size();
-            filterResults.values = filtered;
-            return filterResults;
-        }
-
-        @Override
-        protected void publishResults(CharSequence constraint, FilterResults results) {
-            filtered = (ArrayList<music_title>) results.values;
-            notifyDataSetChanged();
-        }
-    }
-
-    public class music_title {
-        public int mPosition;
-        public String mTitle;
-
-        public music_title(int position, String title) {
-            mPosition = position;
-            mTitle = title;
-        }
-
-        public int getPosition() {
-            return mPosition;
-        }
-
-        public String getTitle() {
-            return mTitle;
-        }
-    }
+//    public class music_title {
+//        public int mPosition;
+//        public String mTitle;
+//
+//        public music_title(int position, String title) {
+//            mPosition = position;
+//            mTitle = title;
+//        }
+//
+//        public int getPosition() {
+//            return mPosition;
+//        }
+//
+//        public String getTitle() {
+//            return mTitle;
+//        }
+//    }
 
     public void dismissDialog() {
         if (dialog != null) {
@@ -174,6 +172,35 @@ public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder
                 public void onClick(View view) {
                 }
             }).show();
+        }
+    }
+
+    public class list_filter_info {
+        public int mPosition;
+        public String mTitle;
+        public String mArtist;
+        public int mAlbumId;
+        public list_filter_info(int position,int albumId,String title,String artist){
+            mTitle = title;
+            mPosition = position;
+            mArtist = artist;
+            mAlbumId = albumId;
+        }
+
+        public int getPosition() {
+            return mPosition;
+        }
+
+        public String getTitle() {
+            return mTitle;
+        }
+
+        public String getArtist() {
+            return mArtist;
+        }
+
+        public int getmAlbumId() {
+            return mAlbumId;
         }
     }
 }

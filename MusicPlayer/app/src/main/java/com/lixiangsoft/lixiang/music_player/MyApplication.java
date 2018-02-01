@@ -115,10 +115,7 @@ public class MyApplication extends Application {
             }
             boxStore.boxFor(musicInfo.class).put(musicInfoArrayList);
             Timessublist = new ArrayList<musicInfo>();
-            for (int j = 0; j < musicInfoArrayList.size(); j++) {
-                musicInfo musicInfo = musicInfoArrayList.get(j);
-                Timessublist.add(musicInfo);
-            }
+            Timessublist.addAll(musicInfoArrayList);
             if (number > Timessublist.size()) {
                 number = Timessublist.size();
             }
@@ -130,11 +127,8 @@ public class MyApplication extends Application {
         if (musicInfoArrayList.size() !=0) {
             hasInitialized = true;
         }
-        Datesublist = new ArrayList<musicInfo>();
-        for (int j = 0; j < musicInfoArrayList.size(); j++) {
-            musicInfo musicInfo = musicInfoArrayList.get(j);
-            Datesublist.add(musicInfo);
-        }
+        Datesublist = new ArrayList<>();
+        Datesublist.addAll(musicInfoArrayList);
         //从最近到之前排列
         Comparator<musicInfo> Datecomparator = new Comparator<musicInfo>() {
             @Override
@@ -239,7 +233,7 @@ public class MyApplication extends Application {
         CrashReport.UserStrategy strategy = new CrashReport.UserStrategy(context);
         strategy.setUploadProcess(processName == null || processName.equals(packageName));
         Bugly.init(context, "1d65abe1b1", false);
-        Beta.initDelay = 1000;
+        Beta.initDelay = 5000;
     }
 
     private static String getProcessName(int pid) {

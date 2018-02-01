@@ -66,7 +66,7 @@ public class searchActivity extends AestheticActivity implements SearchView.OnQu
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        mSearchAdapter.getFilter().filter(newText);
+        mSearchAdapter.setFilter(newText.toLowerCase());
         return false;
     }
 
@@ -79,7 +79,6 @@ public class searchActivity extends AestheticActivity implements SearchView.OnQu
         @Override
         public void onReceive(Context context, Intent intent) {
             mSearchAdapter.dismissDialog();
-//            Snackbar.make(net,"在线播放仅作为预览，请下载正版音乐后播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
         }
     }
 }

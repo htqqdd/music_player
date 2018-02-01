@@ -7,8 +7,8 @@ package com.lixiangsoft.lixiang.music_player;
 public class Music {
     private String author;
     private String link;
-    private String music;
-    private String name;
+    private String url;
+    private String title;
     private String pic;
     private String realPic;
     private String songid;
@@ -61,10 +61,10 @@ public class Music {
         return link;
     }
     public String getMusic() {
-        return music;
+        return url;
     }
     public String getName() {
-        return name;
+        return title;
     }
     public String getPic() {
         return pic;
@@ -74,7 +74,7 @@ public class Music {
     }
     public String getType() {
         switch (type) {
-            case "163":
+            case "netease":
                 return "网易云音乐";
             case "qq":
                 return "QQ音乐";
@@ -94,10 +94,10 @@ public class Music {
                 return "荔枝音乐";
             case "qingting":
                 return "蜻蜓音乐";
-            case "5sing":
+            case "ximalaya":
+                return "喜马拉雅";
+            case "5singyc":
                 return "5Sing音乐";
-            case "soundcloud":
-                return "SoundCloud";
             default:
         }
         return type;

@@ -58,6 +58,8 @@ import android.widget.Toast;
 
 import com.afollestad.aesthetic.Aesthetic;
 import com.afollestad.aesthetic.AestheticActivity;
+import com.afollestad.aesthetic.TabLayoutBgMode;
+import com.afollestad.aesthetic.TabLayoutIndicatorMode;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
@@ -208,24 +210,8 @@ public class MainActivity extends AestheticActivity {
             }
         });
 
-        final TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
-        View view0 = getLayoutInflater().inflate(R.layout.custom_tab, null);
-        TextView textView0 = (TextView) view0.findViewById(R.id.text);
-        textView0.setText("建议");
-        tabLayout.getTabAt(0).setCustomView(view0);
-        View view1 = getLayoutInflater().inflate(R.layout.custom_tab, null);
-        TextView textView1 = (TextView) view1.findViewById(R.id.text);
-        textView1.setText("歌曲");
-        tabLayout.getTabAt(1).setCustomView(view1);
-        View view2 = getLayoutInflater().inflate(R.layout.custom_tab, null);
-        TextView textView2 = (TextView) view2.findViewById(R.id.text);
-        textView2.setText("下载");
-        tabLayout.getTabAt(2).setCustomView(view2);
-        View view3 = getLayoutInflater().inflate(R.layout.custom_tab, null);
-        TextView textView3 = (TextView) view3.findViewById(R.id.text);
-        textView3.setText("列表");
-        tabLayout.getTabAt(3).setCustomView(view3);
 
         //新标题栏
         Toolbar main_toolbar = (Toolbar) findViewById(R.id.main_toolbar);
@@ -1154,7 +1140,6 @@ public class MainActivity extends AestheticActivity {
         return false;
     }
     private String praseLyric(String lyric) {
-        Log.v("歌词", "歌词" + lyric);
         try {
             String[] split = lyric.split("\n");
             if (split[split.length - 2].substring(9, 10).equals("]")) {
@@ -1173,14 +1158,12 @@ public class MainActivity extends AestheticActivity {
                             int allIndex = split[i].indexOf("]");
                             while (allIndex != -1) {
                                 split[i] = split[i].substring(0, allIndex - 3) + String.valueOf(f.format(Integer.valueOf(split[i].substring(allIndex - 3, allIndex)) / 50 * 3)) + split[i].substring(allIndex);
-                                Log.v("歌词解析", "歌词" + split[i]);
                                 allIndex = split[i].indexOf("]", allIndex + 1);
                             }
                         }
                         lyric = lyric + split[i] + "\n";
                     }
                 }
-                Log.v("歌词解析", "歌词结果" + lyric);
                 return lyric;
             }
         }catch (Exception e){

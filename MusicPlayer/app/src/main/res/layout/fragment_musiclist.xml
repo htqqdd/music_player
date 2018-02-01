@@ -11,7 +11,7 @@
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             app:fastScrollPopupTextColor="@android:color/primary_text_dark"
-            app:fastScrollThumbColor="@color/colorAccent"
-            app:fastScrollPopupBgColor="@color/colorAccent"/>
+            app:fastScrollThumbColor="?colorAccent"
+            app:fastScrollPopupBgColor="?colorAccent"/>
 
     </LinearLayout>
