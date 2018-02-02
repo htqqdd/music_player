@@ -170,9 +170,10 @@ public class DownloadFragment extends Fragment {
             } catch (Exception e) {
                 if (e instanceof java.net.UnknownHostException) {
                     return "404";
+                }else if (e instanceof java.net.SocketTimeoutException){
+                    return "timeout";
                 }
                 e.printStackTrace();
-                return "unKnown";
             }
             return "unKnown";
         }
@@ -210,6 +211,12 @@ public class DownloadFragment extends Fragment {
                     break;
                 case "unKnown":
                     Snackbar.make(rootView, "未获取到资源", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                        }
+                    }).show();
+                case "timeout":
+                    Snackbar.make(rootView, "服务器连接超时，请稍后再试", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                         }
@@ -319,27 +326,5 @@ public class DownloadFragment extends Fragment {
         }
     }
 
-    public class http_request_info {
-        public String mInput;
-        public String mFilter;
-        public String mType;
-        public http_request_info(String input,String filter,String type){
-            mInput = input;
-            mFilter = filter;
-            mType = type;
-        }
-
-        public String getInput() {
-            return mInput;
-        }
-
-        public String getFilter() {
-            return mFilter;
-        }
-
-        public String getType() {
-            return mType;
-        }
-    }
 
 }

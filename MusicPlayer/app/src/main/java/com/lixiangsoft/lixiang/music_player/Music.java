@@ -5,6 +5,7 @@ package com.lixiangsoft.lixiang.music_player;
  */
 
 public class Music {
+    private String lrc;
     private String author;
     private String link;
     private String url;
@@ -55,22 +56,31 @@ public class Music {
         return pic;
     }
     public String getAuthor() {
+        if (author!=null)
         return author;
+        else return "";
     }
     public String getLink() {
-        return link;
+        if (link!=null)
+            return link;
+        else return "";
     }
     public String getMusic() {
+        if (url !=null)
         return url;
+        else return "";
     }
     public String getName() {
-        return title;
+            if (title !=null)return title;
+            else return "";
     }
     public String getPic() {
-        return pic;
+        if (pic!=null)return pic;
+        else return "";
     }
     public int getSongid() {
-        return Integer.valueOf(songid);
+        if (songid !=null)return Integer.valueOf(songid);
+        else return 0;
     }
     public String getType() {
         switch (type) {
@@ -101,5 +111,11 @@ public class Music {
             default:
         }
         return type;
+    }
+
+    public String getLrc() {
+        if (lrc !=null)
+        return lrc;
+        else return "";
     }
 }

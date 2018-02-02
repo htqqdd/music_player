@@ -21,4 +21,5 @@ public class MyConstant {
     public static final int random = 1;
     public static final int one_repeat = 2;
     public static final int list = 3;
+    public static final int reload = 22;
 }

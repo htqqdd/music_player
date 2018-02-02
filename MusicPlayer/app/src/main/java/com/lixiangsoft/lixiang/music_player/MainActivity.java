@@ -75,9 +75,14 @@ import com.transitionseverywhere.TransitionSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
 import java.text.Format;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Timer;
@@ -161,9 +166,8 @@ public class MainActivity extends AestheticActivity {
         play_pause_button = (ImageView) findViewById(R.id.play_pause_button);
         back = (ImageView) findViewById(R.id.back);
         about = (ImageView) findViewById(R.id.about);
-        otherLyricView  = (LrcView) findViewById(R.id.other_lrc_view);
+        otherLyricView = (LrcView) findViewById(R.id.other_lrc_view);
         transitionsContainer = (ViewGroup) findViewById(R.id.activity_now_play);
-
 
 
         //多屏幕尺寸适应
@@ -187,7 +191,7 @@ public class MainActivity extends AestheticActivity {
                         random_play.show();
                     }
                     navigationView.setCheckedItem(R.id.music_list_view);
-                }else if (position == 3) {
+                } else if (position == 3) {
                     if (mLayout.getPanelHeight() == 0) {
                         random_play.show();
                     }
@@ -275,7 +279,7 @@ public class MainActivity extends AestheticActivity {
                     viewPager.setCurrentItem(1);
                 } else if (id == R.id.download_view) {
                     viewPager.setCurrentItem(2);
-                }else if (id == R.id.custom_list_view) {
+                } else if (id == R.id.custom_list_view) {
                     viewPager.setCurrentItem(3);
                 } else if (id == R.id.nav_settings) {
                     flag = id;
@@ -325,29 +329,46 @@ public class MainActivity extends AestheticActivity {
                         @Override
                         public void onClick(View view) {
                             if (!otherLyricView.hasLrc()) {
-                                //判断是否有本地歌词
-                            musicInfo musicNow = MyApplication.getMusicListNow().get(MyApplication.getPositionNow());
-                            String path = musicNow.getMusicData();
-                            int total = path.length();
-                            File file = new File(path.substring(0,total-4)+".lrc");
-                            if (file.isFile() && file.exists()){
-                                //加载歌词
-                                otherLyricView.loadLrc(file);
-                                changeVisibility();
-                                otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
-                                    @Override
-                                    public boolean onPlayClick(long time) {
-                                        fromLyric = true;
-                                        seekBar.setProgress((int) time);
-                                        return false;
-                                    }
-                                });
-                            }else if (MyApplication.getLocal_net_mode() == false) {
-                                new getLyricTask().execute(musicNow.getMusicTitle(), musicNow.getMusicArtist());
-                                changeVisibility();
-                            }else {
-                                Toast.makeText(MainActivity.this, "当前处于离线模式", Toast.LENGTH_SHORT).show();                            }
-                            }else {
+                                //判断是否有用户自己储存歌词
+                                musicInfo musicNow = MyApplication.getMusicListNow().get(MyApplication.getPositionNow());
+                                String path = musicNow.getMusicData();
+                                int total = path.length();
+                                File file = new File(path.substring(0, total - 4) + ".lrc");
+                                //判断是否有程序储存歌词
+//                                File file2 = new File(MainActivity.this.getFilesDir().getAbsolutePath()+MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicTitle());
+                                if (file.isFile() && file.exists()) {
+                                    //加载歌词
+                                    otherLyricView.loadLrc(file);
+                                    changeVisibility();
+                                    otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
+                                        @Override
+                                        public boolean onPlayClick(long time) {
+                                            fromLyric = true;
+                                            seekBar.setProgress((int) time);
+                                            return false;
+                                        }
+                                    });
+                                }
+//                                else if(file2.isFile() && file2.exists()){
+//                                    //加载歌词
+//                                    otherLyricView.loadLrc(file2);
+//                                    changeVisibility();
+//                                    otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
+//                                        @Override
+//                                        public boolean onPlayClick(long time) {
+//                                            fromLyric = true;
+//                                            seekBar.setProgress((int) time);
+//                                            return false;
+//                                        }
+//                                    });
+//                                }
+                                else if (MyApplication.getLocal_net_mode() == false) {
+                                    new getLyricTask().execute(musicNow.getMusicTitle(), musicNow.getMusicArtist());
+                                    changeVisibility();
+                                } else {
+                                    Toast.makeText(MainActivity.this, "当前处于离线模式", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
                                 changeVisibility();
                             }
                         }
@@ -355,7 +376,7 @@ public class MainActivity extends AestheticActivity {
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                 }
                 if (previousState == DRAGGING && newState == COLLAPSED) {
-                    if (mTimer !=null) {
+                    if (mTimer != null) {
                         mTimer.cancel();
                     }
                     play_pause_button.setClickable(true);
@@ -474,7 +495,7 @@ public class MainActivity extends AestheticActivity {
         bindService(bindIntent, conn, BIND_AUTO_CREATE);
 
         //拖动seekbar
-        seekBar.setPadding(5,0,5,0);
+        seekBar.setPadding(5, 0, 5, 0);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -528,7 +549,7 @@ public class MainActivity extends AestheticActivity {
             @Override
             public void onClick(View view) {
                 MyApplication.setPlayMode(MyConstant.random);
-                MyApplication.setMusicListNow(MyApplication.getMusicInfoArrayList(),"musicInfoArrayList");
+                MyApplication.setMusicListNow(MyApplication.getMusicInfoArrayList(), "musicInfoArrayList");
                 Intent intent = new Intent("service_broadcast");
                 intent.putExtra("ACTION", MyConstant.playAction);
                 sendBroadcast(intent);
@@ -565,7 +586,7 @@ public class MainActivity extends AestheticActivity {
         new initialTask().execute();
     }
 
-    public class initialTask extends AsyncTask{
+    public class initialTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
             MyApplication.initialMusicInfo(MainActivity.this);
@@ -620,25 +641,41 @@ public class MainActivity extends AestheticActivity {
         switch (MyApplication.getPlayMode()) {
             case MyConstant.list:
                 MyApplication.setPlayMode(MyConstant.list_repeat);
-                Snackbar.make(mLayout,"列表循环播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                Snackbar.make(mLayout, "列表循环播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                    }
+                }).show();
                 repeat_button.setImageResource(R.drawable.repeat);
                 shuffle_button.setImageResource(R.drawable.shuffle_grey);
                 break;
             case MyConstant.list_repeat:
                 MyApplication.setPlayMode(MyConstant.one_repeat);
-                Snackbar.make(mLayout,"单曲循环播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                Snackbar.make(mLayout, "单曲循环播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                    }
+                }).show();
                 repeat_button.setImageResource(R.drawable.repeat_one);
                 shuffle_button.setImageResource(R.drawable.shuffle_grey);
                 break;
             case MyConstant.one_repeat:
                 MyApplication.setPlayMode(MyConstant.list);
-                Snackbar.make(mLayout,"顺序播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                Snackbar.make(mLayout, "顺序播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                    }
+                }).show();
                 repeat_button.setImageResource(R.drawable.repeat_grey);
                 shuffle_button.setImageResource(R.drawable.shuffle_grey);
                 break;
             case MyConstant.random:
                 MyApplication.setPlayMode(MyConstant.list_repeat);
-                Snackbar.make(mLayout,"列表重复播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                Snackbar.make(mLayout, "列表重复播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                    }
+                }).show();
                 shuffle_button.setImageResource(R.drawable.shuffle_grey);
                 repeat_button.setImageResource(R.drawable.repeat);
                 break;
@@ -651,12 +688,20 @@ public class MainActivity extends AestheticActivity {
         ImageView shuffle_button = (ImageView) findViewById(R.id.shuffle_button);
         if (MyApplication.getPlayMode() == MyConstant.random) {
             MyApplication.setPlayMode(MyConstant.list);
-            Snackbar.make(mLayout,"顺序播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+            Snackbar.make(mLayout, "顺序播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                }
+            }).show();
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
             repeat_button.setImageResource(R.drawable.repeat_grey);
         } else {
             MyApplication.setPlayMode(MyConstant.random);
-            Snackbar.make(mLayout,"随机播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+            Snackbar.make(mLayout, "随机播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                }
+            }).show();
             shuffle_button.setImageResource(R.drawable.shuffle);
             repeat_button.setImageResource(R.drawable.repeat_grey);
         }
@@ -686,7 +731,7 @@ public class MainActivity extends AestheticActivity {
                     activity_now_play.setBackgroundColor(Int1);
                 }
             });
-        }else{
+        } else {
             activity_now_play.setBackgroundColor(Int1);
         }
         TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
@@ -694,7 +739,7 @@ public class MainActivity extends AestheticActivity {
         //lrcview字体颜色
 
         //歌词背景颜色
-        if(Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
             View bottom = findViewById(R.id.gradient_bottom);
             View top = findViewById(R.id.gradient_top);
             View gradient = findViewById(R.id.gradient);
@@ -731,10 +776,10 @@ public class MainActivity extends AestheticActivity {
         if (MyApplication.getPlayMode() == MyConstant.list_repeat) {
             repeat_button.setImageResource(R.drawable.repeat);
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
-        }else if (MyApplication.getPlayMode() == MyConstant.random) {
+        } else if (MyApplication.getPlayMode() == MyConstant.random) {
             shuffle_button.setImageResource(R.drawable.shuffle);
             repeat_button.setImageResource(R.drawable.repeat_grey);
-        }else if (MyApplication.getPlayMode() == MyConstant.one_repeat) {
+        } else if (MyApplication.getPlayMode() == MyConstant.one_repeat) {
             repeat_button.setImageResource(R.drawable.repeat_one);
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
         } else {
@@ -742,7 +787,7 @@ public class MainActivity extends AestheticActivity {
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
         }
         //设置封面,自动封面获取颜色
-        if (!nowMusic.getMusicLink().equals("")){//网络
+        if (!nowMusic.getMusicLink().equals("")) {//网络
             final ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
             Glide.with(this).load(nowMusic.getMusicAlbum()).listener(new RequestListener<String, GlideDrawable>() {
                 @Override
@@ -880,8 +925,8 @@ public class MainActivity extends AestheticActivity {
             }
             if (intent.getIntExtra("UIChange", 0) == MyConstant.mediaChangeAction) {
                 ChangeScrollingUpPanel(MyApplication.getPositionNow());
-                Log.v("歌曲更换","接收到");
-                if (otherLyricView.getVisibility() == VISIBLE){
+                Log.v("歌曲更换", "接收到");
+                if (otherLyricView.getVisibility() == VISIBLE) {
                     changeVisibility();
                 }
                 TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
@@ -899,14 +944,16 @@ public class MainActivity extends AestheticActivity {
         }
 
     }
+
     public void play_now_menu_button(View v) {
-        if (MyApplication.getListlabel() !="netMusicList"){
-            menu_util.popupMenu(this, v, MyApplication.getPositionNow(),MyApplication.getListlabel());
-        }else {
-            menu_util.popupNetMenu(this,v,MyApplication.getPositionNow());
+        if (MyApplication.getListlabel() != "netMusicList") {
+            menu_util.popupMenu(this, v, MyApplication.getPositionNow(), MyApplication.getListlabel());
+        } else {
+            menu_util.popupNetMenu(this, v, MyApplication.getPositionNow());
         }
 
     }
+
     private void ensureServiceStarted() {
         if (MyApplication.getServiceState() == false) {
             Intent intent = new Intent(this, PlayService.class);
@@ -915,6 +962,7 @@ public class MainActivity extends AestheticActivity {
 
         }
     }
+
     private class screenAdaptionTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
@@ -933,12 +981,13 @@ public class MainActivity extends AestheticActivity {
             RelativeLayout.LayoutParams lp_play_now_cover = (RelativeLayout.LayoutParams) play_now_cover.getLayoutParams();
             RelativeLayout.LayoutParams lp_lrcView = (RelativeLayout.LayoutParams) lrcView.getLayoutParams();
             lp_play_now_cover.height = (int) o;
-            lp_lrcView.height = ((int)o/3*2);
+            lp_lrcView.height = ((int) o / 3 * 2);
             play_now_cover.setLayoutParams(lp_play_now_cover);
             lrcView.setLayoutParams(lp_lrcView);
 
         }
     }
+
     private ServiceConnection conn = new ServiceConnection() {
 
         @Override
@@ -952,6 +1001,7 @@ public class MainActivity extends AestheticActivity {
             playService = ((PlayService.musicBinder) service).getService();
         }
     };
+
     private void updateSeekBar() {
         mTimer = new Timer();
         final TextView duration = (TextView) findViewById(R.id.duration);
@@ -970,6 +1020,7 @@ public class MainActivity extends AestheticActivity {
         };
         mTimer.schedule(task, 0, 1000);
     }
+
     private void sleeper() {
         final java.util.Calendar c = java.util.Calendar.getInstance();
         final int hourNow = c.get(java.util.Calendar.HOUR_OF_DAY);
@@ -980,13 +1031,22 @@ public class MainActivity extends AestheticActivity {
                 int duration = (hourPicked - hourNow) * 60 + minutePicked - minuteNow;
                 if (hourPicked >= hourNow && duration > 0 && duration < 360) {
                     playService.deleteService(duration);
-                    Snackbar.make(mLayout,"已经定时为" + duration + "分钟后关闭",Snackbar.LENGTH_LONG).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                    Snackbar.make(mLayout, "已经定时为" + duration + "分钟后关闭", Snackbar.LENGTH_LONG).setAction("确定", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                        }
+                    }).show();
                 } else {
-                    Snackbar.make(mLayout,"所选时间须为当天，且距当前时间6小时内",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                    Snackbar.make(mLayout, "所选时间须为当天，且距当前时间6小时内", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                        }
+                    }).show();
                 }
             }
         }, hourNow, minuteNow, true).show();
     }
+
     private void equalizer() {
         SharedPreferences bundle = MainActivity.this.getSharedPreferences("first_audioEffect", MainActivity.this.MODE_PRIVATE);
         if (bundle.getBoolean("isFirst", true)) {
@@ -1015,53 +1075,15 @@ public class MainActivity extends AestheticActivity {
             startActivity(intent);
         }
     }
-    private String toTime(int i){
-        int primary_second = i/1000;
-        int minute = primary_second/60;
-        int second = primary_second - minute*60;
-        return String.format("%2d",minute).replace(" ", "0")+":"+String.format("%2d",second).replace(" ", "0");
-    }
-    private class GetLyricbyIdTask extends AsyncTask<String,Integer,String>{
-        @Override
-        protected String doInBackground(String... strings) {
-            String lyric = "";
-            try {
-                OkHttpClient client = new OkHttpClient();
-                Request request = new Request.Builder().url("http://music.163.com/api/song/lyric?os=pc&id="+strings[0]+"&lv=-1&kv=0&tv=0").build();
-                Response response = client.newCall(request).execute();
-                String res = response.body().string();
-                JSONObject jsonObject = new JSONObject(res);
-                if (jsonObject.getInt("code") == 200) {
-                    JSONObject lrcJson = jsonObject.getJSONObject("lrc");
-                    lyric = praseLyric(lrcJson.getString("lyric"));
 
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return lyric;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            if (s.equals("")){
-                otherLyricView.loadLrc("");
-                otherLyricView.setLabel("未搜索到匹配歌词");
-            }else {
-                //加载歌词
-                otherLyricView.loadLrc(s);
-                otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
-                    @Override
-                    public boolean onPlayClick(long time) {
-                        fromLyric = true;
-                        seekBar.setProgress((int) time);
-                        return false;
-                    }
-                });
-            }
-        }
+    private String toTime(int i) {
+        int primary_second = i / 1000;
+        int minute = primary_second / 60;
+        int second = primary_second - minute * 60;
+        return String.format("%2d", minute).replace(" ", "0") + ":" + String.format("%2d", second).replace(" ", "0");
     }
-    private class getLyricTask extends AsyncTask<String,Integer,String> {
+
+    private class getLyricTask extends AsyncTask<String, Integer, String> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -1072,13 +1094,12 @@ public class MainActivity extends AestheticActivity {
         protected String doInBackground(String... strings) {
             try {
                 OkHttpClient client = new OkHttpClient();
-                RequestBody requestBody;
-                if (strings[1].equals("<unknown>")){
-                    requestBody = new FormBody.Builder().add("music_input", strings[0]).add("music_filter", "name").add("music_type", "163").build();
-                }else{
-                    requestBody = new FormBody.Builder().add("music_input", strings[0]+strings[1]).add("music_filter", "name").add("music_type", "163").build();
+                String input = strings[0];
+                if (!strings[1].equals("未知歌手")) {
+                    input = input + strings[1];
                 }
-                Request request = new Request.Builder().url("http://www.yove.net/yinyue/").addHeader("Origin", "http://www.yove.net").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Accept", "application/json, text/javascript, */*; q=0.01").post(requestBody).build();
+                RequestBody requestBody = new FormBody.Builder().add("input", input).add("filter", "name").add("type", "netease").add("page", "1").build();
+                Request request = new Request.Builder().url("https://music.2333.me").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36").addHeader("Referer", "https://music.2333.me/?name=" + java.net.URLEncoder.encode(input, "utf-8") + "&type=netease").post(requestBody).build();
                 Response response = client.newCall(request).execute();
                 String res = response.body().string();
                 JSONObject jsonObject = new JSONObject(res);
@@ -1086,49 +1107,69 @@ public class MainActivity extends AestheticActivity {
                     JSONArray jsonArray = jsonObject.getJSONArray("data");
                     String data = jsonArray.toString();
                     Gson gson = new Gson();
-                    lyricList = gson.fromJson(data, new TypeToken<List<Music>>() {
+                    List<Music> musicList = gson.fromJson(data, new TypeToken<List<Music>>() {
                     }.getType());
-                    return "200";
+                    for (int i = 0;i<musicList.size();i++){
+                        if (musicList.get(i).getName().equals(strings[0])) {
+                            return musicList.get(i).getLrc();
+                        }
+                    }
+                    return "404";
                 }
             } catch (Exception e) {
                 if (e instanceof java.net.UnknownHostException) {
-                    e.printStackTrace();
                     return "404";
+                }else if (e instanceof java.net.SocketTimeoutException){
+                    return "timeout";
                 }
+                e.printStackTrace();
             }
-            return "unKnown";
+            return "404";
         }
 
         @Override
         protected void onPostExecute(String s) {
-            switch (s){
-                case "200":
-                        if (MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicTitle().contains(lyricList.get(0).getName())) {
-                            new GetLyricbyIdTask().execute(String.valueOf(lyricList.get(0).getSongid()));
-                        } else {
-                            otherLyricView.loadLrc("");
-                            otherLyricView.setLabel("未搜索到匹配歌词");
-                        }
-                    break;
+            switch (s) {
                 case "404":
-                    if (!hasNetwork(MainActivity.this)){
-                        otherLyricView.setLabel("未搜索到匹配歌词");
-                        Snackbar.make(mLayout,"请检查您的网络",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
-                    }else {
-                        otherLyricView.setLabel("未搜索到匹配歌词");
-                        Snackbar.make(mLayout,"服务器开小差了，请稍后再试",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
-                    }
-                    break;
-                case "unKnown":
                     otherLyricView.setLabel("未搜索到匹配歌词");
-                    Snackbar.make(mLayout,"未知错误",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+                    if (!hasNetwork(MainActivity.this))
+                        Snackbar.make(mLayout, "请检查您的网络", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                            }
+                        }).show();
+                    break;
+                case "timeout":
+                    Snackbar.make(mLayout, "服务器连接超时，请稍后再试", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                        }
+                    }).show();
                     break;
                 default:
+                    if (!s.equals("")) {
+                        String lyric = praseLyric(s);
+                        otherLyricView.loadLrc(lyric);
+//                        savelyric(lyric);
+                        otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
+                            @Override
+                            public boolean onPlayClick(long time) {
+                                fromLyric = true;
+                                seekBar.setProgress((int) time);
+                                return false;
+                            }
+                        });
+                    } else {
+                        otherLyricView.loadLrc("");
+                        otherLyricView.setLabel("未搜索到匹配歌词");
+                    }
+                    break;
             }
             super.onPostExecute(s);
         }
 
     }
+
     private boolean hasNetwork(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
@@ -1139,6 +1180,7 @@ public class MainActivity extends AestheticActivity {
         }
         return false;
     }
+
     private String praseLyric(String lyric) {
         try {
             String[] split = lyric.split("\n");
@@ -1154,7 +1196,7 @@ public class MainActivity extends AestheticActivity {
                         //有作者标签
                     } else {
                         //无作者标签
-                        if(split[i].lastIndexOf("]")!=9) {
+                        if (split[i].lastIndexOf("]") != 9) {
                             int allIndex = split[i].indexOf("]");
                             while (allIndex != -1) {
                                 split[i] = split[i].substring(0, allIndex - 3) + String.valueOf(f.format(Integer.valueOf(split[i].substring(allIndex - 3, allIndex)) / 50 * 3)) + split[i].substring(allIndex);
@@ -1166,20 +1208,21 @@ public class MainActivity extends AestheticActivity {
                 }
                 return lyric;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return lyric;
     }
-    private void changeVisibility(){
+
+    private void changeVisibility() {
         View music_info_cardView = findViewById(R.id.music_info_cardView);
-        View control_layout =  findViewById(R.id.control_layout);
-        View seekbar_layout =  findViewById(R.id.seekbar_layout);
+        View control_layout = findViewById(R.id.control_layout);
+        View seekbar_layout = findViewById(R.id.seekbar_layout);
         View lrcView = findViewById(R.id.other_lrc_view);
         View gradient = findViewById(R.id.gradient);
         View gradient_bottom = findViewById(R.id.gradient_bottom);
         View gradient_top = findViewById(R.id.gradient_top);
-        TransitionManager.beginDelayedTransition(transitionsContainer,set);
+        TransitionManager.beginDelayedTransition(transitionsContainer, set);
         if (music_info_cardView.getVisibility() == VISIBLE) {
             music_info_cardView.setVisibility(GONE);
             control_layout.setVisibility(GONE);
@@ -1189,7 +1232,7 @@ public class MainActivity extends AestheticActivity {
             gradient_bottom.setVisibility(VISIBLE);
             gradient_top.setVisibility(VISIBLE);
 //            mLayout.setDragView(R.id.play_now_cover);
-        }else {
+        } else {
             music_info_cardView.setVisibility(VISIBLE);
             control_layout.setVisibility(VISIBLE);
             seekbar_layout.setVisibility(VISIBLE);
@@ -1201,4 +1244,27 @@ public class MainActivity extends AestheticActivity {
         }
         visible = !visible;
     }
+
+//    public void savelyric(String lyric) {
+//        String name = MyApplication.getMusicListNow().get(MyApplication.getPositionNow()).getMusicTitle();
+//        FileOutputStream out = null;
+//        BufferedWriter writer = null;
+//        try {
+//            //设置文件名称，以及存储方式
+//            out = openFileOutput(name, Context.MODE_PRIVATE);
+//            //创建一个OutputStreamWriter对象，传入BufferedWriter的构造器中
+//            writer = new BufferedWriter(new OutputStreamWriter(out));
+//            //向文件中写入数据
+//            writer.write(lyric);
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } finally {
+//            try {
+//                writer.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 }

@@ -28,7 +28,8 @@ public class MusiclistFragment extends Fragment {
 
     private FastScrollRecyclerView fastScrollRecyclerView;
     private list_PermissionReceiver list_permissionReceiver;
-    private UIReceiver uiReceiver;
+//    private UIReceiver uiReceiver;
+    private FastScrollListAdapter adapter;
 
 
     public MusiclistFragment() {
@@ -39,7 +40,7 @@ public class MusiclistFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         getActivity().unregisterReceiver(list_permissionReceiver);
-        getActivity().unregisterReceiver(uiReceiver);
+//        getActivity().unregisterReceiver(uiReceiver);
     }
 
     @Override
@@ -52,11 +53,11 @@ public class MusiclistFragment extends Fragment {
         intentFilter.addAction("list_permission_granted");
         getActivity().registerReceiver(list_permissionReceiver, intentFilter);
 
-        //动态注册更新界面广播
-        uiReceiver = new UIReceiver();
-        IntentFilter intentFilter2 = new IntentFilter();
-        intentFilter2.addAction("ChangeUI_broadcast");
-        getActivity().registerReceiver(uiReceiver, intentFilter2);
+//        //动态注册更新界面广播
+//        uiReceiver = new UIReceiver();
+//        IntentFilter intentFilter2 = new IntentFilter();
+//        intentFilter2.addAction("ChangeUI_broadcast");
+//        getActivity().registerReceiver(uiReceiver, intentFilter2);
 
         View rootView = inflater.inflate(R.layout.fragment_musiclist, container, false);
         fastScrollRecyclerView = (FastScrollRecyclerView) rootView.findViewById(R.id.fastScrollRecyclerView);
@@ -75,15 +76,15 @@ public class MusiclistFragment extends Fragment {
         super.onStart();
     }
 
-    private class UIReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //重启应用和界面
-            Intent restart_intent = getActivity().getPackageManager().getLaunchIntentForPackage(getActivity().getPackageName());
-            restart_intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(restart_intent);
-        }
-    }
+//    private class UIReceiver extends BroadcastReceiver {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            //重启应用和界面
+//            Intent restart_intent = getActivity().getPackageManager().getLaunchIntentForPackage(getActivity().getPackageName());
+//            restart_intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//            startActivity(restart_intent);
+//        }
+//    }
 
 
     private class list_PermissionReceiver extends BroadcastReceiver {
@@ -91,7 +92,12 @@ public class MusiclistFragment extends Fragment {
         @Override
         public void onReceive(Context context, Intent intent) {
             //显示界面
-            showMusicList();
+            if (intent.getIntExtra("Action",MyConstant.initialize) == MyConstant.initialize){
+                showMusicList();
+            }else {
+                if (adapter !=null) adapter.notifyDataSetChanged();
+            }
+
         }
     }
 
@@ -122,12 +128,17 @@ public class MusiclistFragment extends Fragment {
     }
 
     private void showMusicList() {
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        fastScrollRecyclerView.setLayoutManager(layoutManager);
+        if (MyApplication.hasInitialized) {
+            fastScrollRecyclerView.setVisibility(View.VISIBLE);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+            layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+            fastScrollRecyclerView.setLayoutManager(layoutManager);
 //        fastScrollRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        FastScrollListAdapter adapter = new FastScrollListAdapter();
-        fastScrollRecyclerView.setAdapter(adapter);
+            adapter = new FastScrollListAdapter();
+            fastScrollRecyclerView.setAdapter(adapter);
+        }else {
+            fastScrollRecyclerView.setVisibility(View.GONE);
+        }
     }
 
 }

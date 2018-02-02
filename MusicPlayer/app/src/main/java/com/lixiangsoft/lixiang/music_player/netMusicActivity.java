@@ -44,7 +44,7 @@ public class netMusicActivity extends AestheticActivity {
     private String type;
     private int page = 1;
     private boolean Stillhasdata = true;
-    private boolean notloading = true;
+    private boolean notloading = MyApplication.getNetMusiclist().size()>=10;
     private ProgressDialog dialog;
     private Call call;
 
@@ -152,7 +152,6 @@ public class netMusicActivity extends AestheticActivity {
                     Gson gson = new Gson();
                     List<Music> musicList = gson.fromJson(data, new TypeToken<List<Music>>() {
                     }.getType());
-                    Log.e("下载","大小"+musicList.size());
                     Stillhasdata = musicList.size()>=10;
                     List netMusicList = MyApplication.getNetMusiclist();
                     for (int i = 0; i < musicList.size(); i++) {
