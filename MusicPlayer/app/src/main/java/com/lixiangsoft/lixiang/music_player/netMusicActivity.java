@@ -155,7 +155,7 @@ public class netMusicActivity extends AestheticActivity {
                     Stillhasdata = musicList.size()>=10;
                     List netMusicList = MyApplication.getNetMusiclist();
                     for (int i = 0; i < musicList.size(); i++) {
-                        netMusicList.add(new musicInfo(0,0,0,musicList.get(i).getName(),musicList.get(i).getAuthor(),musicList.get(i).getMusic(),musicList.get(i).getRealPic(),0,musicList.get(i).getLink()));
+                        netMusicList.add(new musicInfo(0,0,0,musicList.get(i).getName(),musicList.get(i).getAuthor(),musicList.get(i).getMusic(),musicList.get(i).getPic(),0,musicList.get(i).getLink()));
                     }
                     MyApplication.setNetMusiclist(netMusicList);
                     return "200";

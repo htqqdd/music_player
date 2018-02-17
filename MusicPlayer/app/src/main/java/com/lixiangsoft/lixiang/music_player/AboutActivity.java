@@ -26,6 +26,7 @@ public class AboutActivity extends MaterialAboutActivity {
         super.onCreate(savedInstanceState);
 
     }
+
     @NonNull
     @Override
     protected MaterialAboutList getMaterialAboutList(@NonNull final Context c) {
@@ -33,7 +34,7 @@ public class AboutActivity extends MaterialAboutActivity {
 
         appCardBuilder.addItem(new MaterialAboutTitleItem.Builder()
                 .text("音乐播放器")
-                .desc("© 2017 LiXiang Soft")
+                .desc("© 2018 LiXiang Soft")
                 .icon(R.mipmap.new_launcher)
                 .build());
 
@@ -45,11 +46,22 @@ public class AboutActivity extends MaterialAboutActivity {
                     }
                 }));
 
-        appCardBuilder.addItem(new MaterialAboutActionItem.Builder()
-                .text("更新历史")
-                .icon(getResources().getDrawable(R.drawable.ic_update_black_24dp))
-                .setOnClickAction(ConvenienceBuilder.createWebViewDialogOnClickAction(c, "更新历史", "https://github.com/htqqdd/music_player/releases", true, false))
-                .build());
+        appCardBuilder.addItem(
+                new MaterialAboutActionItem.Builder()
+                        .text("更新历史")
+                        .icon(getResources().getDrawable(R.drawable.ic_update_black_24dp))
+                        .setOnClickAction(new MaterialAboutItemOnClickAction() {
+                            @Override
+                            public void onClick() {  //指定网址
+                                Intent intent = new Intent();
+                                intent.setAction(Intent.ACTION_VIEW);
+                                intent.setData(Uri.parse("https://www.pgyer.com/lx_mp"));
+                                startActivity(intent);
+                            }
+                        }).build()
+//                        ConvenienceBuilder.createWebViewDialogOnClickAction(c, "更新历史", "https://www.pgyer.com/lx_mp", true, false))
+//                .build()
+        );
 
         appCardBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text("许可信息")
@@ -92,7 +104,7 @@ public class AboutActivity extends MaterialAboutActivity {
                     }
                 })
                 .build());
-        appCardBuilder.addItem(ConvenienceBuilder.createRateActionItem(c,getResources().getDrawable(R.drawable.ic_star_black_24dp), "喜欢它，给个好评吧", null));
+        appCardBuilder.addItem(ConvenienceBuilder.createRateActionItem(c, getResources().getDrawable(R.drawable.ic_star_black_24dp), "喜欢它，给个好评吧", null));
 
 
         MaterialAboutCard.Builder authorCardBuilder = new MaterialAboutCard.Builder();
@@ -101,33 +113,54 @@ public class AboutActivity extends MaterialAboutActivity {
 
         authorCardBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text("htqqdd")
-                .subText("给作者买碗泡面")
+                .subText("给作者买碗泡面 or 领个红包")
                 .icon(getResources().getDrawable(R.drawable.ic_person_black_24dp))
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
-                        if(AlipayUtil.hasInstalledAlipayClient(AboutActivity.this)){
-                            if (AlipayUtil.startAlipayClient(AboutActivity.this, "FKX09974L1BJWNDN6ZEX6E")){
-                                Toast.makeText(c, "感谢您的捐赠", Toast.LENGTH_SHORT).show();
+                        AlertDialog.Builder alert = new AlertDialog.Builder(AboutActivity.this);
+                        alert.setTitle("感谢捐赠");
+                        alert.setMessage("您的捐赠是作者修复Bug、增加新功能的最大动力！");
+                        alert.setPositiveButton("直接捐赠", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                if (AlipayUtil.hasInstalledAlipayClient(AboutActivity.this)) {
+                                    if (AlipayUtil.startAlipayClient(AboutActivity.this, "FKX09974L1BJWNDN6ZEX6E")) {
+                                        Toast.makeText(c, "感谢您的捐赠", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(c, "没有检测到支付宝客户端", Toast.LENGTH_SHORT).show();
+                                }
                             }
-                        }else{
-                            Toast.makeText(c, "没有检测到支付宝客户端", Toast.LENGTH_SHORT).show();
-                        }
+                        });
+                        alert.setNegativeButton("领个红包", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                if (AlipayUtil.hasInstalledAlipayClient(AboutActivity.this)) {
+                                    if (AlipayUtil.startAlipayClient(AboutActivity.this, "c1x00755m2ysum0cq3cug58")) {
+                                        Toast.makeText(c, "感谢您的支持", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(c, "没有检测到支付宝客户端", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                        alert.show();
                     }
                 })
                 .build());
 
-        authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,getResources().getDrawable(R.drawable.ic_public_black_24dp),
+        authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c, getResources().getDrawable(R.drawable.ic_public_black_24dp),
                 "访问网站",
                 true,
                 Uri.parse("https://www.pgyer.com/lx_mp")));
 
-        authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c,getResources().getDrawable(R.drawable.ic_people_outline_black_24dp),
+        authorCardBuilder.addItem(ConvenienceBuilder.createWebsiteActionItem(c, getResources().getDrawable(R.drawable.ic_people_outline_black_24dp),
                 "开源地址",
                 true,
                 Uri.parse("https://github.com/htqqdd/music_player")));
 
-        authorCardBuilder.addItem(ConvenienceBuilder.createEmailItem(c,getResources().getDrawable(R.drawable.ic_mail_outline_black_24dp),
+        authorCardBuilder.addItem(ConvenienceBuilder.createEmailItem(c, getResources().getDrawable(R.drawable.ic_mail_outline_black_24dp),
                 "发送邮件",
                 true,
                 "htqqdd@gmail.com",
@@ -137,6 +170,7 @@ public class AboutActivity extends MaterialAboutActivity {
         return new MaterialAboutList(appCardBuilder.build(), authorCardBuilder.build());
 
     }
+
     @Override
     protected CharSequence getActivityTitle() {
 //        return getString(R.string.mal_title_about);

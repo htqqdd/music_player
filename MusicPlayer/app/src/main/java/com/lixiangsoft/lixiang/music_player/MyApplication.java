@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -47,8 +48,6 @@ public class MyApplication extends Application {
     public static boolean local_net_mode = false;
     public static boolean serviceStarted = false;
     public static boolean hasInitialized = false;
-
-    private static Cursor cursor;
 
     @Override
     public void onCreate() {
@@ -93,8 +92,10 @@ public class MyApplication extends Application {
                 break;
             default:
         }
-        musicInfoArrayList = boxStore.boxFor(musicInfo.class).query().greater(musicInfo_.mDuration, filter_duration).equal(musicInfo_.hide,false).build().find();
-        Timessublist = boxStore.boxFor(musicInfo.class).query().orderDesc(musicInfo_.mTimes).equal(musicInfo_.hide,false).build().find(0, number);
+        musicInfoArrayList = new ArrayList<musicInfo>();
+        Timessublist = new ArrayList<musicInfo>();
+        musicInfoArrayList = boxStore.boxFor(musicInfo.class).query().greater(musicInfo_.mDuration, filter_duration).notEqual(musicInfo_.hide, true).build().find();
+        Timessublist = boxStore.boxFor(musicInfo.class).query().orderDesc(musicInfo_.mTimes).notEqual(musicInfo_.hide, true).build().find(0, number);
         if (musicInfoArrayList.size() == 0) {
             musicInfoArrayList = new ArrayList<musicInfo>();
             //初始化音乐信息
@@ -102,7 +103,7 @@ public class MyApplication extends Application {
                     MediaStore.Audio.Media.TITLE,
                     MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST,
                     MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM};
-            cursor = context.getContentResolver().query(
+            Cursor cursor = context.getContentResolver().query(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, media_music_info,
                     null, null, MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
             int total = cursor.getCount();
@@ -124,9 +125,9 @@ public class MyApplication extends Application {
         if (MusicListNow == null) {
             MusicListNow = musicInfoArrayList;
         }
-        if (musicInfoArrayList.size() !=0) {
+//        if (musicInfoArrayList.size() != 0) {
             hasInitialized = true;
-        }
+//        }
         Datesublist = new ArrayList<>();
         Datesublist.addAll(musicInfoArrayList);
         //从最近到之前排列
@@ -153,13 +154,13 @@ public class MyApplication extends Application {
 
     public static void ReloadMusicInfo(Context context) {
         List<musicInfo> mediaStored = new ArrayList<musicInfo>();
-        List<musicInfo> boxStored = getBoxStore().boxFor(musicInfo.class).getAll();
+        List<musicInfo> boxStored = boxStore.boxFor(musicInfo.class).getAll();
         //初始化音乐信息
         String[] media_music_info = new String[]{
                 MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM};
-        cursor = context.getContentResolver().query(
+        Cursor cursor = context.getContentResolver().query(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, media_music_info,
                 null, null, MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
         int total = cursor.getCount();
@@ -186,9 +187,10 @@ public class MyApplication extends Application {
         if (total >= 1) {
             for (int i = 0; i < total; i++) {
                 if (cursor.getInt(1) > filter_duration) {
-                    mediaStored.add(new musicInfo(cursor.getInt(3), cursor.getInt(5), cursor.getInt(1), cursor.getString(0), cursor.getString(2), cursor.getString(4), cursor.getString(6), 0, ""));
-                    if (boxStore.boxFor(musicInfo.class).query().equal(musicInfo_.mId, cursor.getInt(3)).equal(musicInfo_.hide,false).build().findFirst() == null) {
-                        boxStore.boxFor(musicInfo.class).put(mediaStored.get(i));
+                    musicInfo musicInfo = new musicInfo(cursor.getInt(3), cursor.getInt(5), cursor.getInt(1), cursor.getString(0), cursor.getString(2), cursor.getString(4), cursor.getString(6), 0, "");
+                    mediaStored.add(musicInfo);
+                    if (boxStore.boxFor(musicInfo.class).query().equal(musicInfo_.mId, cursor.getInt(3)).build().findFirst() == null) {
+                        boxStore.boxFor(musicInfo.class).put(musicInfo);
                         found = found + 1;
                     }
                 }
@@ -209,21 +211,19 @@ public class MyApplication extends Application {
                 }
             }
         }
-        Toast.makeText(context, "新发现" + found + "首歌曲，删除" + remove + "首无效歌曲", Toast.LENGTH_SHORT).show();
-        reDisplay(context);
+        Toast.makeText(context.getApplicationContext(), "新发现" + found + "首歌曲，删除" + remove + "首无效歌曲", Toast.LENGTH_SHORT).show();
+        reDisplay(context.getApplicationContext());
     }
 
-    public static void reDisplay(Context context){
+    public static void reDisplay(Context context) {
         //界面初始化
         MyApplication.initialMusicInfo(context);
-        if (hasInitialized) {
-            Intent intent = new Intent("permission_granted");
-            context.sendBroadcast(intent);
-            Intent intent2 = new Intent("list_permission_granted");
-            context.sendBroadcast(intent2);
-            Intent intent3 = new Intent("list_changed");
-            context.sendBroadcast(intent3);
-        }
+        Intent intent = new Intent("permission_granted");
+        context.sendBroadcast(intent);
+        Intent intent2 = new Intent("list_permission_granted");
+        context.sendBroadcast(intent2);
+        Intent intent3 = new Intent("list_changed");
+        context.sendBroadcast(intent3);
     }
 
     private void initialBugly() {
@@ -233,7 +233,7 @@ public class MyApplication extends Application {
         CrashReport.UserStrategy strategy = new CrashReport.UserStrategy(context);
         strategy.setUploadProcess(processName == null || processName.equals(packageName));
         Bugly.init(context, "1d65abe1b1", false);
-        Beta.initDelay = 5000;
+        Beta.initDelay = 1000;
     }
 
     private static String getProcessName(int pid) {
@@ -353,7 +353,8 @@ public class MyApplication extends Application {
         MyApplication.serviceStarted = serviceStarted;
     }
 
-    public static boolean isHasInitialized() {
+    public static boolean hasInitialized() {
         return hasInitialized;
     }
+
 }

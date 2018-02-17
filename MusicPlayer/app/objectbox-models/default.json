@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "3:7091941750748593683",
-      "lastPropertyId": "13:3062592765596425170",
+      "lastPropertyId": "14:1226318190614383691",
       "name": "musicInfo",
       "properties": [
         {
@@ -53,6 +53,10 @@
           "id": "13:3062592765596425170",
           "indexId": "6:6004955152275991627",
           "name": "hide"
+        },
+        {
+          "id": "14:1226318190614383691",
+          "name": "AlbumLink"
         }
       ],
       "relations": []

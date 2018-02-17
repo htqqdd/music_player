@@ -37,6 +37,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.bitmap.GlideBitmapDrawable;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 
@@ -60,7 +63,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     private LoudnessEnhancer loudnessEnhancer;
     private Virtualizer mVirtualizer;
     private int audioSessionId = 0;
-//    private int positionNow = 0;
+    //    private int positionNow = 0;
     private String titleNow;
     private String singerNow;
     private Bitmap albumNow;
@@ -127,7 +130,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 MyApplication.setPositionNow(0);
             }
             if (intent.getIntExtra("ACTION", -2) == MyConstant.sc_playAction) {
-                if (MyApplication.isHasInitialized() == false) {
+                if (MyApplication.hasInitialized() == false) {
                     MyApplication.initialMusicInfo(this);
                 }
                 if (MyApplication.getPlayMode() != 1) {
@@ -160,6 +163,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     public void onAudioFocusChange(int i) {
         switch (i) {
             case AudioManager.AUDIOFOCUS_GAIN:
+                Log.v("AUDIOFOCUS_GAIN", "焦点获得");
                 //The service gained audio focus, so it needs to start playing.
                 if (mediaPlayer == null) {
                     mediaPlayer = new MediaPlayer();
@@ -174,12 +178,16 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
                 removeAudioFocus();
+//                audioManager.abandonAudioFocus(this);
+                //The service lost audio focus, the user probably moved to playing media on another app, so release the media player.
+                Log.v("AUDIOFOCUS_LOSS", "焦点丢失");
                 if (mediaPlayer != null) {
                     if (mediaPlayer.isPlaying()) pause();
                 }
 //                releaseMedia();
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                Log.v("FOCUS_LOSS_TRANSIENT", "焦点暂时丢失");
                 //Focus lost for a short time, pause the MediaPlayer.
                 if (mediaPlayer != null) {
                     if (mediaPlayer.isPlaying()) {
@@ -189,7 +197,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                 // Lost focus for a short time, probably a notification arrived on the device, lower the playback volume.
-
+                Log.v("AUDIOFOCUS_LOSS_CAN", "焦点更短暂丢失");
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
                 Boolean lost_focus = sharedPref.getBoolean("lost_focus", false);
                 if (lost_focus) {
@@ -274,17 +282,17 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             }
             mediaPlayer.reset();
             try {
-            path = MyApplication.getMusicListNow().get(position).getMusicData();
-            MyApplication.setPositionNow(position);
-                if (path == null) {
+                path = MyApplication.getMusicListNow().get(position).getMusicData();
+                MyApplication.setPositionNow(position);
+                if (path == null || path.equals("")) {
                     //关闭加载框
                     Intent dismiss_intent = new Intent("dismiss_dialog");
                     sendBroadcast(dismiss_intent);
                     Toast.makeText(this, "未获取到此歌曲的链接，请尝试更换资源提供方", Toast.LENGTH_SHORT).show();
+                } else {
+                    mediaPlayer.setDataSource(path);
+                    mediaPlayer.prepareAsync(); // 进行缓冲
                 }
-
-                mediaPlayer.setDataSource(path);
-                mediaPlayer.prepareAsync(); // 进行缓冲
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -315,11 +323,10 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getIntExtra("ACTION", -2) == MyConstant.playAction) {
-                if (MyApplication.getPlayMode() != MyConstant.random) {
-                    play(MyApplication.getPositionNow());
-                } else {
-                    play(randomPosition());
-                }
+                play(MyApplication.getPositionNow());
+            }
+            if (intent.getIntExtra("ACTION", 0) == MyConstant.random_playAction) {
+                play(randomPosition());
             }
             if (intent.getIntExtra("Control", 0) == MyConstant.previousAction) {
                 previous();
@@ -403,7 +410,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 Toast.makeText(PlayService.this, "没有下一曲了", Toast.LENGTH_SHORT).show();
                 return;
             } else {
-                play(position+1);
+                play(position + 1);
             }
         }
     }
@@ -515,85 +522,64 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         }
     }
 
+    RequestListener listener = new RequestListener() {
+        @Override
+        public boolean onException(Exception e, Object model, Target target, boolean isFirstResource) {
+            BitmapDrawable resourceDrawable = (BitmapDrawable) getDrawable(R.drawable.default_album);
+            Bitmap resource = resourceDrawable.getBitmap();
+            albumNow = resource;
+            mediaSession.setMetadata(new MediaMetadata.Builder()
+                    .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumNow)
+                    .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
+                    .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
+                    .build());
+            PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
+            stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
+            mediaSession.setPlaybackState(stateBuilder.build());
+            buildNotification(MyConstant.playing);
+            return false;
+        }
+
+        @Override
+        public boolean onResourceReady(Object resource, Object model, Target target, boolean isFromMemoryCache, boolean isFirstResource) {
+            albumNow = (Bitmap) resource;
+            mediaSession.setMetadata(new MediaMetadata.Builder()
+                    .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumNow)
+                    .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
+                    .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
+                    .build());
+            PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
+            stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
+            mediaSession.setPlaybackState(stateBuilder.build());
+            buildNotification(MyConstant.playing);
+            return false;
+        }
+    };
+
     private void updateMetaDataAndBuildNotification() {
         musicInfo musicNow = MyApplication.getMusicListNow().get(MyApplication.getPositionNow());
         singerNow = musicNow.getMusicArtist();
         titleNow = musicNow.getMusicTitle();
         if (!musicNow.getMusicLink().equals("")) {//网络
-            Glide.with(this).load(musicNow.getMusicAlbum()).asBitmap().listener(new RequestListener<String, Bitmap>() {
+            Glide.with(this).load(musicNow.getMusicMediumAlbum()).asBitmap().listener(listener).into(300, 300);
 
-                @Override
-                public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
-                    BitmapDrawable resourceDrawable = (BitmapDrawable) getDrawable(R.drawable.default_album);
-                    Bitmap resource = resourceDrawable.getBitmap();
-                    albumNow = resource;
-                    mediaSession.setMetadata(new MediaMetadata.Builder()
-                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, resource)
-                            .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
-                            .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
-                            .build());
-                    PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
-                    stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
-                    mediaSession.setPlaybackState(stateBuilder.build());
-                    buildNotification(MyConstant.playing);
-                    return false;
-                }
-
-                @Override
-                public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                    albumNow = resource;
-                    mediaSession.setMetadata(new MediaMetadata.Builder()
-                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, resource)
-                            .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
-                            .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
-                            .build());
-                    PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
-                    stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
-                    mediaSession.setPlaybackState(stateBuilder.build());
-                    buildNotification(MyConstant.playing);
-                    return false;
-                }
-            });
-
-        } else {
-            Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-            Uri uri = ContentUris.withAppendedId(sArtworkUri, musicNow.getMusicAlbumId());
-            Glide.with(this).load(uri).asBitmap().listener(new RequestListener<Uri, Bitmap>() {
-                @Override
-                public boolean onException(Exception e, Uri model, Target<Bitmap> target, boolean isFirstResource) {
-                    BitmapDrawable resourceDrawable = (BitmapDrawable) getDrawable(R.drawable.default_album);
-                    Bitmap resource = resourceDrawable.getBitmap();
-                    albumNow = resource;
-                    mediaSession.setMetadata(new MediaMetadata.Builder()
-                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, resource)
-                            .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
-                            .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
-                            .build());
-                    PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
-                    stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
-                    mediaSession.setPlaybackState(stateBuilder.build());
-                    buildNotification(MyConstant.playing);
-                    return false;
-                }
-
-                @Override
-                public boolean onResourceReady(Bitmap resource, Uri model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                    albumNow = resource;
-                    mediaSession.setMetadata(new MediaMetadata.Builder()
-                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, resource)
-                            .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
-                            .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
-                            .build());
-                    PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
-                    stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
-                    mediaSession.setPlaybackState(stateBuilder.build());
-                    buildNotification(MyConstant.playing);
-                    return false;
-                }
-            });
-
+        } else {//本地
+            if (musicNow.getAlbumLink() != null) {
+                Glide.with(this)
+                        .load(musicNow.getAlbumLink())
+                        .asBitmap()
+                        .placeholder(R.drawable.default_album)
+                        .listener(listener)
+                        .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                        .into(300,300);
+            } else {
+                Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
+                Uri uri = ContentUris.withAppendedId(sArtworkUri, musicNow.getMusicAlbumId());
+                Glide.with(this).load(uri).asBitmap().listener(listener).into(300, 300);
+            }
         }
     }
+
 
     private void buildNotification(String playState) {
         Palette p = Palette.from(albumNow).generate();
@@ -611,6 +597,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         }
         Intent startMain = new Intent(PlayService.this, MainActivity.class);
         PendingIntent startMainActivity = PendingIntent.getActivity(PlayService.this, 0, startMain, PendingIntent.FLAG_UPDATE_CURRENT);
+        Log.e("服务", "Ongoing" + "MyApplication.getState()" + MyApplication.getState());
         notification = new Notification.Builder(PlayService.this)
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -732,6 +719,8 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     public void setBass(boolean b) {
         try {
             mBass.setEnabled(b);
+            Log.v("开启", "bass" + mBass.getEnabled());
+            Log.v("开启", "增强" + loudnessEnhancer.getEnabled());
             loudnessEnhancer.setEnabled(mBass.getEnabled() || mVirtualizer.getEnabled());
         } catch (Exception e) {
             e.printStackTrace();
@@ -749,7 +738,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     public void setVirtualizer(Boolean b) {
         try {
             mVirtualizer.setEnabled(b);
+            Log.v("开启", "virtualizer" + mVirtualizer.getEnabled());
             loudnessEnhancer.setEnabled(mVirtualizer.getEnabled() || mBass.getEnabled());
+            Log.v("开启", "增强" + loudnessEnhancer.getEnabled());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -765,10 +756,12 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
     private void getPreference() {
         SharedPreferences bundle = this.getSharedPreferences("audioEffect", MODE_PRIVATE);
+        Log.v("开启", "getPreference");
         //超强音量
         try {
             if ((bundle.getBoolean("Bass", false) || bundle.getBoolean("Virtualizer", false)) == true) {
                 loudnessEnhancer.setEnabled(true);
+                Log.v("开启", "loudness");
                 loudnessEnhancer.setTargetGain(500);
 
             } else {
@@ -784,6 +777,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             } else {
                 setVirtualizer(true);
                 setVirtualizerStrength((short) bundle.getInt("Virtualizer_seekBar", 0));
+                Log.v("强度", "Virtualizer" + bundle.getInt("Virtualizer_seekBar", 0));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -791,11 +785,14 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
         //低音增强
         try {
+            Log.v("开启", String.valueOf(bundle.getBoolean("Bass", false)));
             if (bundle.getBoolean("Bass", false) == false) {
                 setBass(false);
             } else {
                 setBass(true);
+                Log.v("开启", "Bass" + bundle.getBoolean("Bass", false));
                 setBassStrength((short) bundle.getInt("Bass_seekBar", 0));
+                Log.v("强度", "Bass" + bundle.getInt("Bass_seekBar", 0));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -804,6 +801,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         try {
             if (bundle.getBoolean("Equalizer", false) == true) {
                 mEqualizer.setEnabled(true);
+                Log.v("开启", "Equalzier");
                 switch (bundle.getInt("Spinner", 0)) {
                     case 0:
                         mEqualizer.setBandLevel((short) 0, (short) 300);

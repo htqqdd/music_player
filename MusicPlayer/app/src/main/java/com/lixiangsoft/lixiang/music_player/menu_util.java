@@ -13,6 +13,7 @@ import android.provider.Settings;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,7 +46,8 @@ public class menu_util {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.openLink:
-                        if (MyApplication.getNetMusiclist().get(position).getMusicLink() != null) {
+                        Log.e("菜单","链接"+MyApplication.getNetMusiclist().get(position).getMusicLink());
+                        if (!MyApplication.getNetMusiclist().get(position).getMusicLink().equals("")) {
                             Uri web_uri = Uri.parse(MyApplication.getNetMusiclist().get(position).getMusicLink());
                             Intent intent = new Intent(Intent.ACTION_VIEW, web_uri);
                             context.startActivity(intent);
@@ -54,7 +56,8 @@ public class menu_util {
                         }
                         return true;
                     case R.id.getLink:
-                        if (MyApplication.getNetMusiclist().get(position).getMusicData() != null) {
+                        Log.e("菜单","链接"+MyApplication.getNetMusiclist().get(position).getMusicData());
+                        if (!MyApplication.getNetMusiclist().get(position).getMusicData().equals("")) {
                             Uri download_uri = Uri.parse(MyApplication.getNetMusiclist().get(position).getMusicData());
                             Intent web_intent = new Intent(Intent.ACTION_VIEW, download_uri);
                             context.startActivity(web_intent);
@@ -96,7 +99,7 @@ public class menu_util {
                         deleteFile(context, position, fromWhichList);
                         return true;
                     case R.id.setAsRingtone:
-                        menu_util.setAsRingtone(context, position, fromWhichList);
+                        setAsRingtone(context, position, fromWhichList);
                         return true;
                     case R.id.musicInfo:
                         showMusicInfo(context, position, fromWhichList);
@@ -149,7 +152,6 @@ public class menu_util {
                 showCreateListDialog(context, view);
             }
         });
-
     }
 
     public static AlertDialog showAddtolistDialog(View v, final Activity context, final int position, String fromWhich) {

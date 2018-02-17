@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,6 +29,7 @@ public class playListAdapter extends RecyclerView.Adapter<playListAdapter.ViewHo
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         list = MyApplication.getBoxStore().boxFor(Playlist.class).getAll();
+        if (list == null) list = new ArrayList<>();
         super.onAttachedToRecyclerView(recyclerView);
     }
 
@@ -37,7 +39,7 @@ public class playListAdapter extends RecyclerView.Adapter<playListAdapter.ViewHo
         holder.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                PopupMenu popup = new PopupMenu(mContext,view);
+                PopupMenu popup = new PopupMenu(mContext, view);
                 popup.getMenuInflater().inflate(R.menu.playlist_menu, popup.getMenu());
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     public boolean onMenuItemClick(MenuItem item) {
@@ -53,7 +55,7 @@ public class playListAdapter extends RecyclerView.Adapter<playListAdapter.ViewHo
                                     public void onClick(DialogInterface dialog, int which) {
                                         String text = name.getText().toString();
                                         if (!text.equals("")) {
-                                            if (MyApplication.getBoxStore().boxFor(Playlist.class).query().equal(Playlist_.name,text).build().findUnique() == null) {
+                                            if (MyApplication.getBoxStore().boxFor(Playlist.class).query().equal(Playlist_.name, text).build().findUnique() == null) {
                                                 Playlist listnow = list.get(position);
                                                 listnow.setName(text);
                                                 MyApplication.getBoxStore().boxFor(Playlist.class).put(listnow);
@@ -62,10 +64,10 @@ public class playListAdapter extends RecyclerView.Adapter<playListAdapter.ViewHo
                                                 //更新列表界面
                                                 Intent intent = new Intent("list_changed");
                                                 mContext.sendBroadcast(intent);
-                                            } else{
+                                            } else {
                                                 Toast.makeText(mContext, "该列表已存在", Toast.LENGTH_SHORT).show();
                                             }
-                                        }else {
+                                        } else {
                                             Toast.makeText(mContext, "列表名不能为空", Toast.LENGTH_SHORT).show();
                                         }
                                     }
@@ -98,7 +100,7 @@ public class playListAdapter extends RecyclerView.Adapter<playListAdapter.ViewHo
                 MyApplication.setCustomListNow(list.get(position).getName());
                 //更新列表界面(仅detaillist)
                 Intent intent = new Intent("list_changed");
-                intent.putExtra("Action",1);
+                intent.putExtra("Action", 1);
                 mContext.sendBroadcast(intent);
             }
         });

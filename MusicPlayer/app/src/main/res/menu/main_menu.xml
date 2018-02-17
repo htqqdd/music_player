@@ -10,6 +10,9 @@
         android:id="@+id/sleeper"
         android:title="睡眠定时器" />
     <item
+        android:id="@+id/match_lyric_album"
+        android:title="匹配封面" />
+    <item
         android:id="@+id/equalizer"
         android:title="均衡器" />
 </menu>

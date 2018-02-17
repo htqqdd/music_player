@@ -37,6 +37,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -144,7 +145,11 @@ public class DownloadFragment extends Fragment {
         @Override
         protected String doInBackground(String... strings) {
             try {
-                OkHttpClient client = new OkHttpClient();
+                OkHttpClient client = new OkHttpClient.Builder()
+                        .connectTimeout(10, TimeUnit.SECONDS)
+                        .writeTimeout(10, TimeUnit.SECONDS)
+                        .readTimeout(30, TimeUnit.SECONDS)
+                        .build();
                 if (filter.equals("url")) {
                     previousType = type;
                     type = "_";
@@ -162,7 +167,7 @@ public class DownloadFragment extends Fragment {
                     }.getType());
                     netMusicList = new ArrayList<musicInfo>();
                     for (int i = 0; i < musicList.size(); i++) {
-                        netMusicList.add(new musicInfo(0,0,0,musicList.get(i).getName(),musicList.get(i).getAuthor(),musicList.get(i).getMusic(),musicList.get(i).getRealPic(),0,musicList.get(i).getLink()));
+                        netMusicList.add(new musicInfo(0,0,0,musicList.get(i).getName(),musicList.get(i).getAuthor(),musicList.get(i).getMusic(),musicList.get(i).getPic(),0,musicList.get(i).getLink()));
                     }
                     MyApplication.setNetMusiclist(netMusicList);
                     return "200";
@@ -215,6 +220,7 @@ public class DownloadFragment extends Fragment {
                         public void onClick(View view) {
                         }
                     }).show();
+                    break;
                 case "timeout":
                     Snackbar.make(rootView, "服务器连接超时，请稍后再试", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
                         @Override

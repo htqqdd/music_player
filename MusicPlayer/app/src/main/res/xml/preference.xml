@@ -68,6 +68,11 @@
         android:persistent="true"
         android:title="声音">
         <SwitchPreference
+            android:key="audio_effect"
+            android:summaryOn="默认打开系统均衡器"
+            android:summaryOff="默认打开内置均衡器"
+            android:title="选择默认打开的均衡器"/>
+        <SwitchPreference
             android:key="lost_focus"
             android:summaryOn="有通知、导航等时降低音乐的音量"
             android:summaryOff="有通知、导航等时不降低音乐的音量"

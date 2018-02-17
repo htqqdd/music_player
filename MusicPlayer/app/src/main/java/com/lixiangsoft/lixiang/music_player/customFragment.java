@@ -39,7 +39,7 @@ public class customFragment extends Fragment {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("list_changed");
         getActivity().registerReceiver(listChangeReceiver, intentFilter);
-        if (MyApplication.getBoxStore().boxFor(Playlist.class).getAll().size() >0){
+        if (MyApplication.getBoxStore().boxFor(Playlist.class).getAll().size() > 0) {
             MyApplication.setCustomListNow(MyApplication.getBoxStore().boxFor(Playlist.class).getAll().get(0).getName());
             showPlayList();
             showPlayListDetail();
@@ -53,7 +53,7 @@ public class customFragment extends Fragment {
         super.onDestroy();
     }
 
-    public void showPlayListDetail(){
+    public void showPlayListDetail() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         playListDetail.setLayoutManager(layoutManager);
@@ -61,7 +61,7 @@ public class customFragment extends Fragment {
         playListDetail.setAdapter(adapter);
     }
 
-    public void showPlayList(){
+    public void showPlayList() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         playList.setLayoutManager(layoutManager);
@@ -72,17 +72,10 @@ public class customFragment extends Fragment {
     private class listChangeReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (MyApplication.getBoxStore().boxFor(Playlist.class).getAll().size() >0) {
-                playList.setVisibility(View.VISIBLE);
-                playListDetail.setVisibility(View.VISIBLE);
-                if (intent.getIntExtra("Action", 0) == 0) {
-                    showPlayList();
-                }
-                showPlayListDetail();
-            }else {
-                playList.setVisibility(View.GONE);
-                playListDetail.setVisibility(View.GONE);
+            if (intent.getIntExtra("Action", 0) == 0) {
+                showPlayList();
             }
+            showPlayListDetail();
         }
     }
 

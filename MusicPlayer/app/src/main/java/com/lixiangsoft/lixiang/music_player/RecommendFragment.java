@@ -63,12 +63,17 @@ public class RecommendFragment extends Fragment {
     private class PermissionReceiver extends BroadcastReceiver{
         @Override
         public void onReceive(Context context, Intent intent) {
-            showRecentList();
-            showFavouriteList();
+            if (intent.getIntExtra("Action",0) == 1) {
+                showRecentList();
+            }else if (intent.getIntExtra("Action",0) == 2){
+                showFavouriteList();
+            }else {
+                showRecentList();
+                showFavouriteList();
+            }
         }
     }
     private void showRecentList(){
-//        MyApplication.initialMusicDate(this.getContext());
         RecyclerView recent = (RecyclerView) rootView.findViewById(R.id.recent_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);

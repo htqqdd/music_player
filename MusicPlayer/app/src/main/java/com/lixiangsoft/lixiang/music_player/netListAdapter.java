@@ -5,9 +5,13 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -17,6 +21,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -40,6 +45,7 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         netMusicList = MyApplication.getNetMusiclist();
+        if (netMusicList == null) netMusicList = new ArrayList<>();
         super.onAttachedToRecyclerView(recyclerView);
     }
 
@@ -52,7 +58,7 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
         //设置歌曲封面
         Glide
                 .with(mContext)
-                .load(musicNow.getMusicAlbum())
+                .load(musicNow.getMusicMediumAlbum())
                 .placeholder(R.drawable.default_album)
                 .into(holder.cover);
         //处理整个点击事件
@@ -92,14 +98,44 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
             @Override
             public void onClick(View view) {
                 //弹出菜单
-                menu_util.popupNetMenu(mContext,view,position);
+                PopupMenu popup = new PopupMenu(mContext, view);
+                popup.getMenuInflater().inflate(R.menu.net_menu, popup.getMenu());
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.openLink:
+                                Log.e("菜单","链接"+MyApplication.getNetMusiclist().get(position).getMusicLink());
+                                if (!MyApplication.getNetMusiclist().get(position).getMusicLink().equals("")) {
+                                    Uri web_uri = Uri.parse(MyApplication.getNetMusiclist().get(position).getMusicLink());
+                                    Intent intent = new Intent(Intent.ACTION_VIEW, web_uri);
+                                    mContext.startActivity(intent);
+                                } else {
+                                    Toast.makeText(mContext, "未获取到链接，请尝试更换提供方", Toast.LENGTH_SHORT).show();
+                                }
+                                return true;
+                            case R.id.getLink:
+                                Log.e("菜单","链接"+MyApplication.getNetMusiclist().get(position).getMusicData());
+                                if (!MyApplication.getNetMusiclist().get(position).getMusicData().equals("")) {
+                                    Uri download_uri = Uri.parse(MyApplication.getNetMusiclist().get(position).getMusicData());
+                                    Intent web_intent = new Intent(Intent.ACTION_VIEW, download_uri);
+                                    mContext.startActivity(web_intent);
+                                } else {
+                                    Toast.makeText(mContext, "未获取到链接，请尝试更换提供方", Toast.LENGTH_SHORT).show();
+                                }
+                                return true;
+                        }
+                        return true;
+                    }
+                });
+                popup.show(); //showing popup menu
+//                menu_util.popupNetMenu(mContext,view,position);
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return MyApplication.getNetMusiclist().size();
+        return netMusicList.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
