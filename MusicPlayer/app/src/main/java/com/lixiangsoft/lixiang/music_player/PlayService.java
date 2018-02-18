@@ -2,6 +2,7 @@ package com.lixiangsoft.lixiang.music_player;
 
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -12,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
@@ -45,6 +47,8 @@ import com.bumptech.glide.request.target.Target;
 
 import java.util.Random;
 
+import static android.app.Notification.CATEGORY_TRANSPORT;
+import static android.app.Notification.PRIORITY_MIN;
 import static android.media.AudioManager.STREAM_MUSIC;
 
 public class PlayService extends Service implements AudioManager.OnAudioFocusChangeListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
@@ -324,27 +328,20 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         public void onReceive(Context context, Intent intent) {
             if (intent.getIntExtra("ACTION", -2) == MyConstant.playAction) {
                 play(MyApplication.getPositionNow());
-            }
-            if (intent.getIntExtra("ACTION", 0) == MyConstant.random_playAction) {
+            }else if (intent.getIntExtra("ACTION", 0) == MyConstant.random_playAction) {
                 play(randomPosition());
-            }
-            if (intent.getIntExtra("Control", 0) == MyConstant.previousAction) {
+            } else if (intent.getIntExtra("Control", 0) == MyConstant.previousAction) {
                 previous();
-            }
-            if (intent.getIntExtra("Control", 0) == MyConstant.nextAction) {
+            }else if (intent.getIntExtra("Control", 0) == MyConstant.nextAction) {
                 next();
-            }
-            if (intent.getIntExtra("Control", 0) == MyConstant.pauseAction) {
+            }else if (intent.getIntExtra("Control", 0) == MyConstant.pauseAction) {
                 removeAudioFocus();
                 pause();
-            }
-            if (intent.getIntExtra("Control", 0) == MyConstant.playAction) {
+            } else if (intent.getIntExtra("Control", 0) == MyConstant.playAction) {
                 resume();
-            }
-            if (intent.getIntExtra("Control", 0) == MyConstant.deleteAction) {
+            } else if (intent.getIntExtra("Control", 0) == MyConstant.deleteAction) {
                 deleteService(intent.getIntExtra("DelayControl", 0));
-            }
-            if (intent.getIntExtra("Control", 0) == MyConstant.resetAction) {
+            } else if (intent.getIntExtra("Control", 0) == MyConstant.resetAction) {
                 if (mediaPlayer != null) {
                     mediaPlayer.reset();
                 }
@@ -571,7 +568,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                         .placeholder(R.drawable.default_album)
                         .listener(listener)
                         .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                        .into(300,300);
+                        .into(300, 300);
             } else {
                 Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
                 Uri uri = ContentUris.withAppendedId(sArtworkUri, musicNow.getMusicAlbumId());
@@ -598,31 +595,64 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         Intent startMain = new Intent(PlayService.this, MainActivity.class);
         PendingIntent startMainActivity = PendingIntent.getActivity(PlayService.this, 0, startMain, PendingIntent.FLAG_UPDATE_CURRENT);
         Log.e("服务", "Ongoing" + "MyApplication.getState()" + MyApplication.getState());
-        notification = new Notification.Builder(PlayService.this)
-                // Show controls on lock screen even when user hides sensitive content.
-                .setVisibility(Notification.VISIBILITY_PUBLIC)
-                .setLargeIcon(albumNow)
-                .setSmallIcon(R.drawable.ic_album_black_24dp)
-                .setDeleteIntent(pendingIntent(MyConstant.deleteAction))
-                .setColor(ColorUtil.getColor(p))
-                .setContentIntent(startMainActivity)
-                .setOngoing(MyApplication.getState().equals(MyConstant.playing))//该选项会导致手表通知不显示
-                // Add media control buttons that invoke intents in your media service
-                .addAction(R.drawable.ic_skip_previous_black_24dp, "SkiptoPrevious", pendingIntent(MyConstant.previousAction)) // #0
-                .addAction(notificationAction, "Play or Pause", play_pauseIntent)  // #1
-                .addAction(R.drawable.ic_skip_next_black_24dp, "SkiptoNext", pendingIntent(MyConstant.nextAction))     // #2
-                // Apply the media style template
-                .setStyle(new Notification.MediaStyle()
-                        .setShowActionsInCompactView(0, 1, 2)
-                        .setMediaSession(mediaSession.getSessionToken())
-                )
-                .setContentTitle(titleNow)
-                .setContentText(singerNow)
-                .build();
-
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(NOTIFICATION_ID, notification);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            String CHANNEL_ID = "MPlayer_channel";
+            CharSequence name = "MPlayer_channel";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+            mChannel.enableLights(false);
+            mChannel.enableVibration(false);
+//            mChannel.setShowBadge(false);
+            mNotificationManager.createNotificationChannel(mChannel);
+            notification = new Notification.Builder(PlayService.this, CHANNEL_ID)
+                    // Show controls on lock screen even when user hides sensitive content.
+                    .setVisibility(Notification.VISIBILITY_PUBLIC)
+                    .setLargeIcon(albumNow)
+                    .setSmallIcon(R.drawable.ic_album_black_24dp)
+                    .setDeleteIntent(pendingIntent(MyConstant.deleteAction))
+                    .setColor(ColorUtil.getColor(p))
+                    .setContentIntent(startMainActivity)
+                    .setOngoing(MyApplication.getState().equals(MyConstant.playing))//该选项会导致手表通知不显示
+                    // Add media control buttons that invoke intents in your media service
+                    .addAction(R.drawable.ic_skip_previous_black_24dp, "SkiptoPrevious", pendingIntent(MyConstant.previousAction)) // #0
+                    .addAction(notificationAction, "Play or Pause", play_pauseIntent)  // #1
+                    .addAction(R.drawable.ic_skip_next_black_24dp, "SkiptoNext", pendingIntent(MyConstant.nextAction))     // #2
+                    // Apply the media style template
+                    .setStyle(new Notification.MediaStyle()
+                            .setShowActionsInCompactView(0, 1, 2)
+                            .setMediaSession(mediaSession.getSessionToken())
+                    )
+                    .setContentTitle(titleNow)
+                    .setContentText(singerNow)
+                    .build();
 
+            mNotificationManager.notify(NOTIFICATION_ID, notification);
+        }else {
+            notification = new Notification.Builder(PlayService.this)
+                    // Show controls on lock screen even when user hides sensitive content.
+                    .setVisibility(Notification.VISIBILITY_PUBLIC)
+                    .setLargeIcon(albumNow)
+                    .setSmallIcon(R.drawable.ic_album_black_24dp)
+                    .setDeleteIntent(pendingIntent(MyConstant.deleteAction))
+                    .setColor(ColorUtil.getColor(p))
+                    .setContentIntent(startMainActivity)
+                    .setOngoing(MyApplication.getState().equals(MyConstant.playing))//该选项会导致手表通知不显示
+                    // Add media control buttons that invoke intents in your media service
+                    .addAction(R.drawable.ic_skip_previous_black_24dp, "SkiptoPrevious", pendingIntent(MyConstant.previousAction)) // #0
+                    .addAction(notificationAction, "Play or Pause", play_pauseIntent)  // #1
+                    .addAction(R.drawable.ic_skip_next_black_24dp, "SkiptoNext", pendingIntent(MyConstant.nextAction))     // #2
+                    // Apply the media style template
+                    .setStyle(new Notification.MediaStyle()
+                            .setShowActionsInCompactView(0, 1, 2)
+                            .setMediaSession(mediaSession.getSessionToken())
+                    )
+                    .setContentTitle(titleNow)
+                    .setContentText(singerNow)
+                    .build();
+
+            mNotificationManager.notify(NOTIFICATION_ID, notification);
+        }
     }
 
 

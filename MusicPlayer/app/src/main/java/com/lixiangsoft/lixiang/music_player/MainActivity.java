@@ -900,38 +900,27 @@ public class MainActivity extends AestheticActivity {
         public void onReceive(Context context, Intent intent) {
             //更新UI
             if (intent.getIntExtra("UIChange", 0) == MyConstant.initialize) {
-                FloatingActionButton random_play = (FloatingActionButton) findViewById(R.id.random_play);
-                random_play.hide();
-                SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
                 mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f));
-            }
-
-            if (intent.getIntExtra("UIChange", 0) == MyConstant.pauseAction) {
-                ImageView play_pause_button = (ImageView) findViewById(R.id.play_pause_button);
+                random_play.hide();
+            }else if (intent.getIntExtra("UIChange", 0) == MyConstant.pauseAction) {
                 FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
-                play_pause_button.setImageResource(R.drawable.ic_play_arrow_black_24dp);
                 floatingActionButton.setImageResource(R.drawable.ic_play_arrow_black_24dp);
-            }
-            if (intent.getIntExtra("UIChange", 0) == MyConstant.playAction) {
-                ImageView play_pause_button = (ImageView) findViewById(R.id.play_pause_button);
+                play_pause_button.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+            }else if (intent.getIntExtra("UIChange", 0) == MyConstant.playAction) {
                 FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
-                play_pause_button.setImageResource(R.drawable.ic_pause_black_24dp);
                 floatingActionButton.setImageResource(R.drawable.ic_pause_black_24dp);
-            }
-            if (intent.getIntExtra("UIChange", 0) == MyConstant.mediaChangeAction) {
+                play_pause_button.setImageResource(R.drawable.ic_pause_black_24dp);
+            }else if (intent.getIntExtra("UIChange", 0) == MyConstant.mediaChangeAction) {
                 ChangeScrollingUpPanel(MyApplication.getPositionNow());
-                Log.v("歌曲更换", "接收到");
                 if (otherLyricView.getVisibility() == VISIBLE) {
                     changeVisibility();
                 }
                 TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
                 now_on_play_text.setText("正在播放");
                 otherLyricView.loadLrc("");
-            }
-            if (intent.getIntExtra("onDestroy", 0) == 1) {
+            }else if (intent.getIntExtra("onDestroy", 0) == 1) {
                 finish();
-            }
-            if (intent.getIntExtra("viewPagerChange", -1) != -1) {
+            }else if (intent.getIntExtra("viewPagerChange", -1) != -1) {
                 isfromSc = true;
                 viewPager.setCurrentItem(intent.getIntExtra("viewPagerChange", -1));
                 isfromSc = false;
@@ -1218,8 +1207,8 @@ public class MainActivity extends AestheticActivity {
                     Snackbar.make(mLayout, "服务器连接超时，请稍后再试", Snackbar.LENGTH_SHORT).show();
                     break;
                 default:
-                    if (!s.equals("")) {
-                        final String Str[] = s.split("@");
+                    final String Str[] = s.split("@");
+                    try{
                         final String lyric = praseLyric(Str[1]);
                         otherLyricView.loadLrc(lyric);
                         otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
@@ -1236,7 +1225,7 @@ public class MainActivity extends AestheticActivity {
                                 savelyric(Str[0], lyric);
                             }
                         }).show();
-                    } else {
+                    } catch (Exception e){
                         otherLyricView.loadLrc("");
                         otherLyricView.setLabel("未搜索到匹配歌词");
                     }
