@@ -86,7 +86,7 @@ public class netMusicActivity extends AestheticActivity {
                 final int totalItemCount = layoutManager.getItemCount();
                 final int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
 
-                if ((totalItemCount - visibleItemCount) <= (firstVisibleItem + 1) && Stillhasdata && notloading) {
+                if ((totalItemCount - visibleItemCount) <= (firstVisibleItem + 0) && Stillhasdata && notloading) {
                     new httpTask().execute();
                 }
                 super.onScrolled(recyclerView, dx, dy);

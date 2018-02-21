@@ -8,8 +8,8 @@ android {
         applicationId "com.lixiangsoft.lixiang.music_player"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 58
-        versionName "0.5.8"
+        versionCode 59
+        versionName "0.5.9"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

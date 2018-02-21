@@ -37,6 +37,7 @@ import android.preference.PreferenceManager;
 import android.support.v7.graphics.Palette;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.TableRow;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -553,7 +554,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         singerNow = musicNow.getMusicArtist();
         titleNow = musicNow.getMusicTitle();
         if (!musicNow.getMusicLink().equals("")) {//网络
-            Glide.with(this).load(musicNow.getMusicMediumAlbum()).asBitmap().listener(listener).into(300, 300);
+            Glide.with(this).load(musicNow.getMusicMediumAlbum()).asBitmap().listener(listener).into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
 
         } else {//本地
             if (musicNow.getAlbumLink() != null) {
@@ -563,11 +564,11 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                         .placeholder(R.drawable.default_album)
                         .listener(listener)
                         .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                        .into(300, 300);
+                        .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
             } else {
                 Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
                 Uri uri = ContentUris.withAppendedId(sArtworkUri, musicNow.getMusicAlbumId());
-                Glide.with(this).load(uri).asBitmap().listener(listener).into(300, 300);
+                Glide.with(this).load(uri).asBitmap().listener(listener).into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
             }
         }
     }
