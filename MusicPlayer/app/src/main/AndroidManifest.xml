@@ -66,6 +66,9 @@
         <activity android:name="com.lixiangsoft.lixiang.music_player.MusiclistActivity" />
         <activity android:name="com.lixiangsoft.lixiang.music_player.DownloadActivity" />
         <activity
+            android:name="com.lixiangsoft.lixiang.music_player.sc_randomPlay"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
             android:name="com.lixiangsoft.lixiang.music_player.SettingsActivity"
             android:label="程序设置"
             android:parentActivityName="com.lixiangsoft.lixiang.music_player.RecommendActivity" />
@@ -73,18 +76,6 @@
             android:name="com.lixiangsoft.lixiang.music_player.AboutActivity"
             android:parentActivityName="com.lixiangsoft.lixiang.music_player.RecommendActivity"
             android:theme="@style/AppTheme.MaterialAboutActivity" />
-        <activity
-            android:name="com.lixiangsoft.lixiang.music_player.sc_randomPlay"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <activity
-            android:name="com.lixiangsoft.lixiang.music_player.sc_list"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <activity
-            android:name="com.lixiangsoft.lixiang.music_player.sc_cloud"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <activity
-            android:name="com.lixiangsoft.lixiang.music_player.sc_library"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
             android:name="com.lixiangsoft.lixiang.music_player.searchActivity"
             android:parentActivityName="com.lixiangsoft.lixiang.music_player.MainActivity" />

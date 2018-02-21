@@ -3,8 +3,12 @@ package com.lixiangsoft.lixiang.music_player;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.didikee.donate.AlipayDonate;
+import android.didikee.donate.WeiXinDonate;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
@@ -17,6 +21,9 @@ import com.danielstone.materialaboutlibrary.items.MaterialAboutTitleItem;
 import com.danielstone.materialaboutlibrary.model.MaterialAboutCard;
 import com.danielstone.materialaboutlibrary.model.MaterialAboutList;
 import com.tencent.bugly.beta.Beta;
+
+import java.io.File;
+import java.io.InputStream;
 
 
 public class AboutActivity extends MaterialAboutActivity {
@@ -124,23 +131,45 @@ public class AboutActivity extends MaterialAboutActivity {
                         alert.setPositiveButton("直接捐赠", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                if (AlipayUtil.hasInstalledAlipayClient(AboutActivity.this)) {
-                                    if (AlipayUtil.startAlipayClient(AboutActivity.this, "FKX09974L1BJWNDN6ZEX6E")) {
-                                        Toast.makeText(c, "感谢您的捐赠", Toast.LENGTH_SHORT).show();
+                                AlertDialog.Builder alert = new AlertDialog.Builder(AboutActivity.this);
+                                alert.setTitle("感谢捐赠");
+                                alert.setMessage("您的捐赠是作者修复Bug、增加新功能的最大动力！");
+                                alert.setPositiveButton("通过支付宝", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        if (AlipayDonate.hasInstalledAlipayClient(AboutActivity.this)) {
+                                            AlipayDonate.startAlipayClient(AboutActivity.this, "FKX09974L1BJWNDN6ZEX6E");
+                                            Toast.makeText(c, "感谢您的捐赠", Toast.LENGTH_SHORT).show();
+                                        }else {
+                                            Toast.makeText(c, "没有检测到支付宝客户端", Toast.LENGTH_SHORT).show();
+                                        }
                                     }
-                                } else {
-                                    Toast.makeText(c, "没有检测到支付宝客户端", Toast.LENGTH_SHORT).show();
-                                }
+                                });
+                                alert.setNegativeButton("通过微信", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        if (WeiXinDonate.hasInstalledWeiXinClient(AboutActivity.this)) {
+                                            InputStream weixinQrIs = getResources().openRawResource(R.raw.weixin_donation);
+                                            String qrPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "AndroidDonateSample" + File.separator +
+                                                    "weixin_donation.jpg";
+                                            WeiXinDonate.saveDonateQrImage2SDCard(qrPath, BitmapFactory.decodeStream(weixinQrIs));
+                                            WeiXinDonate.donateViaWeiXin(AboutActivity.this, qrPath);
+                                            Toast.makeText(c, "您需要手动选择相册里的二维码，感谢捐赠", Toast.LENGTH_SHORT).show();
+                                        }else {
+                                            Toast.makeText(c, "没有检测到微信客户端", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                });
+                                alert.show();
                             }
                         });
                         alert.setNegativeButton("领个红包", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                if (AlipayUtil.hasInstalledAlipayClient(AboutActivity.this)) {
-                                    if (AlipayUtil.startAlipayClient(AboutActivity.this, "c1x00755m2ysum0cq3cug58")) {
-                                        Toast.makeText(c, "感谢您的支持", Toast.LENGTH_SHORT).show();
-                                    }
-                                } else {
+                                if (AlipayDonate.hasInstalledAlipayClient(AboutActivity.this)) {
+                                    AlipayDonate.startAlipayClient(AboutActivity.this, "c1x00755m2ysum0cq3cug58");
+                                    Toast.makeText(c, "感谢您的支持", Toast.LENGTH_SHORT).show();
+                                }else {
                                     Toast.makeText(c, "没有检测到支付宝客户端", Toast.LENGTH_SHORT).show();
                                 }
                             }

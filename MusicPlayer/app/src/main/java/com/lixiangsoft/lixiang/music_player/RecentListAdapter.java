@@ -254,6 +254,7 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
                 .load(url)
                 .centerCrop()
                 .placeholder(R.drawable.default_album)
+                .dontAnimate()
                 .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                 .into(search_for_album_selected);
         previous.setOnClickListener(new View.OnClickListener() {
@@ -269,6 +270,7 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
                             .load(url)
                             .centerCrop()
                             .placeholder(R.drawable.default_album)
+                            .dontAnimate()
                             .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                             .into(search_for_album_selected);
                 }
@@ -287,6 +289,7 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
                             .load(url)
                             .centerCrop()
                             .placeholder(R.drawable.default_album)
+                            .dontAnimate()
                             .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                             .into(search_for_album_selected);
                 }

@@ -8,8 +8,8 @@ android {
         applicationId "com.lixiangsoft.lixiang.music_player"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 56
-        versionName "0.5.6"
+        versionCode 58
+        versionName "0.5.8"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -49,6 +49,7 @@ dependencies {
     compile 'me.wcy:lrcview:2.0.1'
     compile 'com.tencent.bugly:crashreport_upgrade:latest.release'
     compile 'com.tencent.bugly:nativecrashreport:latest.release'
+    compile 'com.github.didikee:AndroidDonate:0.1.0'
     testCompile 'junit:junit:4.12'
     annotationProcessor 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
 }

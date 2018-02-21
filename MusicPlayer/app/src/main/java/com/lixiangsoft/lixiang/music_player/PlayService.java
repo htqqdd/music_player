@@ -36,6 +36,7 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v7.graphics.Palette;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -128,7 +129,6 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-//        requestAudioFocus();
         if (intent != null) {
             if (intent.getIntExtra("ACTION", -2) == MyConstant.initialize) {
                 MyApplication.setPositionNow(0);
@@ -137,11 +137,8 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 if (MyApplication.hasInitialized() == false) {
                     MyApplication.initialMusicInfo(this);
                 }
-                if (MyApplication.getPlayMode() != 1) {
-                    play(MyApplication.getPositionNow());
-                } else {
-                    play(randomPosition());
-                }
+                MyApplication.setPlayMode(MyConstant.random);
+                play(randomPosition());
             }
             MyApplication.setServiceStarted(true);
         } else {
@@ -221,7 +218,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     }
 
     @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
+    public void onPrepared(MediaPlayer mp) {
         //关闭加载框
         Intent dismiss_intent = new Intent("dismiss_dialog");
         sendBroadcast(dismiss_intent);
@@ -229,14 +226,15 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             Intent intent = new Intent("play_broadcast");
             intent.putExtra("UIChange", MyConstant.initialize);
             sendBroadcast(intent);
+            onetime = false;
         }
+        mp.start();
+        MyApplication.setMediaDuration(mp.getDuration());
+        MyApplication.setState(MyConstant.playing);
         Intent intent = new Intent("play_broadcast");
         intent.putExtra("UIChange", MyConstant.mediaChangeAction);
         sendBroadcast(intent);
         updateMetaDataAndBuildNotification();
-        mediaPlayer.start();
-        MyApplication.setMediaDuration(mediaPlayer.getDuration());
-        MyApplication.setState(MyConstant.playing);
         //储存播放次数
         new savePlayTimesTask().execute();
     }
@@ -255,18 +253,12 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     }
 
     public int getCurrentPosition() {
-        if (mediaPlayer != null) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             return mediaPlayer.getCurrentPosition();
         }
         return 0;
     }
 
-    public int getDuration() {
-        if (mediaPlayer != null) {
-            return mediaPlayer.getDuration();
-        }
-        return 0;
-    }
 
 
     public int getAudioSessionId() {
@@ -293,7 +285,10 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                     Intent dismiss_intent = new Intent("dismiss_dialog");
                     sendBroadcast(dismiss_intent);
                     Toast.makeText(this, "未获取到此歌曲的链接，请尝试更换资源提供方", Toast.LENGTH_SHORT).show();
-                } else {
+                } else if (path.substring(path.lastIndexOf("."), path.length()).equals(".ape")){
+                    Toast.makeText(this, "不支持此格式的歌曲", Toast.LENGTH_SHORT).show();
+                    next();
+                } else{
                     mediaPlayer.setDataSource(path);
                     mediaPlayer.prepareAsync(); // 进行缓冲
                 }
@@ -328,13 +323,13 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         public void onReceive(Context context, Intent intent) {
             if (intent.getIntExtra("ACTION", -2) == MyConstant.playAction) {
                 play(MyApplication.getPositionNow());
-            }else if (intent.getIntExtra("ACTION", 0) == MyConstant.random_playAction) {
+            } else if (intent.getIntExtra("ACTION", 0) == MyConstant.random_playAction) {
                 play(randomPosition());
             } else if (intent.getIntExtra("Control", 0) == MyConstant.previousAction) {
                 previous();
-            }else if (intent.getIntExtra("Control", 0) == MyConstant.nextAction) {
+            } else if (intent.getIntExtra("Control", 0) == MyConstant.nextAction) {
                 next();
-            }else if (intent.getIntExtra("Control", 0) == MyConstant.pauseAction) {
+            } else if (intent.getIntExtra("Control", 0) == MyConstant.pauseAction) {
                 removeAudioFocus();
                 pause();
             } else if (intent.getIntExtra("Control", 0) == MyConstant.playAction) {
@@ -579,7 +574,6 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
 
     private void buildNotification(String playState) {
-        Palette p = Palette.from(albumNow).generate();
         int notificationAction = R.drawable.ic_pause_black_24dp;//needs to be initialized
         PendingIntent play_pauseIntent = null;
         //Build a new notification according to the current state of the MediaPlayer
@@ -597,9 +591,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         Log.e("服务", "Ongoing" + "MyApplication.getState()" + MyApplication.getState());
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            String CHANNEL_ID = "MPlayer_channel";
-            CharSequence name = "MPlayer_channel";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            String CHANNEL_ID = "MPlayer";
+            CharSequence name = "MPlayer";
+            int importance = NotificationManager.IMPORTANCE_LOW;
             NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
             mChannel.enableLights(false);
             mChannel.enableVibration(false);
@@ -611,7 +605,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                     .setLargeIcon(albumNow)
                     .setSmallIcon(R.drawable.ic_album_black_24dp)
                     .setDeleteIntent(pendingIntent(MyConstant.deleteAction))
-                    .setColor(ColorUtil.getColor(p))
+                    .setColor(ColorUtil.getColor(albumNow))
                     .setContentIntent(startMainActivity)
                     .setOngoing(MyApplication.getState().equals(MyConstant.playing))//该选项会导致手表通知不显示
                     // Add media control buttons that invoke intents in your media service
@@ -628,14 +622,14 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                     .build();
 
             mNotificationManager.notify(NOTIFICATION_ID, notification);
-        }else {
+        } else {
             notification = new Notification.Builder(PlayService.this)
                     // Show controls on lock screen even when user hides sensitive content.
                     .setVisibility(Notification.VISIBILITY_PUBLIC)
                     .setLargeIcon(albumNow)
                     .setSmallIcon(R.drawable.ic_album_black_24dp)
                     .setDeleteIntent(pendingIntent(MyConstant.deleteAction))
-                    .setColor(ColorUtil.getColor(p))
+                    .setColor(ColorUtil.getColor(albumNow))
                     .setContentIntent(startMainActivity)
                     .setOngoing(MyApplication.getState().equals(MyConstant.playing))//该选项会导致手表通知不显示
                     // Add media control buttons that invoke intents in your media service
@@ -953,4 +947,5 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             }
         }
     };
+
 }

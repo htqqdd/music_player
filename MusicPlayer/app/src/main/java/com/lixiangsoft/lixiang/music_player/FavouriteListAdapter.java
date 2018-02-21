@@ -17,10 +17,12 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -63,6 +65,7 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
     private View rootview;
     private int menu_position;
     private int match_selected_position;
+    private int suit_height;
 
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
@@ -74,6 +77,9 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = (Activity) parent.getContext();
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        mContext.getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
+        suit_height = outMetrics.widthPixels /7*2;
         ViewHolder holder = new ViewHolder(LayoutInflater.from(
                 mContext).inflate(R.layout.favourite_musiclist, parent,
                 false));
@@ -171,10 +177,13 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
         public ViewHolder(View view) {
             super(view);
             cardView = (CardView) view;
-            cover = (ImageView) view.findViewById(R.id.Favourite_list_cover);
-            button = (ImageView) view.findViewById(R.id.Favourite_list_button);
-            album = (TextView) view.findViewById(R.id.Favourite_list_album);
-            singer = (TextView) view.findViewById(R.id.Favourite_list_singer);
+            cover = view.findViewById(R.id.Favourite_list_cover);
+            button = view.findViewById(R.id.Favourite_list_button);
+            album =  view.findViewById(R.id.Favourite_list_album);
+            singer = view.findViewById(R.id.Favourite_list_singer);
+            ViewGroup.LayoutParams lp_cover = cover.getLayoutParams();
+            lp_cover.height = suit_height;
+            cover.setLayoutParams(lp_cover);
         }
     }
 
@@ -250,6 +259,7 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
                 .load(url)
                 .centerCrop()
                 .placeholder(R.drawable.default_album)
+                .dontAnimate()
                 .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                 .into(search_for_album_selected);
         previous.setOnClickListener(new View.OnClickListener() {
@@ -265,6 +275,7 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
                             .load(url)
                             .centerCrop()
                             .placeholder(R.drawable.default_album)
+                            .dontAnimate()
                             .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                             .into(search_for_album_selected);
                 }
@@ -283,6 +294,7 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
                             .load(url)
                             .centerCrop()
                             .placeholder(R.drawable.default_album)
+                            .dontAnimate()
                             .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                             .into(search_for_album_selected);
                 }

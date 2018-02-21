@@ -5,20 +5,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ImageView
-        android:id="@+id/play_now_cover"
+    <android.support.v4.view.ViewPager
         android:layout_width="match_parent"
-        android:layout_height="380dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/default_album" />
+        android:layout_height="300dp"
+        android:id = "@+id/play_now_cover_viewpager">
+    </android.support.v4.view.ViewPager>
 
     <android.support.v7.widget.CardView
         android:id="@+id/main_control_ui"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_alignParentTop="true"
-        app:cardCornerRadius="0dp"
-        android:foreground="?android:attr/selectableItemBackgroundBorderless">
+        app:cardCornerRadius="0dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -106,13 +104,13 @@
         android:id="@+id/play_now_back_color"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/play_now_cover" />
+        android:layout_below="@id/play_now_cover_viewpager" />
 
     <RelativeLayout
         android:id="@+id/seekbar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/play_now_cover"
+        android:layout_below="@id/play_now_cover_viewpager"
         android:background="#40000000">
 
         <SeekBar
@@ -159,8 +157,7 @@
         android:id="@+id/control_layout"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:layout_below="@id/seekbar_layout"
-        android:layout_marginTop="16dp">
+        android:layout_below="@id/seekbar_layout">
 
         <ImageView
             android:id="@+id/repeat_button"
@@ -233,7 +230,7 @@
     <android.support.v7.widget.CardView
         android:id = "@+id/music_info_cardView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="100dp"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="16dp"
         android:layout_marginLeft="16dp"
@@ -241,7 +238,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical">
 
             <TextView
@@ -272,7 +269,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="80dp"
+                    android:layout_height="match_parent"
                     android:layout_marginLeft="24dp"
                     android:layout_marginRight="62dp"
                     android:layout_toRightOf="@id/volume"
@@ -348,7 +345,7 @@
     <ImageView
         android:visibility="gone"
         android:id = "@+id/gradient_top"
-        android:layout_below="@id/play_now_cover"
+        android:layout_below="@id/play_now_cover_viewpager"
         android:layout_width="match_parent"
         android:layout_height="200dp"/>
     <ImageView

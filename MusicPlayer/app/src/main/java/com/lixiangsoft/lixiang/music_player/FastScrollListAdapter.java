@@ -263,6 +263,7 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                 .load(url)
                 .centerCrop()
                 .placeholder(R.drawable.default_album)
+                .dontAnimate()
                 .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                 .into(search_for_album_selected);
         previous.setOnClickListener(new View.OnClickListener() {
@@ -278,6 +279,7 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                             .load(url)
                             .centerCrop()
                             .placeholder(R.drawable.default_album)
+                            .dontAnimate()
                             .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                             .into(search_for_album_selected);
                 }
@@ -296,6 +298,7 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                             .load(url)
                             .centerCrop()
                             .placeholder(R.drawable.default_album)
+                            .dontAnimate()
                             .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                             .into(search_for_album_selected);
                 }

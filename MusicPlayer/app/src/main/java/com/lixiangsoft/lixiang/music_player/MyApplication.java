@@ -9,6 +9,7 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.Toast;
 
 import com.tencent.bugly.Bugly;
@@ -48,6 +49,7 @@ public class MyApplication extends Application {
     public static boolean local_net_mode = false;
     public static boolean serviceStarted = false;
     public static boolean hasInitialized = false;
+    public static View.OnClickListener listener;
 
     @Override
     public void onCreate() {
@@ -357,4 +359,11 @@ public class MyApplication extends Application {
         return hasInitialized;
     }
 
+    public static View.OnClickListener getlyric_onClickListener() {
+        return listener;
+    }
+
+    public static void setlyric_onClickListener(View.OnClickListener listener) {
+        MyApplication.listener = listener;
+    }
 }

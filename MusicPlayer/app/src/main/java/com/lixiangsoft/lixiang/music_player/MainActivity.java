@@ -3,6 +3,7 @@ package com.lixiangsoft.lixiang.music_player;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.ArgbEvaluator;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -20,6 +21,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.RingtoneManager;
@@ -38,6 +40,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
+import android.support.v4.graphics.ColorUtils;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.animation.FastOutLinearInInterpolator;
@@ -81,6 +84,7 @@ import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.FutureTarget;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
 import com.google.gson.Gson;
@@ -127,6 +131,8 @@ import permissions.dispatcher.RuntimePermissions;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static com.lixiangsoft.lixiang.music_player.R.id.delete;
+import static com.lixiangsoft.lixiang.music_player.R.id.item_touch_helper_previous_elevation;
+import static com.lixiangsoft.lixiang.music_player.R.id.play_now_cover_viewpager;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.COLLAPSED;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.DRAGGING;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDED;
@@ -134,10 +140,8 @@ import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDE
 @RuntimePermissions
 public class MainActivity extends AestheticActivity {
     private static SeekBar seekBar;
-    private boolean isFirstTime = true;
     private ViewPager viewPager;
     private MsgReceiver msgReceiver;
-    private boolean isfromSc = false;
     private int flag = 0;
     private int cx = 0;
     private int cy = 0;
@@ -154,9 +158,8 @@ public class MainActivity extends AestheticActivity {
     private LrcView otherLyricView;
     private boolean fromLyric = false;
     boolean visible;
-    //    private TransitionSet set = ;
     private ViewGroup transitionsContainer;
-
+    private boolean isfromSc = false;
     //匹配
     private TextView match_title;
     private TextView match_progress;
@@ -165,11 +168,15 @@ public class MainActivity extends AestheticActivity {
     private int match_error;
     private List<musicInfo> musicInfoArrayList;
     private Dialog match_dialog;
+    private ViewPager play_now_cover_viewPager;
+    private List<musicInfo> previousList;
+    private RequestListener listener;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.e("OnCreate","OnCreate");
         setContentView(R.layout.activity_main);
 
         //沉浸状态栏
@@ -186,21 +193,78 @@ public class MainActivity extends AestheticActivity {
         }
 
         //初始化全局变量
-        seekBar = (SeekBar) findViewById(R.id.seekBar);
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
-        random_play = (FloatingActionButton) findViewById(R.id.random_play);
-        mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-//        lunch_play_now_button = (ImageView) findViewById(R.id.lunch_play_now_button);
-        play_pause_button = (ImageView) findViewById(R.id.play_pause_button);
-        back = (ImageView) findViewById(R.id.back);
-        about = (ImageView) findViewById(R.id.about);
-        otherLyricView = (LrcView) findViewById(R.id.other_lrc_view);
-        transitionsContainer = (ViewGroup) findViewById(R.id.activity_now_play);
-        main_control_ui = (CardView) findViewById(R.id.main_control_ui);
+        seekBar = findViewById(R.id.seekBar);
+        navigationView = findViewById(R.id.nav_view);
+        random_play = findViewById(R.id.random_play);
+        mLayout = findViewById(R.id.sliding_layout);
+        play_pause_button = findViewById(R.id.play_pause_button);
+        back = findViewById(R.id.back);
+        about = findViewById(R.id.about);
+        otherLyricView = findViewById(R.id.other_lrc_view);
+        transitionsContainer = findViewById(R.id.activity_now_play);
+        main_control_ui = findViewById(R.id.main_control_ui);
+        play_now_cover_viewPager = findViewById(R.id.play_now_cover_viewpager);
+        listener = new RequestListener() {
+            @Override
+            public boolean onException(Exception e, Object model, Target target, boolean isFirstResource) {
+                Bitmap resource = ((BitmapDrawable) MainActivity.this.getDrawable(R.drawable.default_album)).getBitmap();
+                animation_change_color(ColorUtil.getColor(resource));
+                return false;
+            }
 
+            @Override
+            public boolean onResourceReady(Object resource, Object model, Target target, boolean isFromMemoryCache, boolean isFirstResource) {
+                animation_change_color(ColorUtil.getColor((Bitmap) resource));
+                return false;
+            }
+        };
+        View.OnClickListener lyric_onClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!otherLyricView.hasLrc()) {
+                    //判断是否有用户自己储存歌词
+                    musicInfo musicNow = MyApplication.getMusicListNow().get(MyApplication.getPositionNow());
+                    String path = musicNow.getMusicData();
+                    int total = path.length();
+                    File file = new File(path.substring(0, total - 4) + ".lrc");
+                    //判断是否有程序储存歌词
+                    File file2 = new File(MainActivity.this.getFilesDir().getAbsolutePath() + "/" + musicNow.getMusicTitle() + ".lrc");
+                    if (file.isFile() && file.exists()) {
+                        //加载歌词
+                        otherLyricView.loadLrc(file);
+                        changeVisibility();
+                        otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
+                            @Override
+                            public boolean onPlayClick(long time) {
+                                fromLyric = true;
+                                seekBar.setProgress((int) time);
+                                return false;
+                            }
+                        });
+                    } else if (file2.isFile() && file2.exists()) {
+                        otherLyricView.loadLrc(file2);
+                        changeVisibility();
+                        otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
+                            @Override
+                            public boolean onPlayClick(long time) {
+                                fromLyric = true;
+                                seekBar.setProgress((int) time);
+                                return false;
+                            }
+                        });
+                    } else if (MyApplication.getLocal_net_mode() == false) {
+                        new getLyricTask().execute(musicNow.getMusicTitle(), musicNow.getMusicArtist());
+                        changeVisibility();
+                    } else {
+                        Toast.makeText(MainActivity.this, "当前处于离线模式", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    changeVisibility();
+                }
+            }
+        };
+        MyApplication.setlyric_onClickListener(lyric_onClickListener);
 
-        //多屏幕尺寸适应
-        new screenAdaptionTask().execute();
 
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         SimpleFragmentPagerAdapter adapter = new SimpleFragmentPagerAdapter(getSupportFragmentManager());
@@ -209,7 +273,6 @@ public class MainActivity extends AestheticActivity {
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
-
                 if (position == 0) {
                     if (mLayout.getPanelHeight() == 0) {
                         random_play.show();
@@ -245,6 +308,30 @@ public class MainActivity extends AestheticActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+
+
+        //设置起始页
+        Intent sc_intent = getIntent();
+        String sc_action = sc_intent.getStringExtra("sc_action");
+        if (sc_action != null) {
+            isfromSc = true;
+            switch (sc_action) {
+                case "cloud":
+                    viewPager.setCurrentItem(2);
+                    break;
+                case "library":
+                    viewPager.setCurrentItem(0);
+                    break;
+                case "list":
+                    viewPager.setCurrentItem(1);
+                    break;
+                default:
+            }
+        }
+
+        //多屏幕尺寸适应
+        new screenAdaptionTask().execute();
+
 
         //新标题栏
         Toolbar main_toolbar = (Toolbar) findViewById(R.id.main_toolbar);
@@ -296,7 +383,6 @@ public class MainActivity extends AestheticActivity {
         mDrawerToggle.syncState();
         drawerLayout.setDrawerListener(mDrawerToggle);
         //Nac_view点击
-//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setCheckedItem(R.id.suggestion_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -344,64 +430,18 @@ public class MainActivity extends AestheticActivity {
                 }
                 if (previousState == DRAGGING && newState == EXPANDED) {
                     //禁止手势滑动
-                    play_pause_button.setClickable(false);
                     main_control_ui.setClickable(false);
+                    play_pause_button.setClickable(false);
                     about.setClickable(true);
                     back.setClickable(true);
-                    final ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
-                    play_now_cover.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if (!otherLyricView.hasLrc()) {
-                                //判断是否有用户自己储存歌词
-                                musicInfo musicNow = MyApplication.getMusicListNow().get(MyApplication.getPositionNow());
-                                String path = musicNow.getMusicData();
-                                int total = path.length();
-                                File file = new File(path.substring(0, total - 4) + ".lrc");
-                                //判断是否有程序储存歌词
-                                File file2 = new File(MainActivity.this.getFilesDir().getAbsolutePath() + "/" + musicNow.getMusicTitle() + ".lrc");
-                                if (file.isFile() && file.exists()) {
-                                    //加载歌词
-                                    otherLyricView.loadLrc(file);
-                                    changeVisibility();
-                                    otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
-                                        @Override
-                                        public boolean onPlayClick(long time) {
-                                            fromLyric = true;
-                                            seekBar.setProgress((int) time);
-                                            return false;
-                                        }
-                                    });
-                                } else if (file2.isFile() && file2.exists()) {
-                                    otherLyricView.loadLrc(file2);
-                                    changeVisibility();
-                                    otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
-                                        @Override
-                                        public boolean onPlayClick(long time) {
-                                            fromLyric = true;
-                                            seekBar.setProgress((int) time);
-                                            return false;
-                                        }
-                                    });
-                                } else if (MyApplication.getLocal_net_mode() == false) {
-                                    new getLyricTask().execute(musicNow.getMusicTitle(), musicNow.getMusicArtist());
-                                    changeVisibility();
-                                } else {
-                                    Toast.makeText(MainActivity.this, "当前处于离线模式", Toast.LENGTH_SHORT).show();
-                                }
-                            } else {
-                                changeVisibility();
-                            }
-                        }
-                    });
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                 }
                 if (previousState == DRAGGING && newState == COLLAPSED) {
                     if (mTimer != null) {
                         mTimer.cancel();
                     }
-                    play_pause_button.setClickable(true);
                     main_control_ui.setClickable(true);
+                    play_pause_button.setClickable(true);
                     about.setClickable(false);
                     back.setClickable(false);
                     //恢复手势滑动
@@ -468,6 +508,39 @@ public class MainActivity extends AestheticActivity {
             mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
             mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f));
         }
+
+        final ColorShades shades = new ColorShades();
+        play_now_cover_viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            int previousState;
+            boolean fromUser = false;
+
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (fromUser) {
+                    MyApplication.setPositionNow(position);
+                    Intent intent = new Intent("service_broadcast");
+                    intent.putExtra("ACTION", MyConstant.playAction);
+                    MainActivity.this.sendBroadcast(intent);
+                }
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                if (previousState == ViewPager.SCROLL_STATE_DRAGGING && state == ViewPager.SCROLL_STATE_SETTLING) {
+                    fromUser = true;
+                } else {
+                    fromUser = false;
+                }
+                previousState = state;
+            }
+        });
+
         MainActivityPermissionsDispatcher.needsPermissionWithCheck(this);
     }
 
@@ -514,8 +587,6 @@ public class MainActivity extends AestheticActivity {
 
     @Override
     protected void onStart() {
-        Log.e("OnStart执行", "OnStart");
-        super.onStart();
         ensureServiceStarted();
         //绑定服务
         Intent bindIntent = new Intent(this, PlayService.class);
@@ -551,26 +622,6 @@ public class MainActivity extends AestheticActivity {
             }
         });
 
-        //设置起始页
-        if (isfromSc == false) {
-            if (isFirstTime) {
-                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                String start_page = sharedPref.getString("start_page", "");
-                switch (start_page) {
-                    case "suggestion":
-                        viewPager.setCurrentItem(0);
-                        break;
-                    case "list":
-                        viewPager.setCurrentItem(1);
-                        break;
-                    case "cloud":
-                        viewPager.setCurrentItem(2);
-                        break;
-                    default:
-                }
-                isFirstTime = false;
-            }
-        }
 
         random_play.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -582,6 +633,8 @@ public class MainActivity extends AestheticActivity {
                 sendBroadcast(intent);
             }
         });
+
+        super.onStart();
     }
 
     @Override
@@ -653,6 +706,7 @@ public class MainActivity extends AestheticActivity {
 
     public void previous(View v) {
         playService.previous();
+
     }
 
     public void next(View v) {
@@ -709,8 +763,9 @@ public class MainActivity extends AestheticActivity {
         }
     }
 
-    public void animation_change_color(int Int) {
+    public void animation_change_color(final int Int) {
         ImageView play_now_back_color = (ImageView) findViewById(R.id.play_now_back_color);
+        final RelativeLayout activity_now_play = (RelativeLayout) findViewById(R.id.activity_now_play);
         if (cx == 0) {
             FloatingActionButton play_or_pause = (FloatingActionButton) findViewById(R.id.play_or_pause);
             RelativeLayout seekbar_layout = (RelativeLayout) findViewById(R.id.seekbar_layout);
@@ -719,8 +774,6 @@ public class MainActivity extends AestheticActivity {
             cy = control_layout.getTop() - seekbar_layout.getTop() + play_or_pause.getTop() + play_or_pause.getHeight() / 2;
             finalRadius = Math.max(play_now_back_color.getWidth(), play_now_back_color.getHeight());
         }
-        final int Int1 = Int;
-        final RelativeLayout activity_now_play = (RelativeLayout) findViewById(R.id.activity_now_play);
         if (cx != 0) {
             Animator anim = ViewAnimationUtils.createCircularReveal(play_now_back_color, cx, cy, 0, finalRadius);
             play_now_back_color.setBackgroundColor(Int);
@@ -730,15 +783,24 @@ public class MainActivity extends AestheticActivity {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
-                    activity_now_play.setBackgroundColor(Int1);
+                    activity_now_play.setBackgroundColor(Int);
                 }
             });
         } else {
-            activity_now_play.setBackgroundColor(Int1);
+            activity_now_play.setBackgroundColor(Int);
         }
         TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
         now_on_play_text.setTextColor(Int);
         //lrcview字体颜色
+        if (ColorUtil.isColorLight(Int)) {
+            otherLyricView.setNormalColor(Color.parseColor("#60000000"));
+            otherLyricView.setTimelineTextColor(Color.parseColor("#000000"));
+            otherLyricView.setCurrentColor(Color.parseColor("#000000"));
+        } else {
+            otherLyricView.setNormalColor(Color.parseColor("#60FFFFFF"));
+            otherLyricView.setTimelineTextColor(Color.parseColor("#FFFFFF"));
+            otherLyricView.setCurrentColor(Color.parseColor("#FFFFFF"));
+        }
 
         //歌词背景颜色
         if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
@@ -746,95 +808,85 @@ public class MainActivity extends AestheticActivity {
             View top = findViewById(R.id.gradient_top);
             View gradient = findViewById(R.id.gradient);
             top.setBackground(
-                    ScrimUtil.makeCubicGradientScrimDrawable(Int1, //颜色
+                    ScrimUtil.makeCubicGradientScrimDrawable(Int, //颜色
                             8, //渐变层数
                             Gravity.TOP)); //起始方向
             bottom.setBackground(
-                    ScrimUtil.makeCubicGradientScrimDrawable(Int1, //颜色
+                    ScrimUtil.makeCubicGradientScrimDrawable(Int, //颜色
                             8, //渐变层数
                             Gravity.BOTTOM)); //起始方向
             gradient.setBackground(
-                    ScrimUtil.makeCubicGradientScrimDrawable(Int1, //颜色
+                    ScrimUtil.makeCubicGradientScrimDrawable(Int, //颜色
                             8, //渐变层数
                             Gravity.BOTTOM)); //起始方向
         }
     }
 
     public void ChangeScrollingUpPanel(int position) {
-        musicInfo nowMusic = MyApplication.getMusicListNow().get(position);
-        String title = nowMusic.getMusicTitle();
-        String artist = nowMusic.getMusicArtist();
         seekBar.setProgress(0);
         seekBar.setMax(MyApplication.getMediaDuration());
         final TextView duration = (TextView) findViewById(R.id.duration);
         duration.setText(toTime(MyApplication.getMediaDuration()));
+        //设置歌曲名，歌手
+        musicInfo nowMusic = MyApplication.getMusicListNow().get(position);
+        String title = nowMusic.getMusicTitle();
+        String artist = nowMusic.getMusicArtist();
+        TextView play_now_song = (TextView) findViewById(R.id.play_now_song);
+        TextView play_now_singer = (TextView) findViewById(R.id.play_now_singer);
+        play_now_song.setText(title);
+        play_now_singer.setText(artist);
+        //小控制栏
         TextView main_song_title = (TextView) findViewById(R.id.main_song_title);
+        main_song_title.setText(title);
         final ImageView repeat_button = (ImageView) findViewById(R.id.repeat_button);
         ImageView shuffle_button = (ImageView) findViewById(R.id.shuffle_button);
         FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
-        main_song_title.setText(title);
-        ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
-//设置播放模式按钮
-        //playMode 0:列表重复 1:随机 2:单曲重复 3:顺序
-        if (MyApplication.getPlayMode() == MyConstant.list_repeat) {
+        //判断是否更改List
+        if (previousList != MyApplication.getMusicListNow()) {
+            playNowCoverPagerAdapter coverPagerAdapter = new playNowCoverPagerAdapter(MainActivity.this);
+            play_now_cover_viewPager.setAdapter(coverPagerAdapter);
+            previousList = MyApplication.getMusicListNow();
+        }
+        play_now_cover_viewPager.setCurrentItem(MyApplication.getPositionNow());
+
+        if (otherLyricView.getVisibility() == VISIBLE) {
+            changeVisibility();
+        }
+        //animationChangeColor
+        if (!nowMusic.getMusicLink().equals("")) {//网络
+            Glide.with(this).load(nowMusic.getMusicLargeAlbum()).asBitmap().diskCacheStrategy(DiskCacheStrategy.SOURCE).listener(listener).into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
+        } else {//本地
+            if (nowMusic.getAlbumLink() != null) {//本地下载
+                Glide.with(this).load(nowMusic.getAlbumLink()).asBitmap().diskCacheStrategy(DiskCacheStrategy.SOURCE).listener(listener).into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
+            } else {//本地原有
+                Glide.with(this).load(ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), nowMusic.getMusicAlbumId())).asBitmap().listener(listener).diskCacheStrategy(DiskCacheStrategy.SOURCE).into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
+            }
+        }
+
+        TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
+        now_on_play_text.setText("正在播放");
+        otherLyricView.loadLrc("");
+        //设置播放模式按钮
+        int playMode = MyApplication.getPlayMode();
+        if (playMode == MyConstant.list_repeat) {
             repeat_button.setImageResource(R.drawable.repeat);
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
-        } else if (MyApplication.getPlayMode() == MyConstant.random) {
+        } else if (playMode == MyConstant.random) {
             shuffle_button.setImageResource(R.drawable.shuffle);
             repeat_button.setImageResource(R.drawable.repeat_grey);
-        } else if (MyApplication.getPlayMode() == MyConstant.one_repeat) {
+        } else if (playMode == MyConstant.one_repeat) {
             repeat_button.setImageResource(R.drawable.repeat_one);
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
         } else {
             repeat_button.setImageResource(R.drawable.repeat_grey);
             shuffle_button.setImageResource(R.drawable.shuffle_grey);
         }
-        //设置封面,自动封面获取颜色
-        RequestListener listener = new RequestListener() {
-            @Override
-            public boolean onException(Exception e, Object model, Target target, boolean isFirstResource) {
-                Bitmap resource = ((BitmapDrawable) getDrawable(R.drawable.default_album)).getBitmap();
-                Palette p = Palette.from(resource).generate();
-                animation_change_color(ColorUtil.getColor(p));
-                return false;
-            }
-
-            @Override
-            public boolean onResourceReady(Object resource, Object model, Target target, boolean isFromMemoryCache, boolean isFirstResource) {
-                Palette p = Palette.from(ColorUtil.drawableToBitmap((GlideDrawable) resource)).generate();
-                animation_change_color(ColorUtil.getColor(p));
-                return false;
-            }
-        };
-        if (!nowMusic.getMusicLink().equals("")) {//网络
-            Glide.with(this).load(nowMusic.getMusicLargeAlbum()).listener(listener).placeholder(R.drawable.default_album).into(play_now_cover);
-        } else {//本地
-            if (nowMusic.getAlbumLink() != null) {
-                Glide.with(this)
-                        .load(nowMusic.getAlbumLink())
-                        .placeholder(R.drawable.default_album)
-                        .listener(listener)
-                        .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                        .into(play_now_cover);
-            } else {
-                Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-                Uri uri = ContentUris.withAppendedId(sArtworkUri, nowMusic.getMusicAlbumId());
-                Glide.with(this).load(uri).listener(listener).placeholder(R.drawable.default_album).into(play_now_cover);
-            }
-        }
-
-
-        //设置歌曲名，歌手
-        TextView play_now_song = (TextView) findViewById(R.id.play_now_song);
-        TextView play_now_singer = (TextView) findViewById(R.id.play_now_singer);
-        play_now_song.setText(title);
-        play_now_singer.setText(artist);
 
         //设置播放按钮
         if (MyApplication.getState() == MyConstant.playing) {
             floatingActionButton.setImageResource(R.drawable.ic_pause_black_24dp);
             play_pause_button.setImageResource(R.drawable.ic_pause_black_24dp);
-        } else if (MyApplication.getState() == MyConstant.pausing) {
+        } else {
             floatingActionButton.setImageResource(R.drawable.ic_play_arrow_black_24dp);
             play_pause_button.setImageResource(R.drawable.ic_play_arrow_black_24dp);
         }
@@ -902,28 +954,18 @@ public class MainActivity extends AestheticActivity {
             if (intent.getIntExtra("UIChange", 0) == MyConstant.initialize) {
                 mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f));
                 random_play.hide();
-            }else if (intent.getIntExtra("UIChange", 0) == MyConstant.pauseAction) {
+            } else if (intent.getIntExtra("UIChange", 0) == MyConstant.pauseAction) {
                 FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
                 floatingActionButton.setImageResource(R.drawable.ic_play_arrow_black_24dp);
                 play_pause_button.setImageResource(R.drawable.ic_play_arrow_black_24dp);
-            }else if (intent.getIntExtra("UIChange", 0) == MyConstant.playAction) {
+            } else if (intent.getIntExtra("UIChange", 0) == MyConstant.playAction) {
                 FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
                 floatingActionButton.setImageResource(R.drawable.ic_pause_black_24dp);
                 play_pause_button.setImageResource(R.drawable.ic_pause_black_24dp);
-            }else if (intent.getIntExtra("UIChange", 0) == MyConstant.mediaChangeAction) {
+            } else if (intent.getIntExtra("UIChange", 0) == MyConstant.mediaChangeAction) {
                 ChangeScrollingUpPanel(MyApplication.getPositionNow());
-                if (otherLyricView.getVisibility() == VISIBLE) {
-                    changeVisibility();
-                }
-                TextView now_on_play_text = (TextView) findViewById(R.id.now_on_play_text);
-                now_on_play_text.setText("正在播放");
-                otherLyricView.loadLrc("");
-            }else if (intent.getIntExtra("onDestroy", 0) == 1) {
+            } else if (intent.getIntExtra("onDestroy", 0) == 1) {
                 finish();
-            }else if (intent.getIntExtra("viewPagerChange", -1) != -1) {
-                isfromSc = true;
-                viewPager.setCurrentItem(intent.getIntExtra("viewPagerChange", -1));
-                isfromSc = false;
             }
         }
 
@@ -1008,25 +1050,47 @@ public class MainActivity extends AestheticActivity {
     private class screenAdaptionTask extends AsyncTask {
         @Override
         protected Object doInBackground(Object[] objects) {
-            //检测网络模式设置
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            String start_page = sharedPref.getString("start_page", "");
+            //检测网络模式设置
             Boolean local_net_mode = sharedPref.getBoolean("local_net_mode", false);
             MyApplication.setLocal_net_mode(local_net_mode);
-            return (int) (getResources().getDisplayMetrics().heightPixels * 0.6);
+            return start_page;
         }
 
         @Override
         protected void onPostExecute(Object o) {
-            super.onPostExecute(o);
-            ImageView play_now_cover = (ImageView) findViewById(R.id.play_now_cover);
+            if (!isfromSc) {
+                switch ((String) o) {
+                    case "suggestion":
+                        viewPager.setCurrentItem(0);
+                        break;
+                    case "list":
+                        viewPager.setCurrentItem(1);
+                        break;
+                    case "cloud":
+                        viewPager.setCurrentItem(2);
+                        break;
+                    default:
+                }
+            }
+            ViewPager play_now_cover_viewPager = findViewById(R.id.play_now_cover_viewpager);
             View lrcView = findViewById(R.id.other_lrc_view);
-            RelativeLayout.LayoutParams lp_play_now_cover = (RelativeLayout.LayoutParams) play_now_cover.getLayoutParams();
+            RelativeLayout control_layout = findViewById(R.id.control_layout);
+            CardView music_info_cardView = findViewById(R.id.music_info_cardView);
+            ViewGroup.LayoutParams lp_control_layout = control_layout.getLayoutParams();
+            RelativeLayout.LayoutParams lp_play_now_cover = (RelativeLayout.LayoutParams) play_now_cover_viewPager.getLayoutParams();
             RelativeLayout.LayoutParams lp_lrcView = (RelativeLayout.LayoutParams) lrcView.getLayoutParams();
-            lp_play_now_cover.height = (int) o;
-            lp_lrcView.height = ((int) o / 3 * 2);
-            play_now_cover.setLayoutParams(lp_play_now_cover);
+            ViewGroup.LayoutParams lp_cardView = music_info_cardView.getLayoutParams();
+            lp_play_now_cover.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.6);
+            lp_lrcView.height = ((int) (getResources().getDisplayMetrics().heightPixels * 0.4));
+            lp_control_layout.height = ((int) (getResources().getDisplayMetrics().heightPixels * 0.16));
+            lp_cardView.height = ((int) (getResources().getDisplayMetrics().heightPixels * 0.17));
+            play_now_cover_viewPager.setLayoutParams(lp_play_now_cover);
             lrcView.setLayoutParams(lp_lrcView);
-
+            control_layout.setLayoutParams(lp_control_layout);
+            music_info_cardView.setLayoutParams(lp_cardView);
+            super.onPostExecute(o);
         }
     }
 
@@ -1048,7 +1112,7 @@ public class MainActivity extends AestheticActivity {
         mTimer = new Timer();
         final TextView duration = (TextView) findViewById(R.id.duration);
         if (playService != null) {
-            duration.setText(toTime(playService.getDuration()));
+            duration.setText(toTime(MyApplication.getMediaDuration()));
         }
         TimerTask task = new TimerTask() {
             @Override
@@ -1208,7 +1272,7 @@ public class MainActivity extends AestheticActivity {
                     break;
                 default:
                     final String Str[] = s.split("@");
-                    try{
+                    try {
                         final String lyric = praseLyric(Str[1]);
                         otherLyricView.loadLrc(lyric);
                         otherLyricView.setOnPlayClickListener(new LrcView.OnPlayClickListener() {
@@ -1225,7 +1289,7 @@ public class MainActivity extends AestheticActivity {
                                 savelyric(Str[0], lyric);
                             }
                         }).show();
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         otherLyricView.loadLrc("");
                         otherLyricView.setLabel("未搜索到匹配歌词");
                     }
@@ -1687,7 +1751,7 @@ public class MainActivity extends AestheticActivity {
                             musicInfo musicNow = musicInfoArrayList.get(match_position);
                             musicNow.setAlbumLink(url);
                             MyApplication.getBoxStore().boxFor(musicInfo.class).put(musicNow);
-                            new Handler().postDelayed(new Runnable(){//延迟执行
+                            new Handler().postDelayed(new Runnable() {//延迟执行
                                 public void run() {
                                     next_match();
                                 }

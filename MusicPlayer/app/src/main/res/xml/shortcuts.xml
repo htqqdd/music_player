@@ -19,13 +19,13 @@
         android:shortcutLongLabel="@string/sc_library"
         android:shortcutShortLabel="@string/sc_library">
         <intent
-            android:action="android.intent.action.SUGGESTION"
+            android:action="android.intent.action.MAIN"
             android:targetClass="com.lixiangsoft.lixiang.music_player.MainActivity"
-            android:targetPackage="com.lixiangsoft.lixiang.music_player"/>
-        <intent
-            android:action="android.intent.action.SUGGESTION"
-            android:targetClass="com.lixiangsoft.lixiang.music_player.sc_library"
-            android:targetPackage="com.lixiangsoft.lixiang.music_player"/>
+            android:targetPackage="com.lixiangsoft.lixiang.music_player">
+            <extra
+                android:name="sc_action"
+                android:value="library"/>
+        </intent>
 
     </shortcut>
     <shortcut
@@ -36,13 +36,13 @@
         android:shortcutLongLabel="@string/sc_list"
         android:shortcutShortLabel="@string/sc_list">
         <intent
-            android:action="android.intent.action.SUGGESTION"
+            android:action="android.intent.action.MAIN"
             android:targetClass="com.lixiangsoft.lixiang.music_player.MainActivity"
-            android:targetPackage="com.lixiangsoft.lixiang.music_player"/>
-        <intent
-            android:action="android.intent.action.LIST"
-            android:targetClass="com.lixiangsoft.lixiang.music_player.sc_list"
-            android:targetPackage="com.lixiangsoft.lixiang.music_player"/>
+            android:targetPackage="com.lixiangsoft.lixiang.music_player">
+            <extra
+                android:name="sc_action"
+                android:value="list"/>
+        </intent>
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -52,13 +52,13 @@
         android:shortcutLongLabel="@string/sc_cloud"
         android:shortcutShortLabel="@string/sc_cloud">
         <intent
-            android:action="android.intent.action.SUGGESTION"
+            android:action="android.intent.action.MAIN"
             android:targetClass="com.lixiangsoft.lixiang.music_player.MainActivity"
-            android:targetPackage="com.lixiangsoft.lixiang.music_player"/>
-        <intent
-            android:action="android.intent.action.RESOURCES"
-            android:targetClass="com.lixiangsoft.lixiang.music_player.sc_cloud"
-            android:targetPackage="com.lixiangsoft.lixiang.music_player"/>
+            android:targetPackage="com.lixiangsoft.lixiang.music_player">
+            <extra
+                android:name="sc_action"
+                android:value="cloud"/>
+        </intent>
     </shortcut>
 
 </shortcuts>

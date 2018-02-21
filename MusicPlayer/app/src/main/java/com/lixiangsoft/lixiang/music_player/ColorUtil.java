@@ -12,10 +12,16 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.ColorInt;
 import android.support.v7.graphics.Palette;
 
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 public class ColorUtil {
 
     public static boolean isColorLight(@ColorInt int color) {
-        return getColorDarkness(color) < 0.5;
+        return getColorDarkness(color) < 0.3;
     }
 
     public static double getColorDarkness(@ColorInt int color) {
@@ -76,12 +82,13 @@ public class ColorUtil {
         int g = Math.round(Color.green(color) * factor);
         int b = Math.round(Color.blue(color) * factor);
         return Color.argb(a,
-                Math.min(r,255),
-                Math.min(g,255),
-                Math.min(b,255));
+                Math.min(r, 255),
+                Math.min(g, 255),
+                Math.min(b, 255));
     }
 
-    public static int getColor (Palette palette){
+    public static int getColor(Bitmap bitmap) {
+        Palette palette = Palette.from(bitmap).generate();
         if (palette.getVibrantSwatch() != null) {
             return palette.getVibrantSwatch().getRgb();
         } else if (palette.getMutedSwatch() != null) {
@@ -99,17 +106,48 @@ public class ColorUtil {
         }
     }
 
-    public static Bitmap drawableToBitmap (Drawable drawable) {
-        Bitmap bitmap = null;
+    public static int getColor(Drawable drawable) {
+        Palette palette = Palette.from(drawableToBitmap(drawable)).generate();
+        if (palette.getVibrantSwatch() != null) {
+            return palette.getVibrantSwatch().getRgb();
+        } else if (palette.getMutedSwatch() != null) {
+            return palette.getMutedSwatch().getRgb();
+        } else if (palette.getDarkVibrantSwatch() != null) {
+            return palette.getDarkVibrantSwatch().getRgb();
+        } else if (palette.getDarkMutedSwatch() != null) {
+            return palette.getDarkMutedSwatch().getRgb();
+        } else if (palette.getLightVibrantSwatch() != null) {
+            return palette.getLightVibrantSwatch().getRgb();
+        } else if (palette.getLightMutedSwatch() != null) {
+            return palette.getLightMutedSwatch().getRgb();
+        } else {
+            return Color.parseColor("#009688");
+        }
+    }
+
+    private static Palette.Swatch getBestPaletteSwatchFrom(List<Palette.Swatch> swatches) {
+        if (swatches == null) return null;
+        return Collections.max(swatches, new Comparator<Palette.Swatch>() {
+            @Override
+            public int compare(Palette.Swatch opt1, Palette.Swatch opt2) {
+                int a = opt1 == null ? 0 : opt1.getPopulation();
+                int b = opt2 == null ? 0 : opt2.getPopulation();
+                return a - b;
+            }
+        });
+    }
+
+    public static Bitmap drawableToBitmap(Drawable drawable) {
+        Bitmap bitmap;
 
         if (drawable instanceof BitmapDrawable) {
             BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            if(bitmapDrawable.getBitmap() != null) {
+            if (bitmapDrawable.getBitmap() != null) {
                 return bitmapDrawable.getBitmap();
             }
         }
 
-        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+        if (drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
             bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
         } else {
             bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
@@ -120,5 +158,7 @@ public class ColorUtil {
         drawable.draw(canvas);
         return bitmap;
     }
+
+
 
 }
