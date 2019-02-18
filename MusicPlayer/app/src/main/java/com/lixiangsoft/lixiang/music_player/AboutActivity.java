@@ -12,7 +12,6 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
-
 import com.danielstone.materialaboutlibrary.ConvenienceBuilder;
 import com.danielstone.materialaboutlibrary.MaterialAboutActivity;
 import com.danielstone.materialaboutlibrary.items.MaterialAboutActionItem;
@@ -41,7 +40,7 @@ public class AboutActivity extends MaterialAboutActivity {
 
         appCardBuilder.addItem(new MaterialAboutTitleItem.Builder()
                 .text("音乐播放器")
-                .desc("© 2018 LiXiang Soft")
+                .desc("© 2019 LiXiang Soft")
                 .icon(R.mipmap.new_launcher)
                 .build());
 
@@ -120,57 +119,37 @@ public class AboutActivity extends MaterialAboutActivity {
 
         authorCardBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text("htqqdd")
-                .subText("给作者买碗泡面 or 领个红包")
+                .subText("您的捐赠是作者修复Bug、增加新功能的最大动力！")
                 .icon(getResources().getDrawable(R.drawable.ic_person_black_24dp))
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
                         AlertDialog.Builder alert = new AlertDialog.Builder(AboutActivity.this);
                         alert.setTitle("感谢捐赠");
-                        alert.setMessage("您的捐赠是作者修复Bug、增加新功能的最大动力！");
-                        alert.setPositiveButton("直接捐赠", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                AlertDialog.Builder alert = new AlertDialog.Builder(AboutActivity.this);
-                                alert.setTitle("感谢捐赠");
-                                alert.setMessage("您的捐赠是作者修复Bug、增加新功能的最大动力！");
-                                alert.setPositiveButton("通过支付宝", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        if (AlipayDonate.hasInstalledAlipayClient(AboutActivity.this)) {
-                                            AlipayDonate.startAlipayClient(AboutActivity.this, "FKX09974L1BJWNDN6ZEX6E");
-                                            Toast.makeText(c, "感谢您的捐赠", Toast.LENGTH_SHORT).show();
-                                        }else {
-                                            Toast.makeText(c, "没有检测到支付宝客户端", Toast.LENGTH_SHORT).show();
-                                        }
-                                    }
-                                });
-                                alert.setNegativeButton("通过微信", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        if (WeiXinDonate.hasInstalledWeiXinClient(AboutActivity.this)) {
-                                            InputStream weixinQrIs = getResources().openRawResource(R.raw.weixin_donation);
-                                            String qrPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "AndroidDonateSample" + File.separator +
-                                                    "weixin_donation.jpg";
-                                            WeiXinDonate.saveDonateQrImage2SDCard(qrPath, BitmapFactory.decodeStream(weixinQrIs));
-                                            WeiXinDonate.donateViaWeiXin(AboutActivity.this, qrPath);
-                                            Toast.makeText(c, "您需要手动选择相册里的二维码，感谢捐赠", Toast.LENGTH_SHORT).show();
-                                        }else {
-                                            Toast.makeText(c, "没有检测到微信客户端", Toast.LENGTH_SHORT).show();
-                                        }
-                                    }
-                                });
-                                alert.show();
-                            }
-                        });
-                        alert.setNegativeButton("领个红包", new DialogInterface.OnClickListener() {
+                        alert.setMessage("支持作者继续更新！");
+                        alert.setPositiveButton("通过支付宝", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 if (AlipayDonate.hasInstalledAlipayClient(AboutActivity.this)) {
-                                    AlipayDonate.startAlipayClient(AboutActivity.this, "c1x00755m2ysum0cq3cug58");
-                                    Toast.makeText(c, "感谢您的支持", Toast.LENGTH_SHORT).show();
+                                    AlipayDonate.startAlipayClient(AboutActivity.this, "FKX09974L1BJWNDN6ZEX6E");
+                                    Toast.makeText(c, "感谢您的捐赠", Toast.LENGTH_SHORT).show();
                                 }else {
                                     Toast.makeText(c, "没有检测到支付宝客户端", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                        alert.setNegativeButton("通过微信", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                if (WeiXinDonate.hasInstalledWeiXinClient(AboutActivity.this)) {
+                                    InputStream weixinQrIs = getResources().openRawResource(R.raw.weixin_donation);
+                                    String qrPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "AndroidDonateSample" + File.separator +
+                                            "weixin_donation.jpg";
+                                    WeiXinDonate.saveDonateQrImage2SDCard(qrPath, BitmapFactory.decodeStream(weixinQrIs));
+                                    WeiXinDonate.donateViaWeiXin(AboutActivity.this, qrPath);
+                                    Toast.makeText(c, "您需要手动选择相册里的二维码，感谢捐赠", Toast.LENGTH_SHORT).show();
+                                }else {
+                                    Toast.makeText(c, "没有检测到微信客户端", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });

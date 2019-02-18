@@ -8,8 +8,8 @@ android {
         applicationId "com.lixiangsoft.lixiang.music_player"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 59
-        versionName "0.5.9"
+        versionCode 61
+        versionName "0.6.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -45,7 +45,7 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.8.1'
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'io.objectbox:objectbox-android:1.0.1'
-    compile 'com.gyf.barlibrary:barlibrary:2.2.6'
+    implementation 'com.gyf.immersionbar:immersionbar:2.3.3-beta15'
     compile 'me.wcy:lrcview:2.0.1'
     compile 'com.tencent.bugly:crashreport_upgrade:latest.release'
     compile 'com.tencent.bugly:nativecrashreport:latest.release'

@@ -60,6 +60,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     private boolean onetime = true;
     private static final int NOTIFICATION_ID = 101;
     private AudioManager audioManager;
+    private boolean pasuefromUser = true;
 
     private BassBoost mBass;
     private Equalizer mEqualizer;
@@ -167,16 +168,18 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             case AudioManager.AUDIOFOCUS_GAIN:
                 Log.v("AUDIOFOCUS_GAIN", "焦点获得");
                 //The service gained audio focus, so it needs to start playing.
-                if (mediaPlayer == null) {
-                    mediaPlayer = new MediaPlayer();
-                    mediaPlayer.setAudioStreamType(STREAM_MUSIC);
-                    mediaPlayer.setOnCompletionListener(this);
-                    mediaPlayer.setOnPreparedListener(this);
-                    mediaPlayer.setOnErrorListener(this);
-                    audioSessionId = mediaPlayer.getAudioSessionId();
-                    initialAudioEffect(audioSessionId);
-                } else if (!mediaPlayer.isPlaying()) resume();
-                mediaPlayer.setVolume(1.0f, 1.0f);
+                if (!pasuefromUser) {
+                    if (mediaPlayer == null) {
+                        mediaPlayer = new MediaPlayer();
+                        mediaPlayer.setAudioStreamType(STREAM_MUSIC);
+                        mediaPlayer.setOnCompletionListener(this);
+                        mediaPlayer.setOnPreparedListener(this);
+                        mediaPlayer.setOnErrorListener(this);
+                        audioSessionId = mediaPlayer.getAudioSessionId();
+                        initialAudioEffect(audioSessionId);
+                    } else if (!mediaPlayer.isPlaying()) resume();
+                    mediaPlayer.setVolume(1.0f, 1.0f);
+                }
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
                 removeAudioFocus();
@@ -184,7 +187,10 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 //The service lost audio focus, the user probably moved to playing media on another app, so release the media player.
                 Log.v("AUDIOFOCUS_LOSS", "焦点丢失");
                 if (mediaPlayer != null) {
-                    if (mediaPlayer.isPlaying()) pause();
+                    if (mediaPlayer.isPlaying()) {
+                        pause();
+                        pasuefromUser = false;
+                    }
                 }
 //                releaseMedia();
                 break;
@@ -194,6 +200,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 if (mediaPlayer != null) {
                     if (mediaPlayer.isPlaying()) {
                         pause();
+                        pasuefromUser = false;
                     }
                 }
                 break;
@@ -419,13 +426,14 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 buildNotification(MyConstant.pausing);
             }
         }
+        pasuefromUser = true;
     }
 
     public void resume() {
         if (mediaPlayer != null) {
             requestAudioFocus();
             mediaPlayer.start();
-        } else if (mediaPlayer == null) {
+        } else {
             play(MyApplication.getPositionNow());
         }
         Intent intent = new Intent("play_broadcast");
@@ -652,47 +660,24 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
 
     //以下为音效部分
-    private void initialAudioEffect(int audioSessionId) {
-        try {
-            loudnessEnhancer = new LoudnessEnhancer(audioSessionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            mBass = new BassBoost(0, audioSessionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            mVirtualizer = new Virtualizer(0, audioSessionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            mEqualizer = new Equalizer(0, audioSessionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            canceler = AcousticEchoCanceler.create(audioSessionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            control = AutomaticGainControl.create(audioSessionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            suppressor = NoiseSuppressor.create(audioSessionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            getPreference();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void initialAudioEffect(final int audioSessionId) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    loudnessEnhancer = new LoudnessEnhancer(audioSessionId);
+                    mBass = new BassBoost(0, audioSessionId);
+                    mVirtualizer = new Virtualizer(0, audioSessionId);
+                    mEqualizer = new Equalizer(0, audioSessionId);
+                    canceler = AcousticEchoCanceler.create(audioSessionId);
+                    control = AutomaticGainControl.create(audioSessionId);
+                    suppressor = NoiseSuppressor.create(audioSessionId);
+                    getPreference();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     public Equalizer getEqualizer() {
@@ -782,8 +767,8 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     private void getPreference() {
         SharedPreferences bundle = this.getSharedPreferences("audioEffect", MODE_PRIVATE);
         Log.v("开启", "getPreference");
-        //超强音量
         try {
+            //超强音量
             if ((bundle.getBoolean("Bass", false) || bundle.getBoolean("Virtualizer", false)) == true) {
                 loudnessEnhancer.setEnabled(true);
                 Log.v("开启", "loudness");
@@ -792,11 +777,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             } else {
                 loudnessEnhancer.setEnabled(false);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        //虚拟环绕
-        try {
+            //虚拟环绕
             if (bundle.getBoolean("Virtualizer", false) == false) {
                 setVirtualizer(false);
             } else {
@@ -804,12 +785,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 setVirtualizerStrength((short) bundle.getInt("Virtualizer_seekBar", 0));
                 Log.v("强度", "Virtualizer" + bundle.getInt("Virtualizer_seekBar", 0));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //低音增强
-        try {
+            //低音增强
             Log.v("开启", String.valueOf(bundle.getBoolean("Bass", false)));
             if (bundle.getBoolean("Bass", false) == false) {
                 setBass(false);
@@ -819,11 +795,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 setBassStrength((short) bundle.getInt("Bass_seekBar", 0));
                 Log.v("强度", "Bass" + bundle.getInt("Bass_seekBar", 0));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        //均衡器
-        try {
+            //均衡器
             if (bundle.getBoolean("Equalizer", false) == true) {
                 mEqualizer.setEnabled(true);
                 Log.v("开启", "Equalzier");
@@ -917,12 +889,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             } else {
                 mEqualizer.setEnabled(false);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //次要
-        try {
+            //次要
             if (AcousticEchoCanceler.isAvailable()) {
                 canceler.setEnabled(bundle.getBoolean("Canceler", false));
             }

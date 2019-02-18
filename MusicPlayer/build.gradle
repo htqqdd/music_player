@@ -5,6 +5,7 @@ buildscript {
     repositories {
         maven { url "http://objectbox.net/beta-repo/" }
         jcenter()
+        google()
     }
     dependencies {
         classpath "io.objectbox:objectbox-gradle-plugin:$objectboxVersion"

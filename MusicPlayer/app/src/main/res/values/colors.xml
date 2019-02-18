@@ -11,5 +11,6 @@
     <color name="day_cardview">#ffffff</color>
     <color name="night_cardview">#424242</color>
     <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
 
 </resources>

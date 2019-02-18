@@ -239,11 +239,12 @@ public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder
         MyApplication.getBoxStore().boxFor(musicInfo.class).put(musicInfo);
         musicInfoArrayList.remove(position);
 searchAdapter.this.notifyDataSetChanged();
-        Snackbar.make(rootview, "成功隐藏1首歌曲", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        }).show();
+        Toast.makeText(context, "成功隐藏1首歌曲", Toast.LENGTH_SHORT).show();
+//        Snackbar.make(rootview, "成功隐藏1首歌曲", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//            }
+//        }).show();
         MyApplication.initialMusicInfo(context);
         Intent intent = new Intent("permission_granted");
         context.sendBroadcast(intent);
@@ -295,11 +296,12 @@ searchAdapter.this.notifyDataSetChanged();
                 listSelected.add(musicInfoArrayList.get(position));
                 MyApplication.getBoxStore().boxFor(Playlist.class).put(listSelected);
                 dialog.dismiss();
-                Snackbar.make(rootview, "成功加入1首歌曲到播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                    }
-                }).show();
+                Toast.makeText(context, "成功加入1首歌曲到播放列表", Toast.LENGTH_SHORT).show();
+//                Snackbar.make(rootview, "成功加入1首歌曲到播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                    }
+//                }).show();
                 //更新界面
                 Intent intent = new Intent("list_changed");
                 context.sendBroadcast(intent);
@@ -325,11 +327,12 @@ searchAdapter.this.notifyDataSetChanged();
                             MyApplication.setCustomListNow(text);
                         }
                         MyApplication.getBoxStore().boxFor(Playlist.class).put(new Playlist(name.getText().toString()));
-                        Snackbar.make(rootview, "成功新建1个播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                            }
-                        }).show();
+                        Toast.makeText(context, "成功新建1个播放列表", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(rootview, "成功新建1个播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View v) {
+//                            }
+//                        }).show();
                         //更新列表界面
                         Intent intent = new Intent("list_changed");
                         context.sendBroadcast(intent);

@@ -50,6 +50,7 @@ public class MyApplication extends Application {
     public static boolean serviceStarted = false;
     public static boolean hasInitialized = false;
     public static View.OnClickListener listener;
+    public static int color_primary = -16738680;
 
     @Override
     public void onCreate() {
@@ -63,6 +64,7 @@ public class MyApplication extends Application {
     //方法类
     public static void initialMusicInfo(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        color_primary = sharedPref.getInt("default_color", 0);
         int filter_duration = 30000;
         String filtration = sharedPref.getString("filtration", "");
         switch (filtration) {
@@ -229,13 +231,19 @@ public class MyApplication extends Application {
     }
 
     private void initialBugly() {
-        Context context = getApplicationContext();
-        String packageName = context.getPackageName();
-        String processName = getProcessName(android.os.Process.myPid());
-        CrashReport.UserStrategy strategy = new CrashReport.UserStrategy(context);
-        strategy.setUploadProcess(processName == null || processName.equals(packageName));
-        Bugly.init(context, "1d65abe1b1", false);
-        Beta.initDelay = 1000;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Context context = getApplicationContext();
+                String packageName = context.getPackageName();
+                String processName = getProcessName(android.os.Process.myPid());
+                CrashReport.UserStrategy strategy = new CrashReport.UserStrategy(context);
+                strategy.setUploadProcess(processName == null || processName.equals(packageName));
+                Beta.initDelay = 3000;
+                Bugly.init(context, "1d65abe1b1", false);
+
+            }
+        }).start();
     }
 
     private static String getProcessName(int pid) {
@@ -365,5 +373,13 @@ public class MyApplication extends Application {
 
     public static void setlyric_onClickListener(View.OnClickListener listener) {
         MyApplication.listener = listener;
+    }
+
+    public static int getColor_primary() {
+        return color_primary;
+    }
+
+    public static void setColor_primary(int color_primary) {
+        MyApplication.color_primary = color_primary;
     }
 }

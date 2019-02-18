@@ -23,6 +23,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
@@ -131,6 +132,7 @@ import permissions.dispatcher.RuntimePermissions;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static com.lixiangsoft.lixiang.music_player.R.id.delete;
+import static com.lixiangsoft.lixiang.music_player.R.id.immersion_view;
 import static com.lixiangsoft.lixiang.music_player.R.id.item_touch_helper_previous_elevation;
 import static com.lixiangsoft.lixiang.music_player.R.id.play_now_cover_viewpager;
 import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.COLLAPSED;
@@ -180,7 +182,7 @@ public class MainActivity extends AestheticActivity {
         setContentView(R.layout.activity_main);
 
         //沉浸状态栏
-        ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).init();
+        ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).transparentNavigationBar().init();
 
         if (Aesthetic.isFirstTime()) {
             Aesthetic.get()
@@ -191,7 +193,6 @@ public class MainActivity extends AestheticActivity {
                     .colorNavigationBarAuto()
                     .apply();
         }
-
         //初始化全局变量
         seekBar = findViewById(R.id.seekBar);
         navigationView = findViewById(R.id.nav_view);
@@ -417,6 +418,13 @@ public class MainActivity extends AestheticActivity {
         mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
+                int red=0,green=150,blue=136;
+                    int color_primary = MyApplication.getColor_primary();
+                    red = (color_primary & 0xff0000) >> 16;
+                    green = (color_primary & 0x00ff00) >> 8;
+                    blue = (color_primary & 0x0000ff);
+                int color = Color.argb((int)((1-slideOffset) * 255), red, green, blue);
+                Aesthetic.get().colorNavigationBar(color).apply();
                 AlphaAnimation alphaAnimation = new AlphaAnimation(slideOffset, 1 - slideOffset);
                 main_control_ui.startAnimation(alphaAnimation);
                 alphaAnimation.setFillAfter(true);//动画结束后保持状态
@@ -426,9 +434,10 @@ public class MainActivity extends AestheticActivity {
             @Override
             public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
                 if (previousState == COLLAPSED && newState == DRAGGING) {
-                    updateSeekBar();
+//                    updateSeekBar();
                 }
                 if (previousState == DRAGGING && newState == EXPANDED) {
+                    updateSeekBar();
                     //禁止手势滑动
                     main_control_ui.setClickable(false);
                     play_pause_button.setClickable(false);
@@ -437,6 +446,8 @@ public class MainActivity extends AestheticActivity {
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                 }
                 if (previousState == DRAGGING && newState == COLLAPSED) {
+                    Aesthetic.get().colorNavigationBar(MyApplication.getColor_primary()).apply();
+//                    ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).navigationBarColor(R.color.colorPrimary).init();
                     if (mTimer != null) {
                         mTimer.cancel();
                     }
@@ -506,7 +517,7 @@ public class MainActivity extends AestheticActivity {
             ChangeScrollingUpPanel(MyApplication.getPositionNow());
             random_play.hide();
             mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-            mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f));
+            mLayout.setPanelHeight((int) (108 * getResources().getDisplayMetrics().density + 0.5f));
         }
 
         final ColorShades shades = new ColorShades();
@@ -952,7 +963,7 @@ public class MainActivity extends AestheticActivity {
         public void onReceive(Context context, Intent intent) {
             //更新UI
             if (intent.getIntExtra("UIChange", 0) == MyConstant.initialize) {
-                mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f));
+                mLayout.setPanelHeight((int) (108 * getResources().getDisplayMetrics().density + 0.5f));
                 random_play.hide();
             } else if (intent.getIntExtra("UIChange", 0) == MyConstant.pauseAction) {
                 FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
@@ -1137,9 +1148,11 @@ public class MainActivity extends AestheticActivity {
                 int duration = (hourPicked - hourNow) * 60 + minutePicked - minuteNow;
                 if (hourPicked >= hourNow && duration > 0 && duration < 360) {
                     playService.deleteService(duration);
-                    Snackbar.make(mLayout, "已经定时为" + duration + "分钟后关闭", Snackbar.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "已经定时为\" + duration + \"分钟后关闭", Toast.LENGTH_SHORT).show();
+//                    Snackbar.make(mLayout, "已经定时为" + duration + "分钟后关闭", Snackbar.LENGTH_LONG).show();
                 } else {
-                    Snackbar.make(mLayout, "所选时间须为当天，且距当前时间6小时内", Snackbar.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "所选时间须为当天，且距当前时间6小时内", Toast.LENGTH_SHORT).show();
+//                    Snackbar.make(mLayout, "所选时间须为当天，且距当前时间6小时内", Snackbar.LENGTH_SHORT).show();
                 }
             }
         }, hourNow, minuteNow, true).show();
@@ -1227,7 +1240,7 @@ public class MainActivity extends AestheticActivity {
                     input = input + strings[1];
                 }
                 RequestBody requestBody = new FormBody.Builder().add("input", input).add("filter", "name").add("type", "netease").add("page", "1").build();
-                Request request = new Request.Builder().url("https://music.2333.me").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36").addHeader("Referer", "https://music.2333.me/?name=" + java.net.URLEncoder.encode(input, "utf-8") + "&type=netease").post(requestBody).build();
+                Request request = new Request.Builder().url("http://music.bbbbbb.me/").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36").addHeader("Referer", "http://music.bbbbbb.me/?name=" + java.net.URLEncoder.encode(input, "utf-8") + "&type=netease").post(requestBody).build();
                 Response response = client.newCall(request).execute();
                 String res = response.body().string();
                 JSONObject jsonObject = new JSONObject(res);
@@ -1265,10 +1278,12 @@ public class MainActivity extends AestheticActivity {
                 case "404":
                     otherLyricView.setLabel("未搜索到匹配歌词");
                     if (!hasNetwork(MainActivity.this))
-                        Snackbar.make(mLayout, "请检查您的网络", Snackbar.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "请检查您的网络", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(mLayout, "请检查您的网络", Snackbar.LENGTH_SHORT).show();
                     break;
                 case "timeout":
-                    Snackbar.make(mLayout, "服务器连接超时，请稍后再试", Snackbar.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "服务器连接超时，请稍后再试", Toast.LENGTH_SHORT).show();
+//                    Snackbar.make(mLayout, "服务器连接超时，请稍后再试", Snackbar.LENGTH_SHORT).show();
                     break;
                 default:
                     final String Str[] = s.split("@");
@@ -1283,12 +1298,14 @@ public class MainActivity extends AestheticActivity {
                                 return false;
                             }
                         });
-                        Snackbar.make(mLayout, "保存此歌词？", Snackbar.LENGTH_LONG).setAction("确定", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                savelyric(Str[0], lyric);
-                            }
-                        }).show();
+                        savelyric(Str[0], lyric);
+//                        Toast.makeText(MainActivity.this, "歌词已保存，修改歌曲名后失效", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(mLayout, "保存此歌词？", Snackbar.LENGTH_LONG).setAction("确定", new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View view) {
+//                                savelyric(Str[0], lyric);
+//                            }
+//                        }).show();
                     } catch (Exception e) {
                         otherLyricView.loadLrc("");
                         otherLyricView.setLabel("未搜索到匹配歌词");
@@ -1379,7 +1396,8 @@ public class MainActivity extends AestheticActivity {
             byte[] bytes = lyric.getBytes();
             fout.write(bytes);
             fout.close();
-            Snackbar.make(mLayout, "歌词已保存，修改歌曲名后失效", Snackbar.LENGTH_SHORT).show();
+            Toast.makeText(this, "歌词已保存，修改歌曲名后失效", Toast.LENGTH_SHORT).show();
+//            Snackbar.make(mLayout, "歌词已保存，修改歌曲名后失效", Snackbar.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1457,7 +1475,8 @@ public class MainActivity extends AestheticActivity {
         musicInfo.setHide(true);
         MyApplication.getBoxStore().boxFor(musicInfo.class).put(musicInfo);
         MyApplication.getMusicListNow().remove(position);
-        Snackbar.make(mLayout, "成功隐藏1首歌曲", Snackbar.LENGTH_SHORT).show();
+        Toast.makeText(context, "成功隐藏1首歌曲", Toast.LENGTH_SHORT).show();
+//        Snackbar.make(mLayout, "成功隐藏1首歌曲", Snackbar.LENGTH_SHORT).show();
         //更新界面
         playService.next();
         //通知其他adapter
@@ -1507,7 +1526,8 @@ public class MainActivity extends AestheticActivity {
                 listSelected.add(MyApplication.getMusicListNow().get(position));
                 MyApplication.getBoxStore().boxFor(Playlist.class).put(listSelected);
                 dialog.dismiss();
-                Snackbar.make(mLayout, "成功加入1首歌曲到播放列表", Snackbar.LENGTH_SHORT).show();
+                Toast.makeText(context, "成功加入1首歌曲到播放列表", Toast.LENGTH_SHORT).show();
+//                Snackbar.make(mLayout, "成功加入1首歌曲到播放列表", Snackbar.LENGTH_SHORT).show();
                 //更新界面
                 Intent intent = new Intent("list_changed");
                 context.sendBroadcast(intent);
@@ -1533,7 +1553,8 @@ public class MainActivity extends AestheticActivity {
                             MyApplication.setCustomListNow(text);
                         }
                         MyApplication.getBoxStore().boxFor(Playlist.class).put(new Playlist(name.getText().toString()));
-                        Snackbar.make(mLayout, "成功新建1个播放列表", Snackbar.LENGTH_SHORT).show();
+                        Toast.makeText(context, "成功新建1个播放列表", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(mLayout, "成功新建1个播放列表", Snackbar.LENGTH_SHORT).show();
                         //更新列表界面
                         Intent intent = new Intent("list_changed");
                         context.sendBroadcast(intent);
@@ -1575,8 +1596,9 @@ public class MainActivity extends AestheticActivity {
             context.getContentResolver().delete(uri, MediaStore.MediaColumns.DATA + "=\"" + music.getAbsolutePath() + "\"", null);
             Uri newUri = context.getContentResolver().insert(uri, values);
             RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE, newUri);
+            Toast.makeText(context, "已成功设置为来电铃声", Toast.LENGTH_SHORT).show();
             //Snackbar
-            Snackbar.make(mLayout, "已成功设置为来电铃声", Snackbar.LENGTH_LONG).show();
+//            Snackbar.make(mLayout, "已成功设置为来电铃声", Snackbar.LENGTH_LONG).show();
         }
     }
 
@@ -1584,7 +1606,8 @@ public class MainActivity extends AestheticActivity {
 //        List<musicInfo> list = MyApplication.getMusicInfoArrayList();
         MyApplication.getMusicListNow().add(MyApplication.getPositionNow(), MyApplication.getMusicListNow().get(position));
         com.sothree.slidinguppanel.SlidingUpPanelLayout main_layout = (com.sothree.slidinguppanel.SlidingUpPanelLayout) context.findViewById(R.id.sliding_layout);
-        Snackbar.make(mLayout, "已成功设置为下一首播放", Snackbar.LENGTH_SHORT).show();
+        Toast.makeText(context, "已成功设置为下一首播放", Toast.LENGTH_SHORT).show();
+//        Snackbar.make(mLayout, "已成功设置为下一首播放", Snackbar.LENGTH_SHORT).show();
     }
 
     private void showMusicInfo(final Activity context, final int position) {
@@ -1661,7 +1684,8 @@ public class MainActivity extends AestheticActivity {
                     } else {
                         MyApplication.getBoxStore().boxFor(musicInfo.class).remove(musicinfo);
                         MyApplication.getMusicListNow().remove(position);
-                        Snackbar.make(mLayout, "文件删除成功", Snackbar.LENGTH_SHORT).show();
+                        Toast.makeText(context, "文件删除成功", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(mLayout, "文件删除成功", Snackbar.LENGTH_SHORT).show();
                         //更新mediastore
                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
                         //更新列表

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +34,11 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             MyApplication.setLocal_net_mode(sharedPref.getBoolean("local_net_mode", false));
         }
         if (key.equals("default_color")) {
-            Aesthetic.get().colorPrimary(sharedPref.getInt("default_color", 0)).colorStatusBarAuto().colorNavigationBarAuto().apply();
+            Log.e("测试","设置ColorPrimary前"+MyApplication.getColor_primary());
+            int color_primary = sharedPref.getInt("default_color", 0);
+            Aesthetic.get().colorPrimary(color_primary).colorStatusBarAuto().colorNavigationBarAuto().apply();
+            MyApplication.setColor_primary(color_primary);
+            Log.e("测试","设置ColorPrimary后"+MyApplication.getColor_primary());
         }
         if (key.equals("accent_color")) {
             Aesthetic.get().colorAccent(sharedPref.getInt("accent_color", 0)).colorStatusBarAuto().colorNavigationBarAuto().apply();
@@ -62,8 +67,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     @Override
     public void onResume() {
         super.onResume();
-        getPreferenceScreen().getSharedPreferences()
-                .registerOnSharedPreferenceChangeListener(this);
+        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override

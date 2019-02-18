@@ -188,11 +188,12 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
         Log.e("菜单","remove"+MyApplication.getDatesublist().get(position).getMusicTitle());
         MyApplication.getDatesublist().remove(position);
         Log.e("菜单","remove"+MyApplication.getDatesublist().get(position).getMusicTitle());
-        Snackbar.make(rootview, "成功隐藏1首歌曲", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        }).show();
+        Toast.makeText(context, "成功隐藏1首歌曲", Toast.LENGTH_SHORT).show();
+//        Snackbar.make(rootview, "成功隐藏1首歌曲", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//            }
+//        }).show();
         //更新界面
         RecentListAdapter.this.notifyItemRemoved(position);
         RecentListAdapter.this.notifyItemRangeChanged(0,list.size());
@@ -418,11 +419,12 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
                 listSelected.add(list.get(position));
                 MyApplication.getBoxStore().boxFor(Playlist.class).put(listSelected);
                 dialog.dismiss();
-                Snackbar.make(rootview, "成功加入1首歌曲到播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                    }
-                }).show();
+                Toast.makeText(context, "成功加入1首歌曲到播放列表", Toast.LENGTH_SHORT).show();
+//                Snackbar.make(rootview, "成功加入1首歌曲到播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                    }
+//                }).show();
                 //更新界面
                 Intent intent = new Intent("list_changed");
                 context.sendBroadcast(intent);
@@ -448,11 +450,12 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
                             MyApplication.setCustomListNow(text);
                         }
                         MyApplication.getBoxStore().boxFor(Playlist.class).put(new Playlist(name.getText().toString()));
-                        Snackbar.make(rootview, "成功新建1个播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                            }
-                        }).show();
+                        Toast.makeText(context, "成功新建1个播放列表", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(rootview, "成功新建1个播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View v) {
+//                            }
+//                        }).show();
                         //更新列表界面
                         Intent intent = new Intent("list_changed");
                         context.sendBroadcast(intent);
@@ -495,24 +498,26 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
             context.getContentResolver().delete(uri, MediaStore.MediaColumns.DATA + "=\"" + music.getAbsolutePath() + "\"", null);
             Uri newUri = context.getContentResolver().insert(uri, values);
             RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE, newUri);
+            Toast.makeText(context, "已成功设置为来电铃声", Toast.LENGTH_SHORT).show();
             //Snackbar
-            Snackbar.make(rootview, "已成功设置为来电铃声", Snackbar.LENGTH_LONG).setAction("好的", new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                }
-            }).show();
+//            Snackbar.make(rootview, "已成功设置为来电铃声", Snackbar.LENGTH_LONG).setAction("好的", new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                }
+//            }).show();
         }
     }
 
     private void setAsNext(Activity context, int position) {
         List<musicInfo> list = MyApplication.getDatesublist();
         MyApplication.getMusicListNow().add(MyApplication.getPositionNow(), list.get(position));
-        com.sothree.slidinguppanel.SlidingUpPanelLayout main_layout = (com.sothree.slidinguppanel.SlidingUpPanelLayout) context.findViewById(R.id.sliding_layout);
-        Snackbar.make(rootview, "已成功设置为下一首播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-            }
-        }).show();
+        Toast.makeText(context, "已成功设置为下一首播放", Toast.LENGTH_SHORT).show();
+//        com.sothree.slidinguppanel.SlidingUpPanelLayout main_layout = (com.sothree.slidinguppanel.SlidingUpPanelLayout) context.findViewById(R.id.sliding_layout);
+//        Snackbar.make(rootview, "已成功设置为下一首播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//            }
+//        }).show();
     }
 
     private void showMusicInfo(final Activity context, final int position) {
@@ -601,11 +606,12 @@ public class RecentListAdapter extends RecyclerView.Adapter<RecentListAdapter.Vi
                     } else {
                         MyApplication.getBoxStore().boxFor(musicInfo.class).remove(musicinfo);
                         MyApplication.getDatesublist().remove(position);
-                        Snackbar.make(rootview, "文件删除成功", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                            }
-                        }).show();
+                        Toast.makeText(context, "文件删除成功", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(rootview, "文件删除成功", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View view) {
+//                            }
+//                        }).show();
                         //更新mediastore
                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
                         //更新列表

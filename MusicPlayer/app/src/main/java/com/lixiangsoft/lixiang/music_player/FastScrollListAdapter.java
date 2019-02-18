@@ -200,11 +200,12 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
         musicInfo.setHide(true);
         MyApplication.getBoxStore().boxFor(musicInfo.class).put(musicInfo);
         musicInfoArrayList.remove(position);
-        Snackbar.make(rootview, "成功隐藏1首歌曲", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        }).show();
+        Toast.makeText(context, "成功隐藏1首歌曲", Toast.LENGTH_SHORT).show();
+//        Snackbar.make(rootview, "成功隐藏1首歌曲", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//            }
+//        }).show();
         //更新界面
         FastScrollListAdapter.this.notifyItemRemoved(position);
         notifyItemRangeChanged(0,musicInfoArrayList.size());
@@ -423,11 +424,12 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                 listSelected.add(musicInfoArrayList.get(position));
                 MyApplication.getBoxStore().boxFor(Playlist.class).put(listSelected);
                 dialog.dismiss();
-                Snackbar.make(rootview, "成功加入1首歌曲到播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                    }
-                }).show();
+                Toast.makeText(context, "成功加入1首歌曲到播放列表", Toast.LENGTH_SHORT).show();
+//                Snackbar.make(rootview, "成功加入1首歌曲到播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                    }
+//                }).show();
                 //更新界面
                 Intent intent = new Intent("list_changed");
                 context.sendBroadcast(intent);
@@ -453,11 +455,12 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                             MyApplication.setCustomListNow(text);
                         }
                         MyApplication.getBoxStore().boxFor(Playlist.class).put(new Playlist(name.getText().toString()));
-                        Snackbar.make(rootview, "成功新建1个播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                            }
-                        }).show();
+                        Toast.makeText(context, "成功新建1个播放列表", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(rootview, "成功新建1个播放列表", Snackbar.LENGTH_SHORT).setAction("好的", new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View v) {
+//                            }
+//                        }).show();
                         //更新列表界面
                         Intent intent = new Intent("list_changed");
                         context.sendBroadcast(intent);
@@ -500,22 +503,24 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
             context.getContentResolver().delete(uri, MediaStore.MediaColumns.DATA + "=\"" + music.getAbsolutePath() + "\"", null);
             Uri newUri = context.getContentResolver().insert(uri, values);
             RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE, newUri);
-            //Snackbar
-            Snackbar.make(rootview, "已成功设置为来电铃声", Snackbar.LENGTH_LONG).setAction("好的", new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                }
-            }).show();
+            Toast.makeText(context, "已成功设置为来电铃声", Toast.LENGTH_SHORT).show();
+//            //Snackbar
+//            Snackbar.make(rootview, "已成功设置为来电铃声", Snackbar.LENGTH_LONG).setAction("好的", new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                }
+//            }).show();
         }
     }
 
     private void setAsNext(Activity context, int position) {
         MyApplication.getMusicListNow().add(MyApplication.getPositionNow(), musicInfoArrayList.get(position));
-        Snackbar.make(rootview, "已成功设置为下一首播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-            }
-        }).show();
+        Toast.makeText(context, "已成功设置为下一首播放", Toast.LENGTH_SHORT).show();
+//        Snackbar.make(rootview, "已成功设置为下一首播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//            }
+//        }).show();
     }
 
     private void showMusicInfo(final Activity context, final int position) {
@@ -598,11 +603,12 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                     } else {
                         MyApplication.getBoxStore().boxFor(musicInfo.class).remove(musicinfo);
                         musicInfoArrayList.remove(position);
-                        Snackbar.make(rootview, "文件删除成功", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                            }
-                        }).show();
+                        Toast.makeText(context, "文件删除成功", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(rootview, "文件删除成功", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View view) {
+//                            }
+//                        }).show();
                         //更新mediastore
                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
                         //更新列表

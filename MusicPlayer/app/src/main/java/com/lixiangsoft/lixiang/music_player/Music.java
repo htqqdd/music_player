@@ -18,7 +18,7 @@ public class Music {
     public String url;
     public String getAuthor() {
         if (author!=null)
-        return author;
+            return author;
         else return "";
     }
     public String getLink() {
@@ -27,8 +27,12 @@ public class Music {
         else return "";
     }
     public String getMusic() {
-        if (url !=null)
-        return url;
+        if (url !=null) {
+            if (type.equals("xiami")){
+                return "http://"+url;
+            }
+            return url;
+        }
         else return "";
     }
     public String getName() {
@@ -36,8 +40,12 @@ public class Music {
         else return title;
     }
     public String getPic() {
-        if (pic!=null)return pic;
-        else return "";
+        if (pic!=null){
+            if (type.equals("xiami")){
+                return "http://"+pic;
+            }
+            return pic;
+        } else return "";
     }
 //    public int getSongid() {
 //        if (songid !=null)return Integer.valueOf(songid);
@@ -98,7 +106,7 @@ public class Music {
 
     public String getLrc() {
         if (lrc !=null)
-        return lrc;
+            return lrc;
         else return "";
     }
 }

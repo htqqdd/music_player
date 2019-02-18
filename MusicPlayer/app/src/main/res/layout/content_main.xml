@@ -39,11 +39,6 @@
                     android:orientation="vertical"
                     app:layout_scrollFlags="scroll|enterAlways">
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:background="?colorPrimary" />
-
                     <android.support.v7.widget.Toolbar
                         android:id="@+id/main_toolbar"
                         android:layout_width="match_parent"
@@ -63,6 +58,7 @@
                 android:id="@+id/viewpager"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_marginBottom="48dp"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
             <android.support.design.widget.FloatingActionButton
@@ -70,7 +66,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="72dp"
                 android:layout_marginRight="16dp"
                 android:src="@drawable/shuffle" />
 

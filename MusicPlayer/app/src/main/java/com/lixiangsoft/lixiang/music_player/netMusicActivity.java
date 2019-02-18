@@ -109,7 +109,7 @@ public class netMusicActivity extends AestheticActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             adapter.dismissDialog();
-            Snackbar.make(net,"在线播放仅作为预览，请在来源网站下载正版音乐后播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+            Snackbar.make(net,"在线播放仅作为预览，请下载正版音乐后播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
         }
     }
 
@@ -141,7 +141,7 @@ public class netMusicActivity extends AestheticActivity {
             try {
                 OkHttpClient client = new OkHttpClient();
                 RequestBody requestBody = new FormBody.Builder().add("input", input).add("filter", filter).add("type", type).add("page",String.valueOf(page)).build();
-                Request request = new Request.Builder().url("https://music.2333.me").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").addHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36").addHeader("Referer","https://music.2333.me/?name="+java.net.URLEncoder.encode(input,"utf-8")+"&type="+type).post(requestBody).build();
+                Request request = new Request.Builder().url("http://music.bbbbbb.me/").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").addHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36").addHeader("Referer","http://music.bbbbbb.me/?name="+java.net.URLEncoder.encode(input,"utf-8")+"&type="+type).post(requestBody).build();
                 call = client.newCall(request);
                 Response response = call.execute();
                 String res = response.body().string();

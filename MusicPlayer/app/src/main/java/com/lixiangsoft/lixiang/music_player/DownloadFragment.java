@@ -155,7 +155,7 @@ public class DownloadFragment extends Fragment {
                     type = "_";
                 }
                 RequestBody requestBody = new FormBody.Builder().add("input", input).add("filter", filter).add("type", type).add("page",String.valueOf(page)).build();
-                Request request = new Request.Builder().url("https://music.2333.me").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").addHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36").addHeader("Referer","https://music.2333.me/?name="+java.net.URLEncoder.encode(input,"utf-8")+"&type="+type).post(requestBody).build();
+                Request request = new Request.Builder().url("http://music.bbbbbb.me/").addHeader("X-Requested-With", "XMLHttpRequest").addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").addHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36").addHeader("Referer","http://music.bbbbbb.me/?name="+java.net.URLEncoder.encode(input,"utf-8")+"&type="+type).post(requestBody).build();
                 Response response = client.newCall(request).execute();
                 String res = response.body().string();
                 JSONObject jsonObject = new JSONObject(res);
@@ -201,32 +201,36 @@ public class DownloadFragment extends Fragment {
                     break;
                 case "404":
                     if (!hasNetwork(getActivity())) {
-                        Snackbar.make(rootView, "请检查您的网络", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                            }
-                        }).show();
+                        Toast.makeText(getActivity(), "请检查您的网络", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(rootView, "请检查您的网络", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View view) {
+//                            }
+//                        }).show();
                     } else {
-                        Snackbar.make(rootView, "服务器开小差了，请稍后再试", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                            }
-                        }).show();
+                        Toast.makeText(getActivity(), "服务器开小差了，请稍后再试", Toast.LENGTH_SHORT).show();
+//                        Snackbar.make(rootView, "服务器开小差了，请稍后再试", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View view) {
+//                            }
+//                        }).show();
                     }
                     break;
                 case "unKnown":
-                    Snackbar.make(rootView, "未获取到资源", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                        }
-                    }).show();
+                    Toast.makeText(getActivity(), "未获取到资源", Toast.LENGTH_SHORT).show();
+//                    Snackbar.make(rootView, "未获取到资源", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View view) {
+//                        }
+//                    }).show();
                     break;
                 case "timeout":
-                    Snackbar.make(rootView, "服务器连接超时，请稍后再试", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                        }
-                    }).show();
+                    Toast.makeText(getActivity(), "服务器连接超时，请稍后再试", Toast.LENGTH_SHORT).show();
+//                    Snackbar.make(rootView, "服务器连接超时，请稍后再试", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View view) {
+//                        }
+//                    }).show();
                     break;
                 default:
             }
@@ -239,11 +243,12 @@ public class DownloadFragment extends Fragment {
         if (MyApplication.getLocal_net_mode() == false) {
             input = editText.getText().toString();
             if (input.equals("")) {
-                Snackbar.make(rootView, "请输入内容", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                    }
-                }).show();
+                Toast.makeText(getActivity(), "请输入内容", Toast.LENGTH_SHORT).show();
+//                Snackbar.make(rootView, "请输入内容", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                    }
+//                }).show();
             } else {
                 refresh.setRefreshing(true);
                 new httpTask().execute(input);
