@@ -1093,10 +1093,11 @@ public class MainActivity extends AestheticActivity {
             RelativeLayout.LayoutParams lp_play_now_cover = (RelativeLayout.LayoutParams) play_now_cover_viewPager.getLayoutParams();
             RelativeLayout.LayoutParams lp_lrcView = (RelativeLayout.LayoutParams) lrcView.getLayoutParams();
             ViewGroup.LayoutParams lp_cardView = music_info_cardView.getLayoutParams();
-            lp_play_now_cover.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.6);
-            lp_lrcView.height = ((int) (getResources().getDisplayMetrics().heightPixels * 0.4));
-            lp_control_layout.height = ((int) (getResources().getDisplayMetrics().heightPixels * 0.16));
-            lp_cardView.height = ((int) (getResources().getDisplayMetrics().heightPixels * 0.17));
+            int height = getResources().getDisplayMetrics().heightPixels;
+            lp_play_now_cover.height = (int) (height * 0.58);
+            lp_lrcView.height = ((int) (height * 0.42));
+            lp_control_layout.height = ((int) (height * 0.16));
+            lp_cardView.height = ((int) (height * 0.17));
             play_now_cover_viewPager.setLayoutParams(lp_play_now_cover);
             lrcView.setLayoutParams(lp_lrcView);
             control_layout.setLayoutParams(lp_control_layout);

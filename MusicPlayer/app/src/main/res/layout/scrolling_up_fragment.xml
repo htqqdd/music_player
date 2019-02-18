@@ -157,7 +157,8 @@
         android:id="@+id/control_layout"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:layout_below="@id/seekbar_layout">
+        android:layout_below="@id/seekbar_layout"
+        android:layout_marginTop="16dp">
 
         <ImageView
             android:id="@+id/repeat_button"
@@ -232,7 +233,7 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="64dp"
+        android:layout_marginBottom="72dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp">
 
@@ -320,9 +321,10 @@
 
     <me.wcy.lrcview.LrcView
         android:visibility="gone"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:layout_alignParentBottom="true"
+        android:layout_marginBottom="48dp"
         android:id="@+id/other_lrc_view"
         android:layout_width="match_parent"
         android:layout_height="380dp"
