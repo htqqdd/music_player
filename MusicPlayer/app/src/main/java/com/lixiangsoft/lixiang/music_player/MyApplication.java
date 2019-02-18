@@ -64,7 +64,7 @@ public class MyApplication extends Application {
     //方法类
     public static void initialMusicInfo(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        color_primary = sharedPref.getInt("default_color", 0);
+        color_primary = sharedPref.getInt("default_color", -16738680);
         int filter_duration = 30000;
         String filtration = sharedPref.getString("filtration", "");
         switch (filtration) {
