@@ -14,23 +14,24 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.Toast;
+
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.showListEvent;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class RecommendFragment extends Fragment {
 
-    private PermissionReceiver permissionReceiver;
+//    private PermissionReceiver permissionReceiver;
     private View rootView;
     private boolean permissionGranted = false;
 
@@ -39,25 +40,37 @@ public class RecommendFragment extends Fragment {
         // Required empty public constructor
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(showListEvent list) {
+        Log.e("测试","Recommend收到消息");
+        if (list.arg1 == 0){
+            showRecentList();
+        }else if (list.arg1 == 1){
+            showFavouriteList();
+        }else if (list.arg1 == 2){
+            showRecentList();
+            showFavouriteList();
+        }
+    };
 
 
     @Override
     public void onDestroy() {
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
-        getActivity().unregisterReceiver(permissionReceiver);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        EventBus.getDefault().register(this);
         rootView = inflater.inflate(R.layout.fragment_recommend, container, false);
 
         //动态注册广播
-        permissionReceiver = new PermissionReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("permission_granted");
-        getActivity().registerReceiver(permissionReceiver, intentFilter);
+//        permissionReceiver = new PermissionReceiver();
+//        IntentFilter intentFilter = new IntentFilter();
+//        intentFilter.addAction("permission_granted");
+//        getActivity().registerReceiver(permissionReceiver, intentFilter);
 
         if(ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
             permissionGranted = true;
@@ -67,19 +80,19 @@ public class RecommendFragment extends Fragment {
         return rootView;
     }
 
-    private class PermissionReceiver extends BroadcastReceiver{
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getIntExtra("Action",0) == 1) {
-                showRecentList();
-            }else if (intent.getIntExtra("Action",0) == 2){
-                showFavouriteList();
-            }else {
-                showRecentList();
-                showFavouriteList();
-            }
-        }
-    }
+//    private class PermissionReceiver extends BroadcastReceiver{
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            if (intent.getIntExtra("Action",0) == 1) {
+//                showRecentList();
+//            }else if (intent.getIntExtra("Action",0) == 2){
+//                showFavouriteList();
+//            }else {
+//                showRecentList();
+//                showFavouriteList();
+//            }
+//        }
+//    }
     private void showRecentList(){
         RecyclerView recent = (RecyclerView) rootView.findViewById(R.id.recent_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());

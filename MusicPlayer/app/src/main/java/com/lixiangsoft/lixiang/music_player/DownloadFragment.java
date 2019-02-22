@@ -8,13 +8,17 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
+import android.os.MessageQueue;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -26,6 +30,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -79,7 +84,7 @@ public class DownloadFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_download, container, false);
         refresh = (SwipeRefreshLayout) rootView.findViewById(R.id.refresh);
         search_list = (FloatingActionButton) rootView.findViewById(R.id.search_list);
-        new setDefaultTask().execute();
+//        new setDefaultTask().execute();
         final TextInputLayout inputLayout = (TextInputLayout) rootView.findViewById(R.id.name_input);
         RadioButton name_radio = (RadioButton) rootView.findViewById(R.id.name_radio);
         RadioButton id_radio = (RadioButton) rootView.findViewById(R.id.id_radio);
@@ -118,17 +123,34 @@ public class DownloadFragment extends Fragment {
                 searchAction();
             }
         });
-        new getColorTask().execute();
         return rootView;
     }
 
     @Override
-    public void onDestroy() {
-        SharedPreferences.Editor editor = getActivity().getSharedPreferences("default_resource", MODE_PRIVATE).edit();
-        editor.putString("default", type);
-        editor.apply();
-        super.onDestroy();
+    public void onStart() {
+        super.onStart();
+        refresh.setColorSchemeColors(MyApplication.getColor_accent());
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+//        return true会重复执行，false只执行一次
+        Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
+            @Override
+            public boolean queueIdle() {
+                SharedPreferences bundle = getActivity().getSharedPreferences("default_resource", MODE_PRIVATE);
+                type = bundle.getString("default", "netease");
+                for (int i = 0; i < 12; i++) {
+                    if (type.equals(item_type[i])) {
+                        setListListener(i);
+                        break;
+                    };
+                }
+                return false;
+            }
+        });
+    }
+
 
     private boolean hasNetwork(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -273,6 +295,14 @@ public class DownloadFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         type = item_type[i];
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                SharedPreferences.Editor editor = getActivity().getSharedPreferences("default_resource", MODE_PRIVATE).edit();
+                                editor.putString("default", type);
+                                editor.apply();
+                            }
+                        }).start();
                         setListListener(i);
                     }
                 });
@@ -294,48 +324,48 @@ public class DownloadFragment extends Fragment {
         }
     }
 
-    private class getColorTask extends AsyncTask {
-        @Override
-        protected Object doInBackground(Object[] objects) {
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            int accent_color = sharedPref.getInt("accent_color", 0);
-            if (accent_color != 0) {
-                return accent_color;
-            } else {
-                return null;
-            }
-        }
+//    private class getColorTask extends AsyncTask {
+//        @Override
+//        protected Object doInBackground(Object[] objects) {
+//            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+//            int accent_color = sharedPref.getInt("accent_color", 0);
+//            if (accent_color != 0) {
+//                return accent_color;
+//            } else {
+//                return null;
+//            }
+//        }
 
-        @Override
-        protected void onPostExecute(Object o) {
-            super.onPostExecute(o);
-            if (o != null) {
-                refresh.setColorSchemeColors((int) o);
-            } else {
-                refresh.setColorSchemeColors(getResources().getColor(R.color.colorAccent));
-            }
-        }
-    }
+//        @Override
+//        protected void onPostExecute(Object o) {
+//            super.onPostExecute(o);
+//            if (o != null) {
+//                refresh.setColorSchemeColors((int) o);
+//            } else {
+//                refresh.setColorSchemeColors(getResources().getColor(R.color.colorAccent));
+//            }
+//        }
+//    }
 
-    private class setDefaultTask extends AsyncTask {
-        @Override
-        protected void onPostExecute(Object o) {
-            if (o != null) {
-                setListListener((int) o);
-            }
-            super.onPostExecute(o);
-        }
-
-        @Override
-        protected Object doInBackground(Object[] objects) {
-            SharedPreferences bundle = getActivity().getSharedPreferences("default_resource", MODE_PRIVATE);
-            type = bundle.getString("default", "netease");
-            for (int i = 0; i < 12; i++) {
-                if (type.equals(item_type[i])) return i;
-            }
-            return null;
-        }
-    }
+//    private class setDefaultTask extends AsyncTask {
+//        @Override
+//        protected void onPostExecute(Object o) {
+//            if (o != null) {
+//                setListListener((int) o);
+//            }
+//            super.onPostExecute(o);
+//        }
+//
+//        @Override
+//        protected Object doInBackground(Object[] objects) {
+//            SharedPreferences bundle = getActivity().getSharedPreferences("default_resource", MODE_PRIVATE);
+//            type = bundle.getString("default", "netease");
+//            for (int i = 0; i < 12; i++) {
+//                if (type.equals(item_type[i])) return i;
+//            }
+//            return null;
+//        }
+//    }
 
 
 }

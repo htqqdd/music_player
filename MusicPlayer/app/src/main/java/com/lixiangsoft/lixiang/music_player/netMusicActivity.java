@@ -21,7 +21,12 @@ import android.widget.TextView;
 import com.afollestad.aesthetic.AestheticActivity;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.dismissEvent;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.showListEvent;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -36,7 +41,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class netMusicActivity extends AestheticActivity {
-    private DismissReceiver dismissReceiver;
+//    private DismissReceiver dismissReceiver;
     private netListAdapter adapter;
     private RecyclerView net;
     private String input;
@@ -51,7 +56,6 @@ public class netMusicActivity extends AestheticActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         Bundle info = getIntent().getBundleExtra("info");
         if (info != null) {
             input = info.getString("input");
@@ -67,10 +71,10 @@ public class netMusicActivity extends AestheticActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //动态注册广播
-        dismissReceiver = new DismissReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("dismiss_dialog");
-        registerReceiver(dismissReceiver, intentFilter);
+//        dismissReceiver = new DismissReceiver();
+//        IntentFilter intentFilter = new IntentFilter();
+//        intentFilter.addAction("dismiss_dialog");
+//        registerReceiver(dismissReceiver, intentFilter);
 
 
         TextView title = (TextView) findViewById(R.id.net_title);
@@ -94,24 +98,30 @@ public class netMusicActivity extends AestheticActivity {
         });
         adapter = new netListAdapter();
         net.setAdapter(adapter);
+        EventBus.getDefault().register(this);
 
     }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(dismissEvent event) {
+            adapter.dismissDialog();
+            Snackbar.make(net,"在线播放仅作为预览，请下载正版音乐后播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+    };
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(dismissReceiver);
+        EventBus.getDefault().unregister(this);
+//        unregisterReceiver(dismissReceiver);
         super.onDestroy();
     }
 
 
-    private class DismissReceiver extends BroadcastReceiver{
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            adapter.dismissDialog();
-            Snackbar.make(net,"在线播放仅作为预览，请下载正版音乐后播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
-        }
-    }
+//    private class DismissReceiver extends BroadcastReceiver{
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            adapter.dismissDialog();
+//            Snackbar.make(net,"在线播放仅作为预览，请下载正版音乐后播放",Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {@Override public void onClick(View view) {}}).show();
+//        }
+//    }
 
     private class httpTask extends AsyncTask<String, Integer, String> {
         @Override

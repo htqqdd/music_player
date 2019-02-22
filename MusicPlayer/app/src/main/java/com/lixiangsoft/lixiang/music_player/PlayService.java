@@ -15,6 +15,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Icon;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.media.MediaPlayer;
@@ -31,9 +32,12 @@ import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.graphics.Palette;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -46,8 +50,17 @@ import com.bumptech.glide.load.resource.bitmap.GlideBitmapDrawable;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.ServiceEvent;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.UIChangeEvent;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.dismissEvent;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.app.Notification.CATEGORY_TRANSPORT;
 import static android.app.Notification.PRIORITY_MIN;
@@ -56,11 +69,10 @@ import static android.media.AudioManager.STREAM_MUSIC;
 public class PlayService extends Service implements AudioManager.OnAudioFocusChangeListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
     private String path;
     private MediaPlayer mediaPlayer;
-    private ServiceReceiver serviceReceiver;
+        private ServiceReceiver serviceReceiver;
     private boolean onetime = true;
     private static final int NOTIFICATION_ID = 101;
     private AudioManager audioManager;
-    private boolean pasuefromUser = true;
 
     private BassBoost mBass;
     private Equalizer mEqualizer;
@@ -99,6 +111,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.e("测试", "Service Create");
         BitmapDrawable resourceDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.default_album);
         albumNow = resourceDrawable.getBitmap();
         mediaPlayer = new MediaPlayer();
@@ -122,7 +135,16 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         //监听耳机状态广播
         IntentFilter head_set_intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         registerReceiver(becomingNoisyReceiver, head_set_intentFilter);
-        //动态注册广播
+
+//        //耳机线控
+//        IntentFilter mediafilter = new IntentFilter();
+//        //拦截按键KeyEvent.KEYCODE_MEDIA_NEXT、KeyEvent.KEYCODE_MEDIA_PREVIOUS、KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+//        mediafilter.addAction(Intent.ACTION_MEDIA_BUTTON);
+//        mediafilter.setPriority(0);//设置优先级，优先级太低可能被拦截，收不到信息。一般默认优先级为0，通话优先级为1，该优先级的值域是-1000到1000。
+//        registerReceiver(mediaButtonReceiver, mediafilter);
+
+        EventBus.getDefault().register(this);
+        //动态注册广播此广播用于接收Notification的PenddingIntent
         serviceReceiver = new ServiceReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("service_broadcast");
@@ -131,24 +153,59 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
+        Log.e("测试", "Service Start");
+//        if (intent != null) {
             if (intent.getIntExtra("ACTION", -2) == MyConstant.initialize) {
                 MyApplication.setPositionNow(0);
             }
-            if (intent.getIntExtra("ACTION", -2) == MyConstant.sc_playAction) {
-                if (MyApplication.hasInitialized() == false) {
-                    MyApplication.initialMusicInfo(this);
-                }
-                MyApplication.setPlayMode(MyConstant.random);
-                play(randomPosition());
+        if (intent.getIntExtra("ACTION", -2) == MyConstant.sc_playAction) {
+            if (MyApplication.hasInitialized() == false) {
+                MyApplication.initialMusicInfo(this);
             }
-            MyApplication.setServiceStarted(true);
-        } else {
-            MyApplication.setServiceStarted(false);
+            MyApplication.setPlayMode(MyConstant.random);
+            play(randomPosition());
         }
+        MyApplication.setServiceStarted(true);
+//        } else {
+//            MyApplication.setServiceStarted(false);
+//        }
         return super.onStartCommand(intent, flags, startId);
     }
 
+    @Subscribe(threadMode = ThreadMode.BACKGROUND)
+    public void onMessageEvent(ServiceEvent event) {
+        switch (event.action) {
+            case MyConstant.playAction:
+                play(MyApplication.getPositionNow());
+                return;
+            case MyConstant.random_playAction:
+                play(randomPosition());
+                return;
+            case MyConstant.previousAction:
+                previous();
+                return;
+            case MyConstant.nextAction:
+                next();
+                return;
+            case MyConstant.pauseAction:
+                pause(true);
+                return;
+            case MyConstant.resumeAction:
+                resume();
+                return;
+            case MyConstant.deleteAction:
+                deleteService(event.delay);
+                return;
+            case MyConstant.resetAction:
+                if (mediaPlayer != null) {
+                    mediaPlayer.reset();
+                }
+                return;
+        }
+
+    }
+
+    ;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -168,7 +225,6 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             case AudioManager.AUDIOFOCUS_GAIN:
                 Log.v("AUDIOFOCUS_GAIN", "焦点获得");
                 //The service gained audio focus, so it needs to start playing.
-                if (!pasuefromUser) {
                     if (mediaPlayer == null) {
                         mediaPlayer = new MediaPlayer();
                         mediaPlayer.setAudioStreamType(STREAM_MUSIC);
@@ -179,28 +235,23 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                         initialAudioEffect(audioSessionId);
                     } else if (!mediaPlayer.isPlaying()) resume();
                     mediaPlayer.setVolume(1.0f, 1.0f);
-                }
+
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
-                removeAudioFocus();
-//                audioManager.abandonAudioFocus(this);
                 //The service lost audio focus, the user probably moved to playing media on another app, so release the media player.
                 Log.v("AUDIOFOCUS_LOSS", "焦点丢失");
                 if (mediaPlayer != null) {
                     if (mediaPlayer.isPlaying()) {
-                        pause();
-                        pasuefromUser = false;
+                        pause(false);
                     }
                 }
-//                releaseMedia();
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 Log.v("FOCUS_LOSS_TRANSIENT", "焦点暂时丢失");
                 //Focus lost for a short time, pause the MediaPlayer.
                 if (mediaPlayer != null) {
                     if (mediaPlayer.isPlaying()) {
-                        pause();
-                        pasuefromUser = false;
+                        pause(false);
                     }
                 }
                 break;
@@ -220,28 +271,21 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        Intent intent = new Intent("service_broadcast");
-        intent.putExtra("Control", MyConstant.nextAction);
-        sendBroadcast(intent);
+        next();
     }
 
     @Override
     public void onPrepared(MediaPlayer mp) {
         //关闭加载框
-        Intent dismiss_intent = new Intent("dismiss_dialog");
-        sendBroadcast(dismiss_intent);
+        EventBus.getDefault().post(new dismissEvent());
         if (onetime) {
-            Intent intent = new Intent("play_broadcast");
-            intent.putExtra("UIChange", MyConstant.initialize);
-            sendBroadcast(intent);
+            EventBus.getDefault().post(new UIChangeEvent(MyConstant.initialize));
             onetime = false;
         }
         mp.start();
         MyApplication.setMediaDuration(mp.getDuration());
         MyApplication.setState(MyConstant.playing);
-        Intent intent = new Intent("play_broadcast");
-        intent.putExtra("UIChange", MyConstant.mediaChangeAction);
-        sendBroadcast(intent);
+        EventBus.getDefault().post(new UIChangeEvent(MyConstant.mediaChangeAction));
         updateMetaDataAndBuildNotification();
         //储存播放次数
         new savePlayTimesTask().execute();
@@ -268,7 +312,6 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     }
 
 
-
     public int getAudioSessionId() {
         return audioSessionId;
     }
@@ -290,13 +333,12 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                 MyApplication.setPositionNow(position);
                 if (path == null || path.equals("")) {
                     //关闭加载框
-                    Intent dismiss_intent = new Intent("dismiss_dialog");
-                    sendBroadcast(dismiss_intent);
+                    EventBus.getDefault().post(new dismissEvent());
                     Toast.makeText(this, "未获取到此歌曲的链接，请尝试更换资源提供方", Toast.LENGTH_SHORT).show();
-                } else if (path.substring(path.lastIndexOf("."), path.length()).equals(".ape")){
+                } else if (path.substring(path.lastIndexOf("."), path.length()).equals(".ape")) {
                     Toast.makeText(this, "不支持此格式的歌曲", Toast.LENGTH_SHORT).show();
                     next();
-                } else{
+                } else {
                     mediaPlayer.setDataSource(path);
                     mediaPlayer.prepareAsync(); // 进行缓冲
                 }
@@ -329,26 +371,22 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getIntExtra("ACTION", -2) == MyConstant.playAction) {
-                play(MyApplication.getPositionNow());
-            } else if (intent.getIntExtra("ACTION", 0) == MyConstant.random_playAction) {
-                play(randomPosition());
-            } else if (intent.getIntExtra("Control", 0) == MyConstant.previousAction) {
+            if (intent.getIntExtra("Control", 0) == MyConstant.previousAction) {
                 previous();
             } else if (intent.getIntExtra("Control", 0) == MyConstant.nextAction) {
                 next();
             } else if (intent.getIntExtra("Control", 0) == MyConstant.pauseAction) {
-                removeAudioFocus();
-                pause();
-            } else if (intent.getIntExtra("Control", 0) == MyConstant.playAction) {
+                pause(true);
+            } else if (intent.getIntExtra("Control", 0) == MyConstant.resumeAction) {
                 resume();
             } else if (intent.getIntExtra("Control", 0) == MyConstant.deleteAction) {
-                deleteService(intent.getIntExtra("DelayControl", 0));
-            } else if (intent.getIntExtra("Control", 0) == MyConstant.resetAction) {
-                if (mediaPlayer != null) {
-                    mediaPlayer.reset();
-                }
+                deleteService(0);
             }
+//            else if (intent.getIntExtra("Control", 0) == MyConstant.resetAction) {
+//                if (mediaPlayer != null) {
+//                    mediaPlayer.reset();
+//                }
+//            }
         }
     }
 
@@ -356,13 +394,14 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         if (time != 0) {
             AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
             // 设置定时
-            int duration = time * 60 * 1000;
-            long setTime = duration + SystemClock.elapsedRealtime();
+//            int duration = time * 60 * 1000;
+            long setTime = time + SystemClock.elapsedRealtime();
             //设置定时任务
             manager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, setTime, pendingIntent(MyConstant.deleteAction));
         } else {
-            pause();
+            pause(true);
             removeNotification();
+            EventBus.getDefault().post(new UIChangeEvent(MyConstant.DestoryAction));
         }
     }
 
@@ -415,18 +454,18 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         }
     }
 
-    public void pause() {
+    public void pause(boolean removeAudioFocus) {
         if (mediaPlayer != null) {
             mediaPlayer.pause();
-            Intent intent = new Intent("play_broadcast");
-            intent.putExtra("UIChange", MyConstant.pauseAction);
-            sendBroadcast(intent);
+            EventBus.getDefault().post(new UIChangeEvent(MyConstant.pauseAction));
             if (MyApplication.getState() == MyConstant.playing) {
                 MyApplication.setState(MyConstant.pausing);
                 buildNotification(MyConstant.pausing);
             }
         }
-        pasuefromUser = true;
+        if (removeAudioFocus) {
+            removeAudioFocus();
+        }
     }
 
     public void resume() {
@@ -436,43 +475,33 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         } else {
             play(MyApplication.getPositionNow());
         }
-        Intent intent = new Intent("play_broadcast");
-        intent.putExtra("UIChange", MyConstant.playAction);
+        EventBus.getDefault().post(new UIChangeEvent(MyConstant.playAction));
         MyApplication.setState(MyConstant.playing);
-        sendBroadcast(intent);
         buildNotification(MyConstant.playing);
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+        unregisterReceiver(serviceReceiver);
+        unregisterReceiver(becomingNoisyReceiver);
+//        unregisterReceiver(mediaButtonReceiver);
         MyApplication.setServiceStarted(false);
         releaseMedia();
         removeNotification();
         removeAudioFocus();
-        unregisterReceiver(serviceReceiver);
-        unregisterReceiver(becomingNoisyReceiver);
-        if (mEqualizer != null) {
+        try{
             mEqualizer.release();
-        }
-        if (mVirtualizer != null) {
             mVirtualizer.release();
-        }
-        if (canceler != null) {
             canceler.release();
-        }
-        if (control != null) {
             control.release();
-        }
-        if (suppressor != null) {
             suppressor.release();
-        }
-        if (mBass != null) {
             mBass.release();
-        }
-        if (loudnessEnhancer != null) {
             loudnessEnhancer.release();
+        }catch (Exception e){
+            e.printStackTrace();
         }
+        super.onDestroy();
     }
 
     private void removeNotification() {
@@ -563,7 +592,6 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         titleNow = musicNow.getMusicTitle();
         if (!musicNow.getMusicLink().equals("")) {//网络
             Glide.with(this).load(musicNow.getMusicMediumAlbum()).asBitmap().listener(listener).into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
-
         } else {//本地
             if (musicNow.getAlbumLink() != null) {
                 Glide.with(this)
@@ -584,16 +612,10 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
 
     private void buildNotification(String playState) {
         int notificationAction = R.drawable.ic_pause_black_24dp;//needs to be initialized
-        PendingIntent play_pauseIntent = null;
-        //Build a new notification according to the current state of the MediaPlayer
-        if (playState == MyConstant.playing) {
-            notificationAction = R.drawable.ic_pause_black_24dp;
-            //create the pause action
-            play_pauseIntent = pendingIntent(MyConstant.pauseAction);
-        } else if (playState == MyConstant.pausing) {
+        PendingIntent play_pauseIntent = pendingIntent(MyConstant.pauseAction);
+        if (playState == MyConstant.pausing) {
             notificationAction = R.drawable.ic_play_arrow_black_24dp;
-            //create the play action
-            play_pauseIntent = pendingIntent(MyConstant.playAction);
+            play_pauseIntent = pendingIntent(MyConstant.resumeAction);
         }
         Intent startMain = new Intent(PlayService.this, MainActivity.class);
         PendingIntent startMainActivity = PendingIntent.getActivity(PlayService.this, 0, startMain, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -908,12 +930,46 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
     private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(PlayService.this);
-            Boolean headset_unplug = sharedPref.getBoolean("headset_unplug", false);
-            if (headset_unplug) {
-                pause();
-            }
+            headset_unplug_handler.sendEmptyMessage(0);
         }
     };
 
-}
+    private Handler headset_unplug_handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(PlayService.this);
+            if (sharedPref.getBoolean("headset_unplug", false) == false) {
+                pause(true);
+            }
+            super.handleMessage(msg);
+        }
+    };
+
+
+//    private BroadcastReceiver mediaButtonReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+////            boolean isActionMediaButton = Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction());//判断是不是耳机按键事件。
+////            if (!isActionMediaButton) return;
+//            KeyEvent event = (KeyEvent) intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);  //判断有没有耳机按键事件
+////            if (event == null) return;
+//            Log.e("测试","耳机事件"+event.getKeyCode()+"KeyEvent.KEYCODE_MEDIA_NEXT是"+KeyEvent.KEYCODE_MEDIA_NEXT+"KeyEvent.KEYCODE_MEDIA_PREVIOUS"+KeyEvent.KEYCODE_MEDIA_PREVIOUS+"KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE"+KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
+////            //过滤按下事件
+////            boolean isActionUp = (event.getAction() == KeyEvent.ACTION_UP);
+////            if (!isActionUp) return;
+////            //避免在Receiver里做长时间的处理，使得程序在CPU使用率过高的情况下出错，把信息发给handlera处理。
+////            int keyCode = event.getKeyCode();
+////            long eventTime = event.getEventTime() - event.getDownTime();//按键按下到松开的时长
+////            Message msg = Message.obtain();
+////            msg.what = 100;
+////            Bundle data = new Bundle();
+////            data.putInt("key_code", keyCode);
+////            data.putLong("event_time", eventTime);
+////            msg.setData(data);
+////            handler.sendMessage(msg);
+//            //终止广播(不让别的程序收到此广播，免受干扰)
+//            abortBroadcast();
+//        }
+//    };
+
+    }

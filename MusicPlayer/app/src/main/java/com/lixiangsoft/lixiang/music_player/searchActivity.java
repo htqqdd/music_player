@@ -19,7 +19,7 @@ import com.afollestad.aesthetic.AestheticActivity;
 public class searchActivity extends AestheticActivity implements SearchView.OnQueryTextListener{
     private SearchView searchView;
     private searchAdapter mSearchAdapter;
-    private DismissReceiver dismissReceiver;
+//    private DismissReceiver dismissReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,10 +27,10 @@ public class searchActivity extends AestheticActivity implements SearchView.OnQu
         setContentView(R.layout.activity_search);
 
         //动态注册广播
-        dismissReceiver = new DismissReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("dismiss_dialog");
-        registerReceiver(dismissReceiver, intentFilter);
+//        dismissReceiver = new DismissReceiver();
+//        IntentFilter intentFilter = new IntentFilter();
+//        intentFilter.addAction("dismiss_dialog");
+//        registerReceiver(dismissReceiver, intentFilter);
 
         Toolbar search_toolbar = (Toolbar) findViewById(R.id.search_toolbar);
         search_toolbar.inflateMenu(R.menu.search_menu);
@@ -49,7 +49,7 @@ public class searchActivity extends AestheticActivity implements SearchView.OnQu
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(dismissReceiver);
+//        unregisterReceiver(dismissReceiver);
         super.onDestroy();
     }
 
@@ -75,10 +75,10 @@ public class searchActivity extends AestheticActivity implements SearchView.OnQu
         return false;
     }
 
-    private class DismissReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            mSearchAdapter.dismissDialog();
-        }
-    }
+//    private class DismissReceiver extends BroadcastReceiver {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            mSearchAdapter.dismissDialog();
+//        }
+//    }
 }

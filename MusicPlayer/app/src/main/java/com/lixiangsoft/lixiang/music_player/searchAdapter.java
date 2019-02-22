@@ -33,6 +33,10 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.ServiceEvent;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.showListEvent;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -47,7 +51,7 @@ import static com.lixiangsoft.lixiang.music_player.R.id.delete;
 public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder>{
     private List<list_filter_info> listFiltered;
     private Activity mContext;
-    private ProgressDialog dialog;
+//    private ProgressDialog dialog;
     private View rootview;
     private List<musicInfo> musicInfoArrayList;
 
@@ -100,9 +104,10 @@ public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder
             public void onClick(View view) {
                 //播放
                 MyApplication.setPositionNow(info.getPosition());
-                Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", MyConstant.playAction);
-                mContext.sendBroadcast(intent);
+                EventBus.getDefault().post(new ServiceEvent(MyConstant.playAction));
+//                Intent intent = new Intent("service_broadcast");
+//                intent.putExtra("ACTION", MyConstant.playAction);
+//                mContext.sendBroadcast(intent);
             }
         });
         //处理菜单点击
@@ -181,16 +186,16 @@ public class searchAdapter extends RecyclerView.Adapter<searchAdapter.ViewHolder
 
 
 
-    public void dismissDialog() {
-        if (dialog != null) {
-            dialog.dismiss();
-            Snackbar.make(rootview, "在线播放仅作为预览，请在来源网站下载正版音乐后播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                }
-            }).show();
-        }
-    }
+//    public void dismissDialog() {
+//        if (dialog != null) {
+//            dialog.dismiss();
+//            Snackbar.make(rootview, "在线播放仅作为预览，请在来源网站下载正版音乐后播放", Snackbar.LENGTH_SHORT).setAction("确定", new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                }
+//            }).show();
+//        }
+//    }
 
     public class list_filter_info {
         public int mPosition;
@@ -246,12 +251,14 @@ searchAdapter.this.notifyDataSetChanged();
 //            }
 //        }).show();
         MyApplication.initialMusicInfo(context);
-        Intent intent = new Intent("permission_granted");
-        context.sendBroadcast(intent);
-        Intent intent2 = new Intent("list_permission_granted");
-        context.sendBroadcast(intent2);
-        Intent intent3 = new Intent("list_changed");
-        context.sendBroadcast(intent3);
+//        Intent intent = new Intent("permission_granted");
+//        context.sendBroadcast(intent);
+//        Intent intent2 = new Intent("list_permission_granted");
+//        context.sendBroadcast(intent2);
+//        EventBus.getDefault().post(new showListEvent(3));
+//        Intent intent3 = new Intent("list_changed");
+//        context.sendBroadcast(intent3);
+        EventBus.getDefault().post(new showListEvent(2,3,6));
     }
 
     private void addTo(final Activity context, final int position) {
@@ -303,8 +310,9 @@ searchAdapter.this.notifyDataSetChanged();
 //                    }
 //                }).show();
                 //更新界面
-                Intent intent = new Intent("list_changed");
-                context.sendBroadcast(intent);
+//                Intent intent = new Intent("list_changed");
+//                context.sendBroadcast(intent);
+                EventBus.getDefault().post(new showListEvent(6));
             }
         });
         return dialog;
@@ -334,8 +342,9 @@ searchAdapter.this.notifyDataSetChanged();
 //                            }
 //                        }).show();
                         //更新列表界面
-                        Intent intent = new Intent("list_changed");
-                        context.sendBroadcast(intent);
+//                        Intent intent = new Intent("list_changed");
+//                        context.sendBroadcast(intent);
+                        EventBus.getDefault().post(new showListEvent(6));
                     } else {
                         Toast.makeText(context, "该列表已存在", Toast.LENGTH_SHORT).show();
                     }
@@ -424,12 +433,14 @@ searchAdapter.this.notifyDataSetChanged();
                 nowMusic.setmAlbum(album.getText().toString());
                 MyApplication.getBoxStore().boxFor(musicInfo.class).put(nowMusic);
                 MyApplication.initialMusicInfo(context);
-                Intent intent = new Intent("permission_granted");
-                context.sendBroadcast(intent);
-                Intent intent2 = new Intent("list_permission_granted");
-                context.sendBroadcast(intent2);
-                Intent intent3 = new Intent("list_changed");
-                context.sendBroadcast(intent3);
+//                Intent intent = new Intent("permission_granted");
+//                context.sendBroadcast(intent);
+//                Intent intent2 = new Intent("list_permission_granted");
+//                context.sendBroadcast(intent2);
+//                EventBus.getDefault().post(new showListEvent(3));
+//                Intent intent3 = new Intent("list_changed");
+//                context.sendBroadcast(intent3);
+                EventBus.getDefault().post(new showListEvent(2,3,6));
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -480,12 +491,14 @@ searchAdapter.this.notifyDataSetChanged();
                         //更新mediastore
                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
                         MyApplication.initialMusicInfo(context);
-                        Intent intent = new Intent("permission_granted");
-                        context.sendBroadcast(intent);
-                        Intent intent2 = new Intent("list_permission_granted");
-                        context.sendBroadcast(intent2);
-                        Intent intent3 = new Intent("list_changed");
-                        context.sendBroadcast(intent3);
+//                        Intent intent = new Intent("permission_granted");
+//                        context.sendBroadcast(intent);
+//                        Intent intent2 = new Intent("list_permission_granted");
+//                        context.sendBroadcast(intent2);
+//                        EventBus.getDefault().post(new showListEvent(3));
+//                        Intent intent3 = new Intent("list_changed");
+//                        context.sendBroadcast(intent3);
+                        EventBus.getDefault().post(new showListEvent(2,3,6));
                     }
                 }
             });

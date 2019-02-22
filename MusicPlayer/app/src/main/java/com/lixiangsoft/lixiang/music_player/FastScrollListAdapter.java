@@ -44,8 +44,11 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.ServiceEvent;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.showListEvent;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -119,9 +122,10 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                 //播放
                 MyApplication.setMusicListNow(musicInfoArrayList,"musicInfoArrayList");
                 MyApplication.setPositionNow(position);
-                Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", MyConstant.playAction);
-                mContext.sendBroadcast(intent);
+                EventBus.getDefault().post(new ServiceEvent(MyConstant.playAction));
+//                Intent intent = new Intent("service_broadcast");
+//                intent.putExtra("ACTION", MyConstant.playAction);
+//                mContext.sendBroadcast(intent);
             }
         });
         //处理菜单点击
@@ -212,11 +216,12 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
         //通知其他adapter
         MyApplication.initialMusicInfo(mContext);
         //更新Recommend界面（全部）
-        Intent intent = new Intent("permission_granted");
-        mContext.sendBroadcast(intent);
+//        Intent intent = new Intent("permission_granted");
+//        mContext.sendBroadcast(intent);
         //更新列表界面（整个）
-        Intent intent2 = new Intent("list_changed");
-        mContext.sendBroadcast(intent2);
+//        Intent intent2 = new Intent("list_changed");
+//        mContext.sendBroadcast(intent2);
+        EventBus.getDefault().post(new showListEvent(2,3));
 
     }
 
@@ -318,11 +323,12 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                 //通知其他adapter
                 MyApplication.initialMusicInfo(mContext);
                 //更新Recommend界面（全部）
-                Intent intent = new Intent("permission_granted");
-                mContext.sendBroadcast(intent);
+//                Intent intent = new Intent("permission_granted");
+//                mContext.sendBroadcast(intent);
                 //更新列表界面（整个）
-                Intent intent2 = new Intent("list_changed");
-                mContext.sendBroadcast(intent2);
+//                Intent intent2 = new Intent("list_changed");
+//                mContext.sendBroadcast(intent2);
+                EventBus.getDefault().post(new showListEvent(2,6));
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -431,8 +437,9 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
 //                    }
 //                }).show();
                 //更新界面
-                Intent intent = new Intent("list_changed");
-                context.sendBroadcast(intent);
+//                Intent intent = new Intent("list_changed");
+//                context.sendBroadcast(intent);
+                EventBus.getDefault().post(new showListEvent(6));
             }
         });
         return dialog;
@@ -462,8 +469,9 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
 //                            }
 //                        }).show();
                         //更新列表界面
-                        Intent intent = new Intent("list_changed");
-                        context.sendBroadcast(intent);
+//                        Intent intent = new Intent("list_changed");
+//                        context.sendBroadcast(intent);
+                        EventBus.getDefault().post(new showListEvent(6));
                     } else {
                         Toast.makeText(context, "该列表已存在", Toast.LENGTH_SHORT).show();
                     }
@@ -556,11 +564,12 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                 //通知其他adapter
                 MyApplication.initialMusicInfo(mContext);
                 //更新Recommend界面（全部）
-                Intent intent = new Intent("permission_granted");
-                mContext.sendBroadcast(intent);
+//                Intent intent = new Intent("permission_granted");
+//                mContext.sendBroadcast(intent);
                 //更新列表界面（整个）
-                Intent intent2 = new Intent("list_changed");
-                mContext.sendBroadcast(intent2);
+//                Intent intent2 = new Intent("list_changed");
+//                mContext.sendBroadcast(intent2);
+                EventBus.getDefault().post(new showListEvent(2,6));
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -617,11 +626,12 @@ public class FastScrollListAdapter extends RecyclerView.Adapter<FastScrollListAd
                         //通知其他adapter
                         MyApplication.initialMusicInfo(mContext);
                         //更新Recommend界面（全部）
-                        Intent intent = new Intent("permission_granted");
-                        mContext.sendBroadcast(intent);
+//                        Intent intent = new Intent("permission_granted");
+//                        mContext.sendBroadcast(intent);
                         //更新列表界面（整个）
-                        Intent intent2 = new Intent("list_changed");
-                        mContext.sendBroadcast(intent2);
+//                        Intent intent2 = new Intent("list_changed");
+//                        mContext.sendBroadcast(intent2);
+                        EventBus.getDefault().post(new showListEvent(2,6));
                     }
                 }
             });

@@ -20,6 +20,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
@@ -33,6 +34,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.MessageQueue;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -91,11 +94,17 @@ import com.bumptech.glide.request.target.Target;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.gyf.barlibrary.ImmersionBar;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.ServiceEvent;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.UIChangeEvent;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.showListEvent;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.transitionseverywhere.Fade;
 import com.transitionseverywhere.TransitionManager;
 import com.transitionseverywhere.TransitionSet;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
@@ -107,6 +116,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.text.Format;
 import java.util.ArrayList;
@@ -143,7 +153,7 @@ import static com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState.EXPANDE
 public class MainActivity extends AestheticActivity {
     private static SeekBar seekBar;
     private ViewPager viewPager;
-    private MsgReceiver msgReceiver;
+//    private MsgReceiver msgReceiver;
     private int flag = 0;
     private int cx = 0;
     private int cy = 0;
@@ -155,8 +165,8 @@ public class MainActivity extends AestheticActivity {
     private SlidingUpPanelLayout mLayout;
     private CardView main_control_ui;
     private ImageView play_pause_button;
-    private ImageView back;
-    private ImageView about;
+//    private ImageView back;
+//    private ImageView about;
     private LrcView otherLyricView;
     private boolean fromLyric = false;
     boolean visible;
@@ -183,6 +193,9 @@ public class MainActivity extends AestheticActivity {
 
         //沉浸状态栏
         ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).transparentNavigationBar().init();
+        Log.e("测试","是否有状态栏"+ImmersionBar.hasNavigationBar(this)+"状态栏高度"+ImmersionBar.getNavigationBarHeight(this));
+
+
 
         if (Aesthetic.isFirstTime()) {
             Aesthetic.get()
@@ -193,14 +206,15 @@ public class MainActivity extends AestheticActivity {
                     .colorNavigationBarAuto()
                     .apply();
         }
+        Log.e("测试","ColorAccent"+getResources().getColor(R.color.colorAccent));
         //初始化全局变量
         seekBar = findViewById(R.id.seekBar);
         navigationView = findViewById(R.id.nav_view);
         random_play = findViewById(R.id.random_play);
         mLayout = findViewById(R.id.sliding_layout);
         play_pause_button = findViewById(R.id.play_pause_button);
-        back = findViewById(R.id.back);
-        about = findViewById(R.id.about);
+//        back = findViewById(R.id.back);
+//        about = findViewById(R.id.about);
         otherLyricView = findViewById(R.id.other_lrc_view);
         transitionsContainer = findViewById(R.id.activity_now_play);
         main_control_ui = findViewById(R.id.main_control_ui);
@@ -219,6 +233,7 @@ public class MainActivity extends AestheticActivity {
                 return false;
             }
         };
+        //???
         View.OnClickListener lyric_onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -330,10 +345,6 @@ public class MainActivity extends AestheticActivity {
             }
         }
 
-        //多屏幕尺寸适应
-        new screenAdaptionTask().execute();
-
-
         //新标题栏
         Toolbar main_toolbar = (Toolbar) findViewById(R.id.main_toolbar);
         main_toolbar.inflateMenu(R.menu.main_menu);
@@ -342,28 +353,34 @@ public class MainActivity extends AestheticActivity {
         //侧滑栏动画
         final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, main_toolbar, R.string.app_name, R.string.app_name) {
+            private boolean isfirstOpen = true;
             @Override
             public void onDrawerOpened(View drawerView) {
-                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-                View navHeader = inflater.inflate(R.layout.nav_header, (ViewGroup) MainActivity.this.findViewById(R.id.nav_header));
-                ImageView imageView = (ImageView) navHeader.findViewById(R.id.header);
-                if (sharedPref.getString("main_theme", "day").equals("day")) {
-                    Glide.with(MainActivity.this).load(R.drawable.nav).into(imageView);
-                } else {
-                    Glide.with(MainActivity.this).load(R.drawable.nav_black).into(imageView);
-                }
+
                 super.onDrawerOpened(drawerView);
             }
 
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
                 super.onDrawerSlide(drawerView, slideOffset);
+//                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                if (isfirstOpen) {
+                    LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+                    View navHeader = inflater.inflate(R.layout.nav_header, (ViewGroup) MainActivity.this.findViewById(R.id.nav_header));
+                    ImageView imageView = (ImageView) navHeader.findViewById(R.id.header);
+                    if (MyApplication.getMain_theme().equals("day")) {
+                        Glide.with(MainActivity.this).load(R.drawable.nav).into(imageView);
+                    } else {
+                        Glide.with(MainActivity.this).load(R.drawable.nav_black).into(imageView);
+                    }
+                    isfirstOpen = false;
+                }
             }
 
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
+                isfirstOpen = false;
                 switch (flag) {
                     case 0:
                         break;
@@ -409,22 +426,25 @@ public class MainActivity extends AestheticActivity {
 
 
         //动态注册广播
-        msgReceiver = new MsgReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("play_broadcast");
-        registerReceiver(msgReceiver, intentFilter);
+//        msgReceiver = new MsgReceiver();
+//        IntentFilter intentFilter = new IntentFilter();
+//        intentFilter.addAction("play_broadcast");
+//        registerReceiver(msgReceiver, intentFilter);
 
         //上滑面板
         mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            private boolean isFirstOpen = true;
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
                 int red=0,green=150,blue=136;
+                if (isFirstOpen) {
                     int color_primary = MyApplication.getColor_primary();
                     red = (color_primary & 0xff0000) >> 16;
                     green = (color_primary & 0x00ff00) >> 8;
                     blue = (color_primary & 0x0000ff);
-                int color = Color.argb((int)((1-slideOffset) * 255), red, green, blue);
-                Aesthetic.get().colorNavigationBar(color).apply();
+                    int color = Color.argb((int) ((1 - slideOffset) * 255), red, green, blue);
+                    Aesthetic.get().colorNavigationBar(color).apply();
+                }
                 AlphaAnimation alphaAnimation = new AlphaAnimation(slideOffset, 1 - slideOffset);
                 main_control_ui.startAnimation(alphaAnimation);
                 alphaAnimation.setFillAfter(true);//动画结束后保持状态
@@ -434,73 +454,25 @@ public class MainActivity extends AestheticActivity {
             @Override
             public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
                 if (previousState == COLLAPSED && newState == DRAGGING) {
-//                    updateSeekBar();
+                    isFirstOpen = true;
                 }
                 if (previousState == DRAGGING && newState == EXPANDED) {
                     updateSeekBar();
                     //禁止手势滑动
                     main_control_ui.setClickable(false);
                     play_pause_button.setClickable(false);
-                    about.setClickable(true);
-                    back.setClickable(true);
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                 }
                 if (previousState == DRAGGING && newState == COLLAPSED) {
                     Aesthetic.get().colorNavigationBar(MyApplication.getColor_primary()).apply();
-//                    ImmersionBar.with(MainActivity.this).statusBarView(R.id.immersion_view).navigationBarColor(R.color.colorPrimary).init();
                     if (mTimer != null) {
                         mTimer.cancel();
                     }
                     main_control_ui.setClickable(true);
                     play_pause_button.setClickable(true);
-                    about.setClickable(false);
-                    back.setClickable(false);
                     //恢复手势滑动
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
                 }
-            }
-        });
-        back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mLayout != null &&
-                        (mLayout.getPanelState() == EXPANDED || mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
-                    mLayout.setPanelState(COLLAPSED);
-                }
-            }
-        });
-        about.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                PopupMenu popupMenu = new PopupMenu(MainActivity.this, view);
-                popupMenu.getMenuInflater().inflate(R.menu.main_menu, popupMenu.getMenu());
-                popupMenu.show();
-                MenuItem search = popupMenu.getMenu().findItem(R.id.search);
-                MenuItem sleeper = popupMenu.getMenu().findItem(R.id.sleeper);
-                MenuItem equalizer = popupMenu.getMenu().findItem(R.id.equalizer);
-                search.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        Intent intent = new Intent(MainActivity.this, searchActivity.class);
-                        startActivity(intent);
-                        return true;
-                    }
-                });
-                sleeper.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        //Timepicker Dialog
-                        sleeper();
-                        return true;
-                    }
-                });
-                equalizer.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        equalizer();
-                        return false;
-                    }
-                });
             }
         });
 
@@ -517,7 +489,7 @@ public class MainActivity extends AestheticActivity {
             ChangeScrollingUpPanel(MyApplication.getPositionNow());
             random_play.hide();
             mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-            mLayout.setPanelHeight((int) (108 * getResources().getDisplayMetrics().density + 0.5f));
+            mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f)+ImmersionBar.getNavigationBarHeight(MainActivity.this));
         }
 
         final ColorShades shades = new ColorShades();
@@ -534,9 +506,10 @@ public class MainActivity extends AestheticActivity {
             public void onPageSelected(int position) {
                 if (fromUser) {
                     MyApplication.setPositionNow(position);
-                    Intent intent = new Intent("service_broadcast");
-                    intent.putExtra("ACTION", MyConstant.playAction);
-                    MainActivity.this.sendBroadcast(intent);
+                    EventBus.getDefault().post(new ServiceEvent(MyConstant.playAction));
+//                    Intent intent = new Intent("service_broadcast");
+//                    intent.putExtra("ACTION", MyConstant.playAction);
+//                    MainActivity.this.sendBroadcast(intent);
                 }
 
             }
@@ -553,6 +526,8 @@ public class MainActivity extends AestheticActivity {
         });
 
         MainActivityPermissionsDispatcher.needsPermissionWithCheck(this);
+        EventBus.getDefault().register(this);
+
     }
 
     @Override
@@ -639,14 +614,100 @@ public class MainActivity extends AestheticActivity {
             public void onClick(View view) {
                 MyApplication.setPlayMode(MyConstant.random);
                 MyApplication.setMusicListNow(MyApplication.getMusicInfoArrayList(), "musicInfoArrayList");
-                Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", MyConstant.random_playAction);
-                sendBroadcast(intent);
+                EventBus.getDefault().post(new ServiceEvent(MyConstant.random_playAction));
+//                Intent intent = new Intent("service_broadcast");
+//                intent.putExtra("ACTION", MyConstant.random_playAction);
+//                sendBroadcast(intent);
             }
         });
-
         super.onStart();
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+//        return true会重复执行，false只执行一次
+        Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
+            @Override
+            public boolean queueIdle() {
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                //起始页
+                String start_page = sharedPref.getString("start_page", "");
+                if (!isfromSc) {
+                    switch (start_page) {
+                        case "suggestion":
+                            viewPager.setCurrentItem(0);
+                            break;
+                        case "list":
+                            viewPager.setCurrentItem(1);
+                            break;
+                        case "cloud":
+                            viewPager.setCurrentItem(2);
+                            break;
+                        default:
+                    }
+                }
+                //获得颜色设置
+                MyApplication.setColor_primary(sharedPref.getInt("default_color", -16738680));
+                MyApplication.setColor_accent(sharedPref.getInt("accent_color", -1499549));
+                MyApplication.setMain_theme(sharedPref.getString("main_theme", "day"));
+                //检测网络模式设置
+                Boolean local_net_mode = sharedPref.getBoolean("local_net_mode", false);
+                MyApplication.setLocal_net_mode(local_net_mode);
+                //设置布局高度
+                ViewPager play_now_cover_viewPager = findViewById(R.id.play_now_cover_viewpager);
+                View lrcView = findViewById(R.id.other_lrc_view);
+                RelativeLayout control_layout = findViewById(R.id.control_layout);
+                CardView music_info_cardView = findViewById(R.id.music_info_cardView);
+                ViewGroup.LayoutParams lp_control_layout = control_layout.getLayoutParams();
+                RelativeLayout.LayoutParams lp_play_now_cover = (RelativeLayout.LayoutParams) play_now_cover_viewPager.getLayoutParams();
+                RelativeLayout.LayoutParams lp_lrcView = (RelativeLayout.LayoutParams) lrcView.getLayoutParams();
+                ViewGroup.LayoutParams lp_cardView = (ViewGroup.MarginLayoutParams) music_info_cardView.getLayoutParams();
+//                ViewGroup.MarginLayoutParams mlp_cardView = music_info_cardView.getLayoutParams();
+                int marginLeft_Right = (int)(16 * getResources().getDisplayMetrics().density + 0.5f);
+                int marginBottom = (int)(32 * getResources().getDisplayMetrics().density + 0.5f);
+                ((ViewGroup.MarginLayoutParams) lp_cardView).setMargins(marginLeft_Right,0,marginLeft_Right,ImmersionBar.getNavigationBarHeight(MainActivity.this)+marginBottom);
+                int height = getResources().getDisplayMetrics().heightPixels;
+                lp_play_now_cover.height = (int) (height * 0.58);
+                lp_lrcView.height = ((int) (height * 0.42));
+                lp_control_layout.height = ((int) (height * 0.16));
+                lp_cardView.height = ((int) (height * 0.15));
+                play_now_cover_viewPager.setLayoutParams(lp_play_now_cover);
+                lrcView.setLayoutParams(lp_lrcView);
+                control_layout.setLayoutParams(lp_control_layout);
+                music_info_cardView.setLayoutParams(lp_cardView);
+//                music_info_cardView.
+                return false;
+            }
+        });
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(UIChangeEvent event) {
+        FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
+        switch (event.event) {
+            case MyConstant.initialize:
+                mLayout.setPanelHeight((int) (60 * getResources().getDisplayMetrics().density + 0.5f)+ImmersionBar.getNavigationBarHeight(MainActivity.this));
+                random_play.hide();
+                return;
+            case MyConstant.pauseAction:
+                floatingActionButton.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+                play_pause_button.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+                return;
+            case MyConstant.playAction:
+                floatingActionButton.setImageResource(R.drawable.ic_pause_black_24dp);
+                play_pause_button.setImageResource(R.drawable.ic_pause_black_24dp);
+                return;
+            case MyConstant.mediaChangeAction:
+                ChangeScrollingUpPanel(MyApplication.getPositionNow());
+                return;
+                //???
+            case MyConstant.DestoryAction:
+                this.finish();
+//                MainActivity.this.onDestroy();
+//                finish();
+        }
+    };
 
     @Override
     public void onBackPressed() {
@@ -663,65 +724,58 @@ public class MainActivity extends AestheticActivity {
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(msgReceiver);
+//        unregisterReceiver(msgReceiver);
         Log.v("OnDestory执行", "OnDestory");
         if (MyApplication.getState() == MyConstant.pausing) {
             unbindService(conn);
             stopService(new Intent(this, PlayService.class));
         }
         super.onDestroy();
+        EventBus.getDefault().unregister(this);
+
     }
+
+
     //以下为公共方法
-
     public void sendPermissionGranted() {
-        new initialTask().execute();
-    }
-
-    public class initialTask extends AsyncTask {
-        @Override
-        protected Object doInBackground(Object[] objects) {
-            MyApplication.initialMusicInfo(MainActivity.this);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Object o) {
-            //更新Recommend界面（全部）
-            Intent intent = new Intent("permission_granted");
-            sendBroadcast(intent);
-            //更新fastscroll界面
-            Intent intent2 = new Intent("list_permission_granted");
-            sendBroadcast(intent2);
-            super.onPostExecute(o);
-        }
+        MyApplication.initialMusicInfo(MainActivity.this);
+        EventBus.getDefault().post(new showListEvent(2,3));
     }
 
     //播放，暂停按钮
     public void title_play_or_pause(View view) {
         if (MyApplication.getState() == MyConstant.playing) {
-            playService.pause();
-            playService.removeAudioFocus();
+            EventBus.getDefault().post(new ServiceEvent(MyConstant.pauseAction));
+//            playService.pause(true);
+//            playService.removeAudioFocus();
         } else if (MyApplication.getState() == MyConstant.pausing) {
-            playService.resume();
+            EventBus.getDefault().post(new ServiceEvent(MyConstant.resumeAction));
+
+//            playService.resume();
         }
     }
 
     public void main_play_or_pause(View v) {
         if (MyApplication.getState() == MyConstant.playing) {
-            playService.pause();
-            playService.removeAudioFocus();
+            EventBus.getDefault().post(new ServiceEvent(MyConstant.pauseAction));
+//            playService.pause(true);
+//            playService.removeAudioFocus();
         } else if (MyApplication.getState() == MyConstant.pausing) {
-            playService.resume();
+            EventBus.getDefault().post(new ServiceEvent(MyConstant.resumeAction));
+//            playService.resume();
         }
     }
 
     public void previous(View v) {
-        playService.previous();
+        EventBus.getDefault().post(new ServiceEvent(MyConstant.previousAction));
+
+//        playService.previous();
 
     }
 
     public void next(View v) {
-        playService.next();
+        EventBus.getDefault().post(new ServiceEvent(MyConstant.nextAction));
+//        playService.next();
     }
 
     public void changeRepeat(View v) {
@@ -855,6 +909,7 @@ public class MainActivity extends AestheticActivity {
         //判断是否更改List
         if (previousList != MyApplication.getMusicListNow()) {
             playNowCoverPagerAdapter coverPagerAdapter = new playNowCoverPagerAdapter(MainActivity.this);
+            coverPagerAdapter.notifyDataSetChanged();
             play_now_cover_viewPager.setAdapter(coverPagerAdapter);
             previousList = MyApplication.getMusicListNow();
         }
@@ -957,30 +1012,31 @@ public class MainActivity extends AestheticActivity {
 
     }
 
-    private class MsgReceiver extends BroadcastReceiver {
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //更新UI
-            if (intent.getIntExtra("UIChange", 0) == MyConstant.initialize) {
-                mLayout.setPanelHeight((int) (108 * getResources().getDisplayMetrics().density + 0.5f));
-                random_play.hide();
-            } else if (intent.getIntExtra("UIChange", 0) == MyConstant.pauseAction) {
-                FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
-                floatingActionButton.setImageResource(R.drawable.ic_play_arrow_black_24dp);
-                play_pause_button.setImageResource(R.drawable.ic_play_arrow_black_24dp);
-            } else if (intent.getIntExtra("UIChange", 0) == MyConstant.playAction) {
-                FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
-                floatingActionButton.setImageResource(R.drawable.ic_pause_black_24dp);
-                play_pause_button.setImageResource(R.drawable.ic_pause_black_24dp);
-            } else if (intent.getIntExtra("UIChange", 0) == MyConstant.mediaChangeAction) {
-                ChangeScrollingUpPanel(MyApplication.getPositionNow());
-            } else if (intent.getIntExtra("onDestroy", 0) == 1) {
-                finish();
-            }
-        }
-
-    }
+//    private class MsgReceiver extends BroadcastReceiver {
+//
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            //更新UI
+//            if (intent.getIntExtra("UIChange", 0) == MyConstant.initialize) {
+//                mLayout.setPanelHeight((int) (108 * getResources().getDisplayMetrics().density + 0.5f));
+//                random_play.hide();
+//            } else if (intent.getIntExtra("UIChange", 0) == MyConstant.pauseAction) {
+//                FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
+//                floatingActionButton.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+//                play_pause_button.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+//            } else if (intent.getIntExtra("UIChange", 0) == MyConstant.playAction) {
+//                FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.play_or_pause);
+//                floatingActionButton.setImageResource(R.drawable.ic_pause_black_24dp);
+//                play_pause_button.setImageResource(R.drawable.ic_pause_black_24dp);
+//            } else if (intent.getIntExtra("UIChange", 0) == MyConstant.mediaChangeAction) {
+//                ChangeScrollingUpPanel(MyApplication.getPositionNow());
+//            } else if (intent.getIntExtra("onDestroy", 0) == 1) {
+//                finish();
+//            }
+//        }
+//
+//    }
 
     public void play_now_menu_button(View view) {
         if (MyApplication.getListlabel().equals("netMusicList")) {
@@ -1058,54 +1114,6 @@ public class MainActivity extends AestheticActivity {
         }
     }
 
-    private class screenAdaptionTask extends AsyncTask {
-        @Override
-        protected Object doInBackground(Object[] objects) {
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-            String start_page = sharedPref.getString("start_page", "");
-            //检测网络模式设置
-            Boolean local_net_mode = sharedPref.getBoolean("local_net_mode", false);
-            MyApplication.setLocal_net_mode(local_net_mode);
-            return start_page;
-        }
-
-        @Override
-        protected void onPostExecute(Object o) {
-            if (!isfromSc) {
-                switch ((String) o) {
-                    case "suggestion":
-                        viewPager.setCurrentItem(0);
-                        break;
-                    case "list":
-                        viewPager.setCurrentItem(1);
-                        break;
-                    case "cloud":
-                        viewPager.setCurrentItem(2);
-                        break;
-                    default:
-                }
-            }
-            ViewPager play_now_cover_viewPager = findViewById(R.id.play_now_cover_viewpager);
-            View lrcView = findViewById(R.id.other_lrc_view);
-            RelativeLayout control_layout = findViewById(R.id.control_layout);
-            CardView music_info_cardView = findViewById(R.id.music_info_cardView);
-            ViewGroup.LayoutParams lp_control_layout = control_layout.getLayoutParams();
-            RelativeLayout.LayoutParams lp_play_now_cover = (RelativeLayout.LayoutParams) play_now_cover_viewPager.getLayoutParams();
-            RelativeLayout.LayoutParams lp_lrcView = (RelativeLayout.LayoutParams) lrcView.getLayoutParams();
-            ViewGroup.LayoutParams lp_cardView = music_info_cardView.getLayoutParams();
-            int height = getResources().getDisplayMetrics().heightPixels;
-            lp_play_now_cover.height = (int) (height * 0.58);
-            lp_lrcView.height = ((int) (height * 0.42));
-            lp_control_layout.height = ((int) (height * 0.16));
-            lp_cardView.height = ((int) (height * 0.17));
-            play_now_cover_viewPager.setLayoutParams(lp_play_now_cover);
-            lrcView.setLayoutParams(lp_lrcView);
-            control_layout.setLayoutParams(lp_control_layout);
-            music_info_cardView.setLayoutParams(lp_cardView);
-            super.onPostExecute(o);
-        }
-    }
-
     private ServiceConnection conn = new ServiceConnection() {
 
         @Override
@@ -1143,13 +1151,15 @@ public class MainActivity extends AestheticActivity {
         final java.util.Calendar c = java.util.Calendar.getInstance();
         final int hourNow = c.get(java.util.Calendar.HOUR_OF_DAY);
         final int minuteNow = c.get(Calendar.MINUTE);
+        final int secondNow = c.get(Calendar.SECOND);
         new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker view, int hourPicked, int minutePicked) {
-                int duration = (hourPicked - hourNow) * 60 + minutePicked - minuteNow;
-                if (hourPicked >= hourNow && duration > 0 && duration < 360) {
-                    playService.deleteService(duration);
-                    Toast.makeText(MainActivity.this, "已经定时为\" + duration + \"分钟后关闭", Toast.LENGTH_SHORT).show();
+                int duration = (hourPicked - hourNow) * 3600 + (minutePicked - minuteNow)*60+(60-secondNow);
+                if (hourPicked >= hourNow && duration > 0 && duration < 21600) {
+                    EventBus.getDefault().post(new ServiceEvent(MyConstant.deleteAction,duration));
+//                    playService.deleteService(duration);
+                    Toast.makeText(MainActivity.this, "已经定时为" + (duration/60) + "分钟后关闭", Toast.LENGTH_SHORT).show();
 //                    Snackbar.make(mLayout, "已经定时为" + duration + "分钟后关闭", Snackbar.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(MainActivity.this, "所选时间须为当天，且距当前时间6小时内", Toast.LENGTH_SHORT).show();
@@ -1479,9 +1489,10 @@ public class MainActivity extends AestheticActivity {
         Toast.makeText(context, "成功隐藏1首歌曲", Toast.LENGTH_SHORT).show();
 //        Snackbar.make(mLayout, "成功隐藏1首歌曲", Snackbar.LENGTH_SHORT).show();
         //更新界面
-        playService.next();
-        //通知其他adapter
+        EventBus.getDefault().post(new ServiceEvent(MyConstant.playAction));
         MyApplication.reDisplay(context);
+//        playService.next();
+//        MyApplication.reDisplay(context);
 
     }
 
@@ -1529,9 +1540,10 @@ public class MainActivity extends AestheticActivity {
                 dialog.dismiss();
                 Toast.makeText(context, "成功加入1首歌曲到播放列表", Toast.LENGTH_SHORT).show();
 //                Snackbar.make(mLayout, "成功加入1首歌曲到播放列表", Snackbar.LENGTH_SHORT).show();
-                //更新界面
-                Intent intent = new Intent("list_changed");
-                context.sendBroadcast(intent);
+//                //更新界面
+//                Intent intent = new Intent("list_changed");
+//                context.sendBroadcast(intent);
+                EventBus.getDefault().post(new showListEvent(6));
             }
         });
         return dialog;
@@ -1556,9 +1568,10 @@ public class MainActivity extends AestheticActivity {
                         MyApplication.getBoxStore().boxFor(Playlist.class).put(new Playlist(name.getText().toString()));
                         Toast.makeText(context, "成功新建1个播放列表", Toast.LENGTH_SHORT).show();
 //                        Snackbar.make(mLayout, "成功新建1个播放列表", Snackbar.LENGTH_SHORT).show();
-                        //更新列表界面
-                        Intent intent = new Intent("list_changed");
-                        context.sendBroadcast(intent);
+//                        //更新列表界面
+//                        Intent intent = new Intent("list_changed");
+//                        context.sendBroadcast(intent);
+                        EventBus.getDefault().post(new showListEvent(6));
                     } else {
                         Toast.makeText(context, "该列表已存在", Toast.LENGTH_SHORT).show();
                     }
@@ -1690,7 +1703,8 @@ public class MainActivity extends AestheticActivity {
                         //更新mediastore
                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
                         //更新列表
-                        playService.next();
+                        EventBus.getDefault().post(new ServiceEvent(MyConstant.playAction));
+//                        playService.next();
                         //通知其他adapter
                         MyApplication.reDisplay(context);
                     }
@@ -1788,4 +1802,5 @@ public class MainActivity extends AestheticActivity {
             e.printStackTrace();
         }
     }
+
 }

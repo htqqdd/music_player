@@ -15,6 +15,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.showListEvent;
+
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,8 +66,9 @@ public class playListAdapter extends RecyclerView.Adapter<playListAdapter.ViewHo
                                                 MyApplication.setCustomListNow(text);
                                                 Toast.makeText(mContext, "成功修改1个播放列表", Toast.LENGTH_SHORT).show();
                                                 //更新列表界面
-                                                Intent intent = new Intent("list_changed");
-                                                mContext.sendBroadcast(intent);
+//                                                Intent intent = new Intent("list_changed");
+//                                                mContext.sendBroadcast(intent);
+                                                EventBus.getDefault().post(new showListEvent(6));
                                             } else {
                                                 Toast.makeText(mContext, "该列表已存在", Toast.LENGTH_SHORT).show();
                                             }
@@ -84,8 +89,9 @@ public class playListAdapter extends RecyclerView.Adapter<playListAdapter.ViewHo
                             case R.id.delete_list:
                                 MyApplication.getBoxStore().boxFor(Playlist.class).remove(list.get(position));
                                 //更新界面
-                                Intent intent = new Intent("list_changed");
-                                mContext.sendBroadcast(intent);
+//                                Intent intent = new Intent("list_changed");
+//                                mContext.sendBroadcast(intent);
+                                EventBus.getDefault().post(new showListEvent(6));
                                 return true;
                         }
                         return true;
@@ -99,9 +105,10 @@ public class playListAdapter extends RecyclerView.Adapter<playListAdapter.ViewHo
             public void onClick(View view) {
                 MyApplication.setCustomListNow(list.get(position).getName());
                 //更新列表界面(仅detaillist)
-                Intent intent = new Intent("list_changed");
-                intent.putExtra("Action", 1);
-                mContext.sendBroadcast(intent);
+//                Intent intent = new Intent("list_changed");
+//                intent.putExtra("Action", 1);
+//                mContext.sendBroadcast(intent);
+                EventBus.getDefault().post(new showListEvent(5));
             }
         });
     }

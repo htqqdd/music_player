@@ -12,9 +12,12 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Toast;
 
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.showListEvent;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
 import com.tencent.bugly.crashreport.CrashReport;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -50,7 +53,9 @@ public class MyApplication extends Application {
     public static boolean serviceStarted = false;
     public static boolean hasInitialized = false;
     public static View.OnClickListener listener;
-    public static int color_primary = -16738680;
+    public static int color_primary;
+    public static int color_accent;
+    public static String main_theme;
 
     @Override
     public void onCreate() {
@@ -64,7 +69,6 @@ public class MyApplication extends Application {
     //方法类
     public static void initialMusicInfo(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        color_primary = sharedPref.getInt("default_color", -16738680);
         int filter_duration = 30000;
         String filtration = sharedPref.getString("filtration", "");
         switch (filtration) {
@@ -222,12 +226,14 @@ public class MyApplication extends Application {
     public static void reDisplay(Context context) {
         //界面初始化
         MyApplication.initialMusicInfo(context);
-        Intent intent = new Intent("permission_granted");
-        context.sendBroadcast(intent);
-        Intent intent2 = new Intent("list_permission_granted");
-        context.sendBroadcast(intent2);
-        Intent intent3 = new Intent("list_changed");
-        context.sendBroadcast(intent3);
+//        Intent intent = new Intent("permission_granted");
+//        context.sendBroadcast(intent);
+//        Intent intent2 = new Intent("list_permission_granted");
+//        context.sendBroadcast(intent2);
+//        EventBus.getDefault().post(new showListEvent(3));
+//        Intent intent3 = new Intent("list_changed");
+//        context.sendBroadcast(intent3);
+        EventBus.getDefault().post(new showListEvent(2,3,6));
     }
 
     private void initialBugly() {
@@ -381,5 +387,21 @@ public class MyApplication extends Application {
 
     public static void setColor_primary(int color_primary) {
         MyApplication.color_primary = color_primary;
+    }
+
+    public static int getColor_accent() {
+        return color_accent;
+    }
+
+    public static void setColor_accent(int color_accent) {
+        MyApplication.color_accent = color_accent;
+    }
+
+    public static String getMain_theme() {
+        return main_theme;
+    }
+
+    public static void setMain_theme(String main_theme) {
+        MyApplication.main_theme = main_theme;
     }
 }

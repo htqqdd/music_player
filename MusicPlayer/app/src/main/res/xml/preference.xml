@@ -79,8 +79,8 @@
             android:title="短暂丢失音频焦点时降低音量"/>
         <SwitchPreference
             android:key="headset_unplug"
-            android:summaryOn="检测到耳机拔出时，暂停音乐的播放"
-            android:summaryOff="检测到耳机拔出时，音乐继续播放"
+            android:summaryOn="检测到耳机拔出时，音乐继续播放"
+            android:summaryOff="检测到耳机拔出时，音乐暂停播放"
             android:title="拔出耳机时暂停播放"/>
     </PreferenceCategory>
 

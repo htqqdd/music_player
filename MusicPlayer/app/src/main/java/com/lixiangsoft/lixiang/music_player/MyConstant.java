@@ -12,7 +12,9 @@ public class MyConstant {
     public static final int nextAction = 12;
     public static final int pauseAction = 14;
     public static final int playAction = 15;
+    public static final int resumeAction = 20;
     public static final int mediaChangeAction=16;
+    public static final int DestoryAction=1;
     public static final int deleteAction = 18;
     public static final int sc_playAction = 19;
     public static final int resetAction = 21;

@@ -30,6 +30,10 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.ServiceEvent;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.showListEvent;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -90,9 +94,10 @@ public class playlistdetailAdapter extends RecyclerView.Adapter<playlistdetailAd
                 //播放
                 MyApplication.setMusicListNow(listDetail, "listDetail");
                 MyApplication.setPositionNow(position);
-                Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", MyConstant.playAction);
-                mContext.sendBroadcast(intent);
+                EventBus.getDefault().post(new ServiceEvent(MyConstant.playAction));
+//                Intent intent = new Intent("service_broadcast");
+//                intent.putExtra("ACTION", MyConstant.playAction);
+//                mContext.sendBroadcast(intent);
             }
         });
         //处理菜单点击
@@ -199,11 +204,12 @@ public class playlistdetailAdapter extends RecyclerView.Adapter<playlistdetailAd
         //通知其他adapter
         MyApplication.initialMusicInfo(mContext);
         //更新Recommend界面（全部）
-        Intent intent = new Intent("permission_granted");
-        mContext.sendBroadcast(intent);
+//        Intent intent = new Intent("permission_granted");
+//        mContext.sendBroadcast(intent);
         //更新fastscroll界面
-        Intent intent2 = new Intent("list_permission_granted");
-        mContext.sendBroadcast(intent2);
+//        Intent intent2 = new Intent("list_permission_granted");
+//        mContext.sendBroadcast(intent2);
+        EventBus.getDefault().post(new showListEvent(2,3));
     }
 
     private void setAsRingtone(final Activity context, int position) {
@@ -286,11 +292,12 @@ public class playlistdetailAdapter extends RecyclerView.Adapter<playlistdetailAd
                 //通知其他adapter
                 MyApplication.initialMusicInfo(mContext);
                 //更新Recommend界面（全部）
-                Intent intent = new Intent("permission_granted");
-                mContext.sendBroadcast(intent);
+//                Intent intent = new Intent("permission_granted");
+//                mContext.sendBroadcast(intent);
                 //更新fastscroll界面
-                Intent intent2 = new Intent("list_permission_granted");
-                mContext.sendBroadcast(intent2);
+//                Intent intent2 = new Intent("list_permission_granted");
+//                mContext.sendBroadcast(intent2);
+                EventBus.getDefault().post(new showListEvent(2,3));
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -346,11 +353,12 @@ public class playlistdetailAdapter extends RecyclerView.Adapter<playlistdetailAd
                         //通知其他adapter
                         MyApplication.initialMusicInfo(mContext);
                         //更新Recommend界面（全部）
-                        Intent intent = new Intent("permission_granted");
-                        mContext.sendBroadcast(intent);
+//                        Intent intent = new Intent("permission_granted");
+//                        mContext.sendBroadcast(intent);
                         //更新fastscroll界面
-                        Intent intent2 = new Intent("list_permission_granted");
-                        mContext.sendBroadcast(intent2);
+//                        Intent intent2 = new Intent("list_permission_granted");
+//                        mContext.sendBroadcast(intent2);
+                        EventBus.getDefault().post(new showListEvent(2,3));
                     }
                 }
             });

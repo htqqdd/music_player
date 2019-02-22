@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.util.EventLog;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -20,6 +21,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.ServiceEvent;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,9 +79,10 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
                                              KeyEvent event) {
                             // TODO Auto-generated method stub
                             if (keyCode == KeyEvent.KEYCODE_BACK) {
-                                Intent intent = new Intent("service_broadcast");
-                                intent.putExtra("ACTION", MyConstant.resetAction);
-                                mContext.sendBroadcast(intent);
+                                EventBus.getDefault().post(new ServiceEvent(MyConstant.resetAction));
+//                                Intent intent = new Intent("service_broadcast");
+//                                intent.putExtra("ACTION", MyConstant.resetAction);
+//                                mContext.sendBroadcast(intent);
                                 dialog.dismiss();
                             }
                             return true;
@@ -85,9 +90,10 @@ public class netListAdapter  extends RecyclerView.Adapter<netListAdapter.ViewHol
                     });
                     MyApplication.setMusicListNow(netMusicList,"netMusicList");
                     MyApplication.setPositionNow(position);
-                    Intent intent = new Intent("service_broadcast");
-                    intent.putExtra("ACTION", MyConstant.playAction);
-                    mContext.sendBroadcast(intent);
+                    EventBus.getDefault().post(new ServiceEvent(MyConstant.playAction));
+//                    Intent intent = new Intent("service_broadcast");
+//                    intent.putExtra("ACTION", MyConstant.playAction);
+//                    mContext.sendBroadcast(intent);
                 }else {
                     Toast.makeText(mContext, "当前处于离线模式", Toast.LENGTH_SHORT).show();
                 }

@@ -17,39 +17,54 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.showListEvent;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class MusiclistFragment extends Fragment {
-
     private FastScrollRecyclerView fastScrollRecyclerView;
-    private list_PermissionReceiver list_permissionReceiver;
+//    private list_PermissionReceiver list_permissionReceiver;
     private FastScrollListAdapter adapter;
 
 
     public MusiclistFragment() {
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(showListEvent list) {
+        if(list.arg2 == 3){
+            showMusicList();
+        }
+    };
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        int color_accent = MyApplication.getColor_accent();
+        fastScrollRecyclerView.setThumbColor(color_accent);
+        fastScrollRecyclerView.setPopupBgColor(color_accent);
+    }
 
     @Override
     public void onDestroy() {
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
-        getActivity().unregisterReceiver(list_permissionReceiver);
+//        getActivity().unregisterReceiver(list_permissionReceiver);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        EventBus.getDefault().register(this);
 
-        //动态注册广播
-        list_permissionReceiver = new list_PermissionReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("list_permission_granted");
-        getActivity().registerReceiver(list_permissionReceiver, intentFilter);
 
         View rootView = inflater.inflate(R.layout.fragment_musiclist, container, false);
         fastScrollRecyclerView = (FastScrollRecyclerView) rootView.findViewById(R.id.fastScrollRecyclerView);
@@ -62,47 +77,6 @@ public class MusiclistFragment extends Fragment {
 
     }
 
-    @Override
-    public void onStart() {
-        new getColorTask().execute();
-        super.onStart();
-    }
-
-
-    private class list_PermissionReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //显示界面
-            showMusicList();
-        }
-    }
-
-
-    private class getColorTask extends AsyncTask {
-        @Override
-        protected Object doInBackground(Object[] objects) {
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            int accent_color = sharedPref.getInt("accent_color", 0);
-            if (accent_color != 0){
-                return accent_color;
-            } else {
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Object o) {
-            super.onPostExecute(o);
-            if (o == null){
-                fastScrollRecyclerView.setThumbColor(getResources().getColor(R.color.colorAccent));
-                fastScrollRecyclerView.setPopupBgColor(getResources().getColor(R.color.colorAccent));
-            }else {
-                fastScrollRecyclerView.setThumbColor((int) o);
-                fastScrollRecyclerView.setPopupBgColor((int) o);
-            }
-        }
-    }
 
     private void showMusicList() {
             LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());

@@ -37,7 +37,10 @@ import com.bumptech.glide.request.FutureTarget;
 import com.bumptech.glide.request.target.Target;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.ServiceEvent;
+import com.lixiangsoft.lixiang.music_player.EventBusUtil.showListEvent;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -114,9 +117,10 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
             public void onClick(View view) {
                 MyApplication.setMusicListNow(Timessublist, "Timessublist");
                 MyApplication.setPositionNow(position);
-                Intent intent = new Intent("service_broadcast");
-                intent.putExtra("ACTION", MyConstant.playAction);
-                mContext.sendBroadcast(intent);
+                EventBus.getDefault().post(new ServiceEvent(MyConstant.playAction));
+//                Intent intent = new Intent("service_broadcast");
+//                intent.putExtra("ACTION", MyConstant.playAction);
+//                mContext.sendBroadcast(intent);
             }
         });
         //处理菜单点击
@@ -205,15 +209,15 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
         //通知其他adapter
         MyApplication.initialMusicInfo(mContext);
         //更新Recommend界面（仅1）
-        Intent intent = new Intent("permission_granted");
-        intent.putExtra("Action", 1);
-        mContext.sendBroadcast(intent);
+//        Intent intent = new Intent("permission_granted");
+//        intent.putExtra("Action", 1);
+//        mContext.sendBroadcast(intent);
         //更新fastscroll界面
-        Intent intent2 = new Intent("list_permission_granted");
-        mContext.sendBroadcast(intent2);
+//        Intent intent2 = new Intent("list_permission_granted");
+//        mContext.sendBroadcast(intent2);
+//        EventBus.getDefault().post(new showListEvent(3));
         //更新列表界面（整个）
-        Intent intent3 = new Intent("list_changed");
-        mContext.sendBroadcast(intent3);
+        EventBus.getDefault().post(new showListEvent(0,3,6));
     }
 
     private void searchForAlbum(final Activity context, final int position) {
@@ -314,15 +318,17 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
                 //通知其他列表
                 MyApplication.initialMusicInfo(mContext);
                 //更新Recommend界面（仅1）
-                Intent intent = new Intent("permission_granted");
-                intent.putExtra("Action", 1);
-                mContext.sendBroadcast(intent);
+//                Intent intent = new Intent("permission_granted");
+//                intent.putExtra("Action", 1);
+//                mContext.sendBroadcast(intent);
                 //更新fastscroll界面
-                Intent intent2 = new Intent("list_permission_granted");
-                mContext.sendBroadcast(intent2);
+//                Intent intent2 = new Intent("list_permission_granted");
+//                mContext.sendBroadcast(intent2);
+//                EventBus.getDefault().post(new showListEvent(3));
                 //更新列表界面（整个）
-                Intent intent3 = new Intent("list_changed");
-                mContext.sendBroadcast(intent3);
+//                Intent intent3 = new Intent("list_changed");
+//                mContext.sendBroadcast(intent3);
+                EventBus.getDefault().post(new showListEvent(0,3,6));
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -431,8 +437,9 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
 //                    }
 //                }).show();
                 //更新界面
-                Intent intent = new Intent("list_changed");
-                context.sendBroadcast(intent);
+                EventBus.getDefault().post(new showListEvent(6));
+//                Intent intent = new Intent("list_changed");
+//                context.sendBroadcast(intent);
             }
         });
         return dialog;
@@ -462,8 +469,9 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
 //                            }
 //                        }).show();
                         //更新列表界面
-                        Intent intent = new Intent("list_changed");
-                        context.sendBroadcast(intent);
+//                        Intent intent = new Intent("list_changed");
+//                        context.sendBroadcast(intent);
+                        EventBus.getDefault().post(new showListEvent(6));
                     } else {
                         Toast.makeText(context, "该列表已存在", Toast.LENGTH_SHORT).show();
                     }
@@ -561,15 +569,17 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
                 //通知其他列表
                 MyApplication.initialMusicInfo(mContext);
                 //更新Recommend界面（仅1）
-                Intent intent = new Intent("permission_granted");
-                intent.putExtra("Action", 1);
-                mContext.sendBroadcast(intent);
+//                Intent intent = new Intent("permission_granted");
+//                intent.putExtra("Action", 1);
+//                mContext.sendBroadcast(intent);
                 //更新fastscroll界面
-                Intent intent2 = new Intent("list_permission_granted");
-                mContext.sendBroadcast(intent2);
+//                Intent intent2 = new Intent("list_permission_granted");
+//                mContext.sendBroadcast(intent2);
+//                EventBus.getDefault().post(new showListEvent(3));
                 //更新列表界面（整个）
-                Intent intent3 = new Intent("list_changed");
-                mContext.sendBroadcast(intent3);
+//                Intent intent3 = new Intent("list_changed");
+//                mContext.sendBroadcast(intent3);
+                EventBus.getDefault().post(new showListEvent(0,3,6));
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -626,15 +636,17 @@ public class FavouriteListAdapter extends RecyclerView.Adapter<FavouriteListAdap
                         //通知其他界面
                         MyApplication.initialMusicInfo(mContext);
                         //更新Recommend界面（仅1）
-                        Intent intent = new Intent("permission_granted");
-                        intent.putExtra("Action", 1);
-                        mContext.sendBroadcast(intent);
+//                        Intent intent = new Intent("permission_granted");
+//                        intent.putExtra("Action", 1);
+//                        mContext.sendBroadcast(intent);
                         //更新fastscroll界面
-                        Intent intent2 = new Intent("list_permission_granted");
-                        mContext.sendBroadcast(intent2);
+//                        Intent intent2 = new Intent("list_permission_granted");
+//                        mContext.sendBroadcast(intent2);
+//                        EventBus.getDefault().post(new showListEvent(3));
                         //更新列表界面（整个）
-                        Intent intent3 = new Intent("list_changed");
-                        mContext.sendBroadcast(intent3);
+//                        Intent intent3 = new Intent("list_changed");
+//                        mContext.sendBroadcast(intent3);
+                        EventBus.getDefault().post(new showListEvent(0,3,6));
                     }
                 }
             });
