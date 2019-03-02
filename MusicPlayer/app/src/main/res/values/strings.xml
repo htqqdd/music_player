@@ -12,6 +12,8 @@
     <string name="sc_randomPlay">"随机播放所有曲目"</string>
     <string name="preference_color_primary">"随机播放所有曲目"</string>
 
+    <string name="pause">"暂停"</string>
+
     <string-array name="start_page_entries">
         <item>建议曲目</item>
         <item>本地歌曲</item>

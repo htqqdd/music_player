@@ -38,6 +38,8 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.media.session.MediaButtonReceiver;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.graphics.Palette;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -125,8 +127,21 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             mediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
             mediaSession = new MediaSession(getApplicationContext(), "MusicPlayer");
             mediaSession.setActive(true);
+            mediaSession.setFlags(MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS | MediaSession.FLAG_HANDLES_MEDIA_BUTTONS);            PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
+            stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
+            mediaSession.setPlaybackState(stateBuilder.build());
             mediaSession.setCallback(new MediaSession.Callback() {
+                @Override
+                public void onSkipToNext() {
+                    next();
+                    super.onSkipToNext();
+                }
 
+                @Override
+                public void onSkipToPrevious() {
+                    previous();
+                    super.onSkipToPrevious();
+                }
             });
         }
 
@@ -490,6 +505,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
         releaseMedia();
         removeNotification();
         removeAudioFocus();
+        mediaSession.setCallback(null);
+        mediaSession.setActive(false);
+        mediaSession.release();
         try{
             mEqualizer.release();
             mVirtualizer.release();
@@ -563,9 +581,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                     .putString(MediaMetadata.METADATA_KEY_ARTIST, singerNow)
                     .putString(MediaMetadata.METADATA_KEY_TITLE, titleNow)
                     .build());
-            PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
-            stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
-            mediaSession.setPlaybackState(stateBuilder.build());
+//            PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
+//            stateBuilder.setState(PlaybackState.STATE_PLAYING, mediaPlayer.getCurrentPosition(), 1.0f);
+//            mediaSession.setPlaybackState(stateBuilder.build());
             buildNotification(MyConstant.playing);
             return false;
         }
@@ -630,29 +648,32 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
             mChannel.enableVibration(false);
 //            mChannel.setShowBadge(false);
             mNotificationManager.createNotificationChannel(mChannel);
+
             notification = new Notification.Builder(PlayService.this, CHANNEL_ID)
                     // Show controls on lock screen even when user hides sensitive content.
                     .setVisibility(Notification.VISIBILITY_PUBLIC)
                     .setLargeIcon(albumNow)
                     .setSmallIcon(R.drawable.ic_album_black_24dp)
                     .setDeleteIntent(pendingIntent(MyConstant.deleteAction))
-                    .setColor(ColorUtil.getColor(albumNow))
+//                    .setColor(ColorUtil.getColor(albumNow))
                     .setContentIntent(startMainActivity)
                     .setOngoing(MyApplication.getState().equals(MyConstant.playing))//该选项会导致手表通知不显示
+                    .addAction(new Notification.Action(R.drawable.ic_pause_black_24dp, getString(R.string.pause), MediaButtonReceiver.buildMediaButtonPendingIntent(PlayService.this,PlaybackState.ACTION_PLAY_PAUSE)))
                     // Add media control buttons that invoke intents in your media service
-                    .addAction(R.drawable.ic_skip_previous_black_24dp, "SkiptoPrevious", pendingIntent(MyConstant.previousAction)) // #0
-                    .addAction(notificationAction, "Play or Pause", play_pauseIntent)  // #1
-                    .addAction(R.drawable.ic_skip_next_black_24dp, "SkiptoNext", pendingIntent(MyConstant.nextAction))     // #2
+//                    .addAction(R.drawable.ic_skip_previous_black_24dp, "SkiptoPrevious", pendingIntent(MyConstant.previousAction)) // #0
+//                    .addAction(notificationAction, "Play or Pause", play_pauseIntent)  // #1
+//                    .addAction(R.drawable.ic_skip_next_black_24dp, "SkiptoNext", pendingIntent(MyConstant.nextAction))     // #2
                     // Apply the media style template
                     .setStyle(new Notification.MediaStyle()
-                            .setShowActionsInCompactView(0, 1, 2)
+//                            .setShowActionsInCompactView(0, 1, 2)
                             .setMediaSession(mediaSession.getSessionToken())
                     )
                     .setContentTitle(titleNow)
                     .setContentText(singerNow)
                     .build();
+            PlayService.this.startForeground(NOTIFICATION_ID, notification);
 
-            mNotificationManager.notify(NOTIFICATION_ID, notification);
+//            mNotificationManager.notify(NOTIFICATION_ID, notification);
         } else {
             notification = new Notification.Builder(PlayService.this)
                     // Show controls on lock screen even when user hides sensitive content.
@@ -660,7 +681,7 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                     .setLargeIcon(albumNow)
                     .setSmallIcon(R.drawable.ic_album_black_24dp)
                     .setDeleteIntent(pendingIntent(MyConstant.deleteAction))
-                    .setColor(ColorUtil.getColor(albumNow))
+//                    .setColor(ColorUtil.getColor(albumNow))
                     .setContentIntent(startMainActivity)
                     .setOngoing(MyApplication.getState().equals(MyConstant.playing))//该选项会导致手表通知不显示
                     // Add media control buttons that invoke intents in your media service
@@ -675,8 +696,9 @@ public class PlayService extends Service implements AudioManager.OnAudioFocusCha
                     .setContentTitle(titleNow)
                     .setContentText(singerNow)
                     .build();
+            PlayService.this.startForeground(NOTIFICATION_ID, notification);
 
-            mNotificationManager.notify(NOTIFICATION_ID, notification);
+//            mNotificationManager.notify(NOTIFICATION_ID, notification);
         }
     }
 
