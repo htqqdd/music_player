@@ -1,4 +1,7 @@
-# music_player
+## music_player
+
+本项目已暂停维护，存档代码仅供学习交流。
+
 My first android application
 项目的建立离不开以下开源项目的支持：
 音乐搜索器
